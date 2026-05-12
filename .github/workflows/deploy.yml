@@ -32,4 +32,4 @@ jobs:
         run: |
           rsync -avz --delete -e "ssh -p 18765" \
             dist/ \
-            u3456-4wxisq8acffh@gtxm1061.siteground.biz:/home/u3456-4wxisq8acffh/public_html/
+            u3456-4wxisq8acffh@gtxm1061.siteground.biz:/home/u3456-4wxisq8acffh/www/ase-cor-oba.site/public_html/
