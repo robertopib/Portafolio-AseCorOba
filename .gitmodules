@@ -1,0 +1,3 @@
+[submodule "governance"]
+	path = governance
+	url = https://github.com/robertopib/ai-dev-governance.git
