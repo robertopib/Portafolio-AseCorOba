@@ -13,6 +13,13 @@ export const Navigation: GlobalConfig = {
   },
   fields: [
     {
+      name: 'brand',
+      type: 'text',
+      localized: true,
+      label: 'Nombre de la marca',
+      admin: { description: 'El nombre que aparece a la izquierda del menú.' },
+    },
+    {
       name: 'items',
       type: 'array',
       label: 'Enlaces del menú',
@@ -36,6 +43,7 @@ export const Navigation: GlobalConfig = {
           options: [
             { label: 'Página del sitio', value: 'page' },
             { label: 'Enlace personalizado', value: 'custom' },
+            { label: 'Ancla en la portada (p. ej. #work)', value: 'anchor' },
           ],
         },
         {
@@ -53,6 +61,15 @@ export const Navigation: GlobalConfig = {
           label: 'Enlace (URL)',
           admin: {
             condition: (_, siblingData) => siblingData?.linkType === 'custom',
+          },
+        },
+        {
+          name: 'anchor',
+          type: 'text',
+          label: 'Ancla (p. ej. #work)',
+          admin: {
+            condition: (_, siblingData) => siblingData?.linkType === 'anchor',
+            description: 'Salta a esta sección cuando ya estás en la portada.',
           },
         },
       ],

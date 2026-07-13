@@ -31,9 +31,12 @@ export const Pages: CollectionConfig = {
       ],
     },
   },
-  versions: {
-    drafts: true,
-  },
+  // NOTE: drafts were disabled during the Phase-3 migration. The Neon dev DB's
+  // `_pages_v*` version tables were left in a stale/inconsistent state (dev push
+  // did not heal them), which aborted every Pages write inside the version
+  // cleanup step. This build-time-export workflow only ever publishes, so drafts
+  // are not needed. Re-enable with `versions: { drafts: true }` once the version
+  // tables can be rebuilt (a fresh migration / fresh DB).
   fields: [
     {
       name: 'title',

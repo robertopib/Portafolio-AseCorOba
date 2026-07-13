@@ -16,6 +16,17 @@
 
 export type Localized = { es: string; en: string };
 
+/** Per-card size token in a masonry gallery (maps to col/row-span classes). */
+export type ProjectCardSize =
+  | 'normal'
+  | 'col3'
+  | 'col4'
+  | 'hero'
+  | 'wide-tall'
+  | 'wide5-tall'
+  | 'tall'
+  | 'med';
+
 /** A single project card, pre-resolved from the Payload `projects` collection. */
 export interface ResolvedProject {
   id?: string | number;
@@ -23,6 +34,8 @@ export interface ResolvedProject {
   alt: Localized;
   category: Localized;
   title: Localized;
+  /** Optional per-card masonry span (only used by masonry-* variants). */
+  size?: ProjectCardSize;
 }
 
 export interface HeroBlockProps {
@@ -50,7 +63,14 @@ export interface PortfolioSectionBlockProps {
 export interface ProjectGalleryBlockProps {
   blockType: 'projectGallery';
   id?: string;
-  layoutVariant: 'masonry-branding' | 'grid-3' | 'masonry-photo' | 'grid-4' | 'single';
+  layoutVariant:
+    | 'grid-3'
+    | 'grid-4'
+    | 'single'
+    | 'masonry-photo'
+    | 'masonry-6'
+    | 'masonry-8'
+    | 'masonry-10';
   /** Pre-resolved project cards (the future fetch script resolves source/filter). */
   projects?: ResolvedProject[];
 }

@@ -3,23 +3,52 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { Lightbox } from "../components/Lightbox";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import type { ProjectGalleryBlockProps, ResolvedProject } from "./types";
+import type { ProjectGalleryBlockProps, ResolvedProject, ProjectCardSize } from "./types";
 
 /**
  * ProjectGallery block — renders a set of pre-resolved project cards in one of
- * the five layout variants, reusing the exact grid JSX/classNames from the
- * original section components and project pages:
+ * the layout variants, reusing the exact grid JSX/classNames from the original
+ * section components and project pages:
  *
- *   - 'grid-3'          → WebAppDesign / CorporateBranding home grid
- *   - 'grid-4'          → Marketing360 home grid
- *   - 'masonry-photo'   → ProductPhotography home grid (1 large + mediums)
- *   - 'masonry-branding'→ BrandingProjects sports masonry grid
- *   - 'single'          → one image, contained width
+ *   - 'grid-3'        → WebAppDesign / CorporateBranding home grid
+ *   - 'grid-4'        → Marketing360 home grid
+ *   - 'masonry-photo' → ProductPhotography home grid (1 large + mediums)
+ *   - 'masonry-6'     → project-page masonry over a 6-col grid (web-apps,
+ *                       photography, marketing, branding/sports)
+ *   - 'masonry-8'     → project-page masonry over an 8-col grid (branding/beauty)
+ *   - 'masonry-10'    → project-page masonry over a 10-col grid (branding/logos)
+ *   - 'single'        → one image, contained width
+ *
+ * The three masonry-N variants use each card's `size` token to reproduce the
+ * exact per-card col/row-span from the original pages (see SIZE_SPANS).
  *
  * All variants share one Lightbox (reusing components/Lightbox.tsx). Project
- * data (image path + localized alt/category/title) is passed in via props;
- * source/filter resolution is handled upstream by the fetch script.
+ * data (image path + localized alt/category/title + optional size) is passed in
+ * via props; source/filter resolution is handled upstream by the fetch script.
  */
+
+/**
+ * Per-card size token → Tailwind col/row-span classes. The class strings encode
+ * the exact spans used by the original project pages (the `md:` breakpoint
+ * carries the real desktop span; the base span matches the originals' mobile
+ * fallback). Grid column base is set per-variant on the wrapper.
+ */
+const SIZE_SPANS: Record<ProjectCardSize, string> = {
+  normal: "col-span-2 md:col-span-2",
+  col3: "col-span-2 md:col-span-3",
+  col4: "col-span-4 md:col-span-4",
+  hero: "col-span-4 md:col-span-4 row-span-2",
+  "wide-tall": "col-span-2 md:col-span-3 row-span-2",
+  "wide5-tall": "col-span-4 md:col-span-5 row-span-2",
+  tall: "col-span-2 md:col-span-2 row-span-2",
+  med: "col-span-2 md:col-span-2 row-span-1",
+};
+
+const MASONRY_COLS: Record<string, string> = {
+  "masonry-6": "grid-cols-4 md:grid-cols-6",
+  "masonry-8": "grid-cols-4 md:grid-cols-8",
+  "masonry-10": "grid-cols-4 md:grid-cols-10",
+};
 export function ProjectGallery(props: ProjectGalleryBlockProps) {
   const { language } = useLanguage();
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
@@ -57,8 +86,15 @@ export function ProjectGallery(props: ProjectGalleryBlockProps) {
         {props.layoutVariant === "masonry-photo" && (
           <MasonryPhoto projects={projects} language={language} openLightbox={openLightbox} />
         )}
-        {props.layoutVariant === "masonry-branding" && (
-          <MasonryBranding projects={projects} language={language} openLightbox={openLightbox} />
+        {(props.layoutVariant === "masonry-6" ||
+          props.layoutVariant === "masonry-8" ||
+          props.layoutVariant === "masonry-10") && (
+          <Masonry
+            projects={projects}
+            language={language}
+            openLightbox={openLightbox}
+            colsClass={MASONRY_COLS[props.layoutVariant]}
+          />
         )}
         {props.layoutVariant === "single" && (
           <Single projects={projects} language={language} openLightbox={openLightbox} />
@@ -259,41 +295,49 @@ function MasonryPhoto({ projects, language, openLightbox }: VariantProps) {
 }
 
 /**
- * masonry-branding — large hero (col-span-4, row-span-2) + medium/tall cards
- * (BrandingProjects sports masonry grid). First three use the distinct
- * large/medium/tall spans; remaining cards fall back to square medium cards.
+ * masonry-6 / masonry-8 / masonry-10 — the project-page masonry grids. Each card
+ * carries its own `size` token (mapped to the exact col/row-span via SIZE_SPANS)
+ * so the layout matches the originals card-for-card. `colsClass` sets the grid
+ * column base for the variant. The card overlay shows the project category, as
+ * on the original project pages.
  */
-function MasonryBranding({ projects, language, openLightbox }: VariantProps) {
-  const spans = [
-    "col-span-4 md:col-span-4 row-span-2",
-    "col-span-2 md:col-span-2 row-span-1",
-    "col-span-2 md:col-span-2 row-span-2",
-  ];
+function Masonry({
+  projects,
+  language,
+  openLightbox,
+  colsClass,
+}: VariantProps & { colsClass: string }) {
   return (
-    <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
-      {projects.map((project, index) => (
-        <div
-          key={project.id ?? index}
-          className={`${spans[index] ?? "col-span-2"} group cursor-pointer`}
-          onClick={() => openLightbox(index)}
-        >
-          <div className="relative h-full aspect-square bg-gradient-to-br from-purple-400/15 via-pink-300/10 to-rose-300/10 p-[2px] rounded-[3px] overflow-hidden hover:shadow-2xl hover:shadow-xl transition-all duration-500">
-            <div className="relative w-full h-full bg-black rounded-[3px] overflow-hidden">
-              <ImageWithFallback
-                src={project.image}
-                alt={project.alt[language]}
-                className="w-full h-full object-cover group-hover:scale-105 group-hover:brightness-110 transition-all duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-transparent to-rose-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-neutral-100 text-sm font-semibold uppercase tracking-wide">{project.category[language]}</p>
+    <div className={`grid ${colsClass} gap-4`}>
+      {projects.map((project, index) => {
+        const span = SIZE_SPANS[project.size ?? "normal"] ?? SIZE_SPANS.normal;
+        const hasRowSpan = span.includes("row-span-2");
+        return (
+          <div
+            key={project.id ?? index}
+            className={`${span} group cursor-pointer`}
+            onClick={() => openLightbox(index)}
+          >
+            <div
+              className={`relative ${hasRowSpan ? "h-full" : "aspect-square"} bg-gradient-to-br from-purple-400/15 via-pink-300/10 to-rose-300/10 p-[2px] rounded-[3px] overflow-hidden hover:shadow-2xl hover:shadow-xl transition-all duration-500`}
+            >
+              <div className="relative w-full h-full bg-black rounded-[3px] overflow-hidden">
+                <ImageWithFallback
+                  src={project.image}
+                  alt={project.alt[language]}
+                  className="w-full h-full object-cover group-hover:scale-105 group-hover:brightness-110 transition-all duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-transparent to-rose-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <p className="text-neutral-100 text-sm font-semibold uppercase tracking-wide">{project.category[language]}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

@@ -185,7 +185,6 @@ export interface Page {
     | null;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -274,7 +273,7 @@ export interface ProjectGalleryBlock {
   /**
    * ¿Cómo eliges las imágenes que se muestran?
    */
-  source: 'by-filter' | 'manual';
+  source: 'by-filter' | 'manual' | 'items';
   /**
    * ¿De qué sección tomar las imágenes?
    */
@@ -288,13 +287,26 @@ export interface ProjectGalleryBlock {
    */
   group?: string | null;
   /**
-   * Elige a mano las tarjetas de proyecto que quieres mostrar.
+   * Elige a mano las tarjetas de proyecto que quieres mostrar (todas del mismo tamaño).
    */
   projects?: (number | Project)[] | null;
   /**
+   * Elige cada tarjeta y su tamaño en el mosaico (para reproducir el diseño exacto).
+   */
+  items?:
+    | {
+        project: number | Project;
+        /**
+         * El tamaño/espacio que ocupa esta tarjeta en la cuadrícula.
+         */
+        size: 'normal' | 'col3' | 'col4' | 'hero' | 'wide-tall' | 'wide5-tall' | 'tall' | 'med';
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Cómo se distribuyen las tarjetas.
    */
-  layoutVariant: 'masonry-branding' | 'grid-3' | 'masonry-photo' | 'grid-4' | 'single';
+  layoutVariant: 'grid-3' | 'grid-4' | 'single' | 'masonry-photo' | 'masonry-6' | 'masonry-8' | 'masonry-10';
   id?: string | null;
   blockName?: string | null;
   blockType: 'projectGallery';
@@ -811,7 +823,6 @@ export interface PagesSelect<T extends boolean = true> {
       };
   updatedAt?: T;
   createdAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -852,6 +863,13 @@ export interface ProjectGalleryBlockSelect<T extends boolean = true> {
   placement?: T;
   group?: T;
   projects?: T;
+  items?:
+    | T
+    | {
+        project?: T;
+        size?: T;
+        id?: T;
+      };
   layoutVariant?: T;
   id?: T;
   blockName?: T;
@@ -1294,14 +1312,22 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface Navigation {
   id: number;
   /**
+   * El nombre que aparece a la izquierda del menú.
+   */
+  brand?: string | null;
+  /**
    * Cada fila es un enlace del menú. El orden aquí es el orden en el menú.
    */
   items?:
     | {
         label?: string | null;
-        linkType: 'page' | 'custom';
+        linkType: 'page' | 'custom' | 'anchor';
         page?: (number | null) | Page;
         url?: string | null;
+        /**
+         * Salta a esta sección cuando ya estás en la portada.
+         */
+        anchor?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1841,6 +1867,7 @@ export interface UiString {
  * via the `definition` "navigation_select".
  */
 export interface NavigationSelect<T extends boolean = true> {
+  brand?: T;
   items?:
     | T
     | {
@@ -1848,6 +1875,7 @@ export interface NavigationSelect<T extends boolean = true> {
         linkType?: T;
         page?: T;
         url?: T;
+        anchor?: T;
         id?: T;
       };
   updatedAt?: T;
