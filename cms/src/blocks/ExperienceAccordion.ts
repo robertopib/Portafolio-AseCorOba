@@ -7,6 +7,9 @@ import type { Block } from 'payload'
  */
 export const ExperienceAccordion: Block = {
   slug: 'experienceAccordion',
+  // Short dbName: the default table name (with the drafts `_pages_v_blocks_`
+  // prefix + localized nested arrays) exceeds Postgres' 63-char identifier limit.
+  dbName: 'exp_acc',
   interfaceName: 'ExperienceAccordionBlock',
   labels: {
     singular: 'Experiencia (acordeón)',
@@ -30,6 +33,7 @@ export const ExperienceAccordion: Block = {
     {
       name: 'experience',
       type: 'array',
+      dbName: 'exp',
       label: 'Experiencia',
       labels: { singular: 'Puesto', plural: 'Puestos' },
       fields: [
@@ -38,6 +42,7 @@ export const ExperienceAccordion: Block = {
         {
           name: 'responsibilities',
           type: 'array',
+          dbName: 'resp',
           label: 'Responsabilidades',
           labels: { singular: 'Responsabilidad', plural: 'Responsabilidades' },
           fields: [
