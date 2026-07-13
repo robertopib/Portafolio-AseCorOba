@@ -89,8 +89,22 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('es' | 'en') | ('es' | 'en')[];
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    home: Home;
+    about: About;
+    career: Career;
+    'ui-strings': UiString;
+    'section-text': SectionText;
+    'case-study': CaseStudy;
+  };
+  globalsSelect: {
+    home: HomeSelect<false> | HomeSelect<true>;
+    about: AboutSelect<false> | AboutSelect<true>;
+    career: CareerSelect<false> | CareerSelect<true>;
+    'ui-strings': UiStringsSelect<false> | UiStringsSelect<true>;
+    'section-text': SectionTextSelect<false> | SectionTextSelect<true>;
+    'case-study': CaseStudySelect<false> | CaseStudySelect<true>;
+  };
   locale: 'es' | 'en';
   widgets: {
     collections: CollectionsWidget;
@@ -361,6 +375,845 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home".
+ */
+export interface Home {
+  id: number;
+  hero?: {
+    backgroundImage?: string | null;
+    title?: string | null;
+    subtitle?: string | null;
+    body?: string | null;
+    cta1?: string | null;
+    cta2?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: number;
+  headings?: {
+    education?: string | null;
+    tools?: string | null;
+    languages?: string | null;
+  };
+  education?:
+    | {
+        item?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  tools?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  languages?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  contact?: {
+    heading?: string | null;
+    body?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  socialLinks?:
+    | {
+        name?: string | null;
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  footer?: {
+    copyrightPrefix?: string | null;
+    rights?: string | null;
+    privacy?: string | null;
+    terms?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "career".
+ */
+export interface Career {
+  id: number;
+  headings?: {
+    careerPath?: string | null;
+    professionalExperience?: string | null;
+  };
+  experience?:
+    | {
+        role?: string | null;
+        period?: string | null;
+        responsibilities?:
+          | {
+              item?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-strings".
+ */
+export interface UiString {
+  id: number;
+  /**
+   * Flat i18n key -> localized value pairs. The key list is driven by the frontend (content/ui.json).
+   */
+  strings?:
+    | {
+        key: string;
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "section-text".
+ */
+export interface SectionText {
+  id: number;
+  webApps?: {
+    home?: {
+      heading?: string | null;
+      description?: string | null;
+      studioName?: string | null;
+      roleDescription?: string | null;
+      cta?: string | null;
+    };
+    page?: {
+      title?: string | null;
+      description?: string | null;
+    };
+  };
+  branding?: {
+    home?: {
+      heading?: string | null;
+      description?: string | null;
+      studioName?: string | null;
+      roleDescription?: string | null;
+      cta?: string | null;
+      sectionHeading?: string | null;
+    };
+    page?: {
+      title?: string | null;
+      description?: string | null;
+      subtitleSports?: string | null;
+      subtitleBeauty?: string | null;
+    };
+  };
+  photography?: {
+    home?: {
+      heading?: string | null;
+      description?: string | null;
+      studioName?: string | null;
+      roleDescription?: string | null;
+      cta?: string | null;
+    };
+    page?: {
+      title?: string | null;
+      description?: string | null;
+    };
+  };
+  marketing360?: {
+    home?: {
+      heading?: string | null;
+      description?: string | null;
+      studioName?: string | null;
+      roleDescription?: string | null;
+      cta?: string | null;
+    };
+    page?: {
+      title?: string | null;
+      description?: string | null;
+    };
+  };
+  uxui?: {
+    home?: {
+      heading?: string | null;
+      tagline?: string | null;
+      description?: string | null;
+      studioName?: string | null;
+      roleDescription?: string | null;
+      sketchImage?: string | null;
+      sketchAlt?: string | null;
+      cta?: string | null;
+    };
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "case-study".
+ */
+export interface CaseStudy {
+  id: number;
+  header?: {
+    title?: string | null;
+    tagline?: string | null;
+  };
+  hero?: {
+    image?: string | null;
+    alt?: string | null;
+  };
+  project?: {
+    name?: string | null;
+    subtitle?: string | null;
+    overview?:
+      | {
+          label?: string | null;
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  intro?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  problemSolution?: {
+    problem?: {
+      label?: string | null;
+      text?: string | null;
+    };
+    solution?: {
+      label?: string | null;
+      text?: string | null;
+    };
+  };
+  details?: {
+    headers?: {
+      tools?: string | null;
+      team?: string | null;
+      role?: string | null;
+    };
+    rows?:
+      | {
+          tools?: string | null;
+          team?: string | null;
+          role?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  timeline?: {
+    title?: string | null;
+    durationLabel?: string | null;
+    durationValue?: string | null;
+    phases?:
+      | {
+          phase?: string | null;
+          duration?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  journey?: {
+    title?: string | null;
+    intro?:
+      | {
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    labels?: {
+      action?: string | null;
+      thought?: string | null;
+      friction?: string | null;
+    };
+    stages?:
+      | {
+          number?: string | null;
+          name?: string | null;
+          action?: string | null;
+          thought?: string | null;
+          friction?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    qa?:
+      | {
+          question?: string | null;
+          answer?: string | null;
+          bullets?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  personas?: {
+    title?: string | null;
+    intro?:
+      | {
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    qa?:
+      | {
+          question?: string | null;
+          answer?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+    sectionLabels?: {
+      basicInfo?: string | null;
+      channels?: string | null;
+      motivations?: string | null;
+      painPoints?: string | null;
+    };
+    cards?:
+      | {
+          name?: string | null;
+          descriptor?: string | null;
+          quote?: string | null;
+          basicInfo?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          channels?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          motivations?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          painPoints?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  sketches?: {
+    title?: string | null;
+    intro?:
+      | {
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    qa?:
+      | {
+          question?: string | null;
+          answer?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  learnings?: {
+    title?: string | null;
+    qa?:
+      | {
+          question?: string | null;
+          answer?:
+            | {
+                text?: string | null;
+                id?: string | null;
+              }[]
+            | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home_select".
+ */
+export interface HomeSelect<T extends boolean = true> {
+  hero?:
+    | T
+    | {
+        backgroundImage?: T;
+        title?: T;
+        subtitle?: T;
+        body?: T;
+        cta1?: T;
+        cta2?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        education?: T;
+        tools?: T;
+        languages?: T;
+      };
+  education?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  tools?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  contact?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        email?: T;
+        phone?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        name?: T;
+        url?: T;
+        id?: T;
+      };
+  footer?:
+    | T
+    | {
+        copyrightPrefix?: T;
+        rights?: T;
+        privacy?: T;
+        terms?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "career_select".
+ */
+export interface CareerSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        careerPath?: T;
+        professionalExperience?: T;
+      };
+  experience?:
+    | T
+    | {
+        role?: T;
+        period?: T;
+        responsibilities?:
+          | T
+          | {
+              item?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-strings_select".
+ */
+export interface UiStringsSelect<T extends boolean = true> {
+  strings?:
+    | T
+    | {
+        key?: T;
+        value?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "section-text_select".
+ */
+export interface SectionTextSelect<T extends boolean = true> {
+  webApps?:
+    | T
+    | {
+        home?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              cta?: T;
+            };
+        page?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+            };
+      };
+  branding?:
+    | T
+    | {
+        home?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              cta?: T;
+              sectionHeading?: T;
+            };
+        page?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              subtitleSports?: T;
+              subtitleBeauty?: T;
+            };
+      };
+  photography?:
+    | T
+    | {
+        home?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              cta?: T;
+            };
+        page?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+            };
+      };
+  marketing360?:
+    | T
+    | {
+        home?:
+          | T
+          | {
+              heading?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              cta?: T;
+            };
+        page?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+            };
+      };
+  uxui?:
+    | T
+    | {
+        home?:
+          | T
+          | {
+              heading?: T;
+              tagline?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              sketchImage?: T;
+              sketchAlt?: T;
+              cta?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "case-study_select".
+ */
+export interface CaseStudySelect<T extends boolean = true> {
+  header?:
+    | T
+    | {
+        title?: T;
+        tagline?: T;
+      };
+  hero?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+      };
+  project?:
+    | T
+    | {
+        name?: T;
+        subtitle?: T;
+        overview?:
+          | T
+          | {
+              label?: T;
+              text?: T;
+              id?: T;
+            };
+      };
+  intro?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  problemSolution?:
+    | T
+    | {
+        problem?:
+          | T
+          | {
+              label?: T;
+              text?: T;
+            };
+        solution?:
+          | T
+          | {
+              label?: T;
+              text?: T;
+            };
+      };
+  details?:
+    | T
+    | {
+        headers?:
+          | T
+          | {
+              tools?: T;
+              team?: T;
+              role?: T;
+            };
+        rows?:
+          | T
+          | {
+              tools?: T;
+              team?: T;
+              role?: T;
+              id?: T;
+            };
+      };
+  timeline?:
+    | T
+    | {
+        title?: T;
+        durationLabel?: T;
+        durationValue?: T;
+        phases?:
+          | T
+          | {
+              phase?: T;
+              duration?: T;
+              id?: T;
+            };
+      };
+  journey?:
+    | T
+    | {
+        title?: T;
+        intro?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        labels?:
+          | T
+          | {
+              action?: T;
+              thought?: T;
+              friction?: T;
+            };
+        stages?:
+          | T
+          | {
+              number?: T;
+              name?: T;
+              action?: T;
+              thought?: T;
+              friction?: T;
+              id?: T;
+            };
+        qa?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              bullets?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+      };
+  personas?:
+    | T
+    | {
+        title?: T;
+        intro?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        qa?:
+          | T
+          | {
+              question?: T;
+              answer?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        sectionLabels?:
+          | T
+          | {
+              basicInfo?: T;
+              channels?: T;
+              motivations?: T;
+              painPoints?: T;
+            };
+        cards?:
+          | T
+          | {
+              name?: T;
+              descriptor?: T;
+              quote?: T;
+              basicInfo?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              channels?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              motivations?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              painPoints?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+      };
+  sketches?:
+    | T
+    | {
+        title?: T;
+        intro?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        qa?:
+          | T
+          | {
+              question?: T;
+              answer?: T;
+              id?: T;
+            };
+      };
+  learnings?:
+    | T
+    | {
+        title?: T;
+        qa?:
+          | T
+          | {
+              question?: T;
+              answer?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
