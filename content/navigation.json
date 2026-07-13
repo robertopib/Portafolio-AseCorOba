@@ -1,0 +1,9 @@
+{
+  "_comment": "Navigation menu emitted by the (future) fetch script. Shape: { brand: {es,en}, items: [{ label:{es,en}, href, anchor? }] }. `anchor:true` means the href is an on-page anchor (e.g. '#work') that scroll-jumps when already on the home page and otherwise links to '/<href>'. Consumed by src/app/components/Navigation.tsx.",
+  "brand": { "es": "Asenath Cordero", "en": "Asenath Cordero" },
+  "items": [
+    { "label": { "es": "Proyectos", "en": "Projects" }, "href": "#work", "anchor": true },
+    { "label": { "es": "Sobre mí", "en": "About" }, "href": "#about", "anchor": true },
+    { "label": { "es": "Contacto", "en": "Contact" }, "href": "#contact", "anchor": true }
+  ]
+}

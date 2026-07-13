@@ -1,0 +1,210 @@
+{
+  "_comment": [
+    "Pages emitted by the (future) fetch script from Payload. This file mirrors",
+    "exactly what that script will produce so the front-end can render without a",
+    "live CMS.",
+    "",
+    "SHAPE:",
+    "{ pages: PageData[] }",
+    "  PageData = { slug: string, title?: {es,en}, layout: Block[] }",
+    "    - slug: the URL path segment. '' or 'home' => '/'. Otherwise the path is",
+    "      '/<slug>' (slugs may contain '/', e.g. 'proyectos/branding').",
+    "    - layout: an ordered array of block instances.",
+    "",
+    "Block = { blockType: string, id?: string, ...fields }",
+    "  - blockType is the Payload block `slug` (e.g. 'hero', 'projectGallery').",
+    "  - Localized fields are objects { es, en } (rendered as field[language]).",
+    "  - Language-agnostic fields (number, size, href, email, image path,",
+    "    studioName, tool/language values) are plain scalars.",
+    "  - Media/relationship refs are PRE-RESOLVED: a Hero backgroundImage becomes",
+    "    `backgroundImagePath` (a string); an Image block's `image` is a string",
+    "    path; a ProjectGallery's `projects` is an array of resolved cards:",
+    "      { image: string, alt:{es,en}, category:{es,en}, title:{es,en} }.",
+    "  - ProjectGallery.layoutVariant is one of: masonry-branding | grid-3 |",
+    "    masonry-photo | grid-4 | single.",
+    "",
+    "See src/app/blocks/types.ts for the full per-block prop interfaces."
+  ],
+  "pages": [
+    {
+      "slug": "home",
+      "title": { "es": "Inicio", "en": "Home" },
+      "layout": [
+        {
+          "blockType": "hero",
+          "id": "home-hero",
+          "backgroundImagePath": "/images/hero-background.jpg",
+          "title": {
+            "es": "Soy diseñadora gráfica 360º",
+            "en": "I am a graphic designer 360º"
+          },
+          "subtitle": {
+            "es": "Y este es mi portafolio",
+            "en": "And this is my portfolio"
+          },
+          "body": {
+            "es": "Con más de 10 años de experiencia en diseño visual y estrategia de marca, me especializo en crear identidades visuales cohesivas y experiencias digitales que generan resultados. Mi enfoque combina creatividad estratégica con atención al detalle en cada proyecto.",
+            "en": "With over 10 years of experience in visual design and brand strategy, I specialize in creating cohesive visual identities and digital experiences that generate results. My approach combines strategic creativity with attention to detail in every project."
+          },
+          "cta1": { "es": "Ver mi trabajo", "en": "View my work" },
+          "cta2": { "es": "Contactar", "en": "Contact" }
+        },
+        {
+          "blockType": "sectionHeading",
+          "id": "home-branding-heading",
+          "number": "02",
+          "eyebrow": { "es": "Proyectos", "en": "Projects" },
+          "heading": { "es": "Branding corporativo", "en": "Corporate Branding" }
+        },
+        {
+          "blockType": "portfolioSection",
+          "id": "home-branding-intro",
+          "heading": { "es": "Branding corporativo", "en": "Corporate Branding" },
+          "description": {
+            "es": "Desarrollo de piezas gráficas para canales digitales",
+            "en": "Graphic design development for digital channels"
+          },
+          "studioName": "Barbas.Studio",
+          "roleDescription": {
+            "es": "Dirección de arte, conceptualización y fotografía",
+            "en": "Art direction, conceptualization and photography"
+          },
+          "ctaLabel": {
+            "es": "Ver más proyectos de branding",
+            "en": "View more branding projects"
+          },
+          "ctaHref": "/proyectos/branding"
+        },
+        {
+          "blockType": "projectGallery",
+          "id": "home-branding-gallery",
+          "layoutVariant": "grid-3",
+          "projects": [
+            {
+              "image": "/images/adriana-munoz.png",
+              "alt": {
+                "es": "Adriana Muñoz - Contenido para redes sociales",
+                "en": "Adriana Muñoz - Social media content"
+              },
+              "category": { "es": "Social Media", "en": "Social Media" },
+              "title": { "es": "Adriana Muñoz", "en": "Adriana Muñoz" }
+            },
+            {
+              "image": "/images/fisio-equina.png",
+              "alt": {
+                "es": "FisioEquina - Social media marketing",
+                "en": "FisioEquina - Social media marketing"
+              },
+              "category": { "es": "Social Media", "en": "Social Media" },
+              "title": { "es": "FisioEquina", "en": "FisioEquina" }
+            },
+            {
+              "image": "/images/ana-grace.png",
+              "alt": {
+                "es": "Ana Grace Salon & Estética - Branding digital",
+                "en": "Ana Grace Salon & Estética - Digital branding"
+              },
+              "category": { "es": "Branding", "en": "Branding" },
+              "title": { "es": "Ana Grace", "en": "Ana Grace" }
+            }
+          ]
+        },
+        {
+          "blockType": "contact",
+          "id": "home-contact",
+          "heading": {
+            "es": "¿Trabajamos juntos?",
+            "en": "Shall we work together?"
+          },
+          "body": {
+            "es": "Estoy disponible para nuevos proyectos y colaboraciones. Escríbeme y hablemos.",
+            "en": "I'm available for new projects and collaborations. Write to me and let's talk."
+          },
+          "email": "asenath.cordero@gmail.com",
+          "phone": "+34 658 607 228",
+          "socialLinks": [
+            { "name": "LinkedIn", "url": "https://www.linkedin.com/" },
+            { "name": "Instagram", "url": "https://www.instagram.com/" }
+          ],
+          "footer": {
+            "copyrightPrefix": "© 2026 Asenath Cordero.",
+            "rights": {
+              "es": "Todos los derechos reservados",
+              "en": "All rights reserved"
+            },
+            "privacy": { "es": "Privacidad", "en": "Privacy" },
+            "terms": { "es": "Términos", "en": "Terms" }
+          }
+        }
+      ]
+    },
+    {
+      "slug": "proyectos/branding",
+      "title": { "es": "Branding Corporativo", "en": "Corporate Branding" },
+      "layout": [
+        {
+          "blockType": "sectionHeading",
+          "id": "branding-page-heading",
+          "number": "02",
+          "eyebrow": { "es": "Branding", "en": "Branding" },
+          "heading": { "es": "Branding Corporativo", "en": "Corporate Branding" }
+        },
+        {
+          "blockType": "richText",
+          "id": "branding-page-intro",
+          "paragraphs": [
+            {
+              "text": {
+                "es": "Identidades visuales coherentes y memorables que conectan con tu audiencia.",
+                "en": "Coherent and memorable visual identities that connect with your audience."
+              }
+            }
+          ]
+        },
+        {
+          "blockType": "projectGallery",
+          "id": "branding-page-gallery",
+          "layoutVariant": "masonry-branding",
+          "projects": [
+            {
+              "image": "/images/wodfest-1.png",
+              "alt": {
+                "es": "WodFest Costa Rica - Campaña publicitaria",
+                "en": "WodFest Costa Rica - Advertising campaign"
+              },
+              "category": { "es": "Campaña Publicitaria", "en": "Advertising Campaign" },
+              "title": { "es": "WodFest", "en": "WodFest" }
+            },
+            {
+              "image": "/images/fitness-deadlift.png",
+              "alt": {
+                "es": "OFF DAY Trainer - Técnica Deadlift",
+                "en": "OFF DAY Trainer - Deadlift technique"
+              },
+              "category": { "es": "Contenido Educativo", "en": "Educational Content" },
+              "title": { "es": "OFF DAY Trainer", "en": "OFF DAY Trainer" }
+            },
+            {
+              "image": "/images/snaga-relay.png",
+              "alt": {
+                "es": "SNAGA Team Relay 9th Anniversary",
+                "en": "SNAGA Team Relay 9th Anniversary"
+              },
+              "category": { "es": "Evento Fitness", "en": "Fitness Event" },
+              "title": { "es": "SNAGA Team Relay", "en": "SNAGA Team Relay" }
+            },
+            {
+              "image": "/images/fisio-equina.png",
+              "alt": {
+                "es": "FisioEquina - Social media marketing",
+                "en": "FisioEquina - Social media marketing"
+              },
+              "category": { "es": "Social Media", "en": "Social Media" },
+              "title": { "es": "FisioEquina", "en": "FisioEquina" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

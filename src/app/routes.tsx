@@ -1,23 +1,22 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
-import { HomePage } from "./pages/HomePage";
-import { BrandingProjects } from "./pages/BrandingProjects";
-import { WebAppProjects } from "./pages/WebAppProjects";
-import { UXUIProductProjects } from "./pages/UXUIProductProjects";
-import { ProductPhotographyProjects } from "./pages/ProductPhotographyProjects";
-import { Marketing360Projects } from "./pages/Marketing360Projects";
+import { Page } from "./blocks/Page";
 
+/**
+ * Dynamic, data-driven routing. A single catch-all route renders <Page>, which
+ * looks up the page for the current URL by `slug` from content/pages.json and
+ * renders its blocks. Layout (nav + outlet + scroll-to-top) wraps every route.
+ *
+ * Home is slug '' or 'home' at path '/'. Unknown slugs render the 404 inside
+ * <Page> so the nav/layout stay in place.
+ */
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Layout,
     children: [
-      { index: true, Component: HomePage },
-      { path: "proyectos/branding", Component: BrandingProjects },
-      { path: "proyectos/web-apps", Component: WebAppProjects },
-      { path: "proyectos/uxui-producto", Component: UXUIProductProjects },
-      { path: "proyectos/fotografia-producto", Component: ProductPhotographyProjects },
-      { path: "proyectos/marketing-360", Component: Marketing360Projects },
+      { index: true, Component: Page },
+      { path: "*", Component: Page },
     ],
   },
 ]);
