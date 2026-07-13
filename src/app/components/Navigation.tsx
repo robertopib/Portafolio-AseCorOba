@@ -6,7 +6,7 @@ import { LanguageToggle } from "./LanguageToggle";
 export function Navigation() {
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const { language } = useLanguage();
+  const { t } = useLanguage();
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     if (isHome) {
@@ -24,7 +24,7 @@ export function Navigation() {
         <div className="flex items-center justify-between h-20">
           <div className="flex flex-col gap-1">
             <Link to="/" className="text-xl md:text-2xl tracking-tight text-neutral-900 uppercase hover:text-violet-600 transition-colors">
-              Asenat Cordero Obando
+              {t('nav.brand')}
             </Link>
           </div>
 
@@ -36,14 +36,14 @@ export function Navigation() {
                 onClick={(e) => handleScrollTo(e, "#work")}
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Proyectos' : 'Projects'}
+                {t('nav.projects')}
               </a>
             ) : (
               <Link
                 to="/#work"
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Proyectos' : 'Projects'}
+                {t('nav.projects')}
               </Link>
             )}
             <div className="h-6 w-px bg-neutral-300"></div>
@@ -53,14 +53,14 @@ export function Navigation() {
                 onClick={(e) => handleScrollTo(e, "#about")}
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Sobre Mí' : 'About Me'}
+                {t('nav.about')}
               </a>
             ) : (
               <Link
                 to="/#about"
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Sobre Mí' : 'About Me'}
+                {t('nav.about')}
               </Link>
             )}
             <div className="h-6 w-px bg-neutral-300"></div>
@@ -70,14 +70,14 @@ export function Navigation() {
                 onClick={(e) => handleScrollTo(e, "#contact")}
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Contacto' : 'Contact'}
+                {t('nav.contact')}
               </a>
             ) : (
               <Link
                 to="/#contact"
                 className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
               >
-                {language === 'es' ? 'Contacto' : 'Contact'}
+                {t('nav.contact')}
               </Link>
             )}
             <div className="h-6 w-px bg-neutral-300"></div>

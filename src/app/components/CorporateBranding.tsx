@@ -3,25 +3,18 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Link } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes correctamente
-import wodfest1 from "figma:asset/25e9467c4a5ed8a5438a741b2b6c73115fc4554c.png";
-import wodfest2 from "figma:asset/a8198d99a2383d3dc8005422e6c483014ec215fe.png";
-import adrianaMunoz from "figma:asset/334fe9a7bb579717d2294738e06927cda7ba71a4.png";
-import fisioEquina from "figma:asset/260336305dc5a6d4cceb2f9f7452a687a85b3036.png";
-import anaGrace from "figma:asset/d705e68558f43f7321e71ebf82bad319ce1c7b72.png";
-
-const brandingImages = [
-  { id: 1, src: wodfest1, alt: "WodFest Costa Rica - Campaña publicitaria" },
-  { id: 2, src: wodfest2, alt: "WodFest Costa Rica - Diseño de marca" },
-  { id: 3, src: adrianaMunoz, alt: "Adriana Muñoz - Contenido para redes sociales" },
-  { id: 4, src: fisioEquina, alt: "FisioEquina - Social media marketing" },
-  { id: 5, src: anaGrace, alt: "Ana Grace Salon & Estética - Branding digital" },
-];
+import branding from "../../../content/sections/branding.json";
+import { Lightbox } from "./Lightbox";
 
 export function CorporateBranding() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+
+  const brandingImages = branding.home.images.map((img, id) => ({
+    id: id + 1,
+    src: img.src,
+    alt: img.alt[language],
+  }));
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -59,31 +52,27 @@ export function CorporateBranding() {
 
         <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-100 mb-6 uppercase">
-            {language === 'es' ? 'Proyectos' : 'Projects'}
+            {branding.home.sectionHeading[language]}
           </h2>
         </div>
 
         <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {language === 'es' ? 'Branding corporativo' : 'Corporate Branding'}
+          {branding.home.heading[language]}
         </h3>
         <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {language === 'es'
-            ? 'Desarrollo de piezas gráficas para canales digitales'
-            : 'Graphic design development for digital channels'}
+          {branding.home.description[language]}
         </p>
 
         {/* Barbas.Studio Info */}
         <div className="mb-12 max-w-2xl">
           <p className="text-base text-neutral-100 mb-2">
-            <strong>{language === 'es' ? 'Branding corporativo de:' : 'Corporate branding for:'}</strong> Barbas.Studio
+            <strong>{t('home.studioLabel')}</strong> {branding.home.studioName}
           </p>
           <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
-            {language === 'es' ? 'Mi rol' : 'My Role'}
+            {t('home.roleLabel')}
           </p>
           <p className="text-base text-neutral-400">
-            {language === 'es'
-              ? 'Dirección de arte, conceptualización y fotografía'
-              : 'Art direction, conceptualization and photography'}
+            {branding.home.roleDescription[language]}
           </p>
         </div>
 
@@ -122,7 +111,7 @@ export function CorporateBranding() {
               to="/proyectos/branding"
               className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
             >
-              <span>{language === 'es' ? 'Ver más proyectos de branding' : 'View more branding projects'}</span>
+              <span>{branding.home.cta[language]}</span>
               <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
@@ -130,8 +119,9 @@ export function CorporateBranding() {
 
         {/* Lightbox Modal */}
         {selectedImage !== null && (
-          <div 
-            className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
+          <Lightbox>
+          <div
+            className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center"
             onClick={closeLightbox}
           >
             {/* Close Button */}
@@ -197,6 +187,7 @@ export function CorporateBranding() {
               ))}
             </div>
           </div>
+          </Lightbox>
         )}
       </div>
     </section>

@@ -3,36 +3,18 @@ import { ChevronRight, ChevronLeft, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes de Figma
-import offDayTrainer from "figma:asset/70572ae2f8aee9426315051ec0e738ab6e96ae98.png";
-import topmedEcommerce from "figma:asset/fe5868516f8f0f0648ac6a6beba62d2b7659a597.png";
-import liveBetting from "figma:asset/4f71976a828021b2f3acf2659ef404cd311f5808.png";
-
-const designProjects = [
-  {
-    id: 1,
-    title: "OFF DAY Trainer",
-    category: "Diseño Web de Fitness",
-    image: offDayTrainer
-  },
-  {
-    id: 2,
-    title: "TOPMED E-Commerce",
-    category: "Diseño Responsivo",
-    image: topmedEcommerce
-  },
-  {
-    id: 3,
-    title: "Live Betting App",
-    category: "Aplicación de Apuestas",
-    image: liveBetting
-  }
-];
+import webApps from "../../../content/sections/web-apps.json";
+import { Lightbox } from "./Lightbox";
 
 export function WebAppDesign() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const designProjects = webApps.home.projects.map((p, id) => ({
+    id,
+    title: p.title[language],
+    category: p.category[language],
+    image: p.image,
+  }));
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -67,22 +49,20 @@ export function WebAppDesign() {
         </div>
 
         <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {language === 'es' ? 'Diseño web y apps' : 'Web & App Design'}
+          {webApps.home.heading[language]}
         </h3>
         <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {language === 'es' ? 'Interfaces responsivas y centradas en el usuario' : 'Responsive and user-centered interfaces'}
+          {webApps.home.description[language]}
         </p>
         <div className="mb-12 max-w-2xl">
           <p className="text-base text-neutral-100 mb-2">
-            <strong>{language === 'es' ? 'Branding corporativo de:' : 'Corporate branding for:'}</strong> Barbas.Studio
+            <strong>{t('home.studioLabel')}</strong> {webApps.home.studioName}
           </p>
           <p className="text-sm text-slate-300 font-semibold mb-1 uppercase tracking-wide">
-            {language === 'es' ? 'Mi rol' : 'My Role'}
+            {t('home.roleLabel')}
           </p>
           <p className="text-base text-neutral-400">
-            {language === 'es'
-              ? 'Desarrollo de interfaces web y apps en entorno profesional, trabajando en diseño UI, prototipado y definición de experiencia de usuario para productos digitales escalables.'
-              : 'Development of web and app interfaces in a professional environment, working on UI design, prototyping and user experience definition for scalable digital products.'}
+            {webApps.home.roleDescription[language]}
           </p>
         </div>
 
@@ -118,7 +98,7 @@ export function WebAppDesign() {
             to="/proyectos/web-apps"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
           >
-            <span>{language === 'es' ? 'Ver más proyectos web' : 'View more web projects'}</span>
+            <span>{webApps.home.cta[language]}</span>
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
@@ -126,8 +106,9 @@ export function WebAppDesign() {
 
       {/* Lightbox Modal */}
       {selectedImage !== null && (
+        <Lightbox>
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
           onClick={closeLightbox}
         >
           {/* Close Button */}
@@ -198,6 +179,7 @@ export function WebAppDesign() {
             ))}
           </div>
         </div>
+        </Lightbox>
       )}
     </section>
   );

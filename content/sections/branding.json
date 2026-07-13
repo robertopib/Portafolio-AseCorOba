@@ -1,0 +1,60 @@
+{
+  "home": {
+    "heading": { "es": "Branding corporativo", "en": "Corporate Branding" },
+    "description": {
+      "es": "Desarrollo de piezas gráficas para canales digitales",
+      "en": "Graphic design development for digital channels"
+    },
+    "studioName": "Barbas.Studio",
+    "roleDescription": {
+      "es": "Dirección de arte, conceptualización y fotografía",
+      "en": "Art direction, conceptualization and photography"
+    },
+    "cta": { "es": "Ver más proyectos de branding", "en": "View more branding projects" },
+    "sectionHeading": { "es": "Proyectos", "en": "Projects" },
+    "images": [
+      { "src": "/images/wodfest-1.png", "alt": { "es": "WodFest Costa Rica - Campaña publicitaria", "en": "WodFest Costa Rica - Campaña publicitaria" } },
+      { "src": "/images/wodfest-2.png", "alt": { "es": "WodFest Costa Rica - Diseño de marca", "en": "WodFest Costa Rica - Diseño de marca" } },
+      { "src": "/images/adriana-munoz.png", "alt": { "es": "Adriana Muñoz - Contenido para redes sociales", "en": "Adriana Muñoz - Contenido para redes sociales" } },
+      { "src": "/images/fisio-equina.png", "alt": { "es": "FisioEquina - Social media marketing", "en": "FisioEquina - Social media marketing" } },
+      { "src": "/images/ana-grace.png", "alt": { "es": "Ana Grace Salon & Estética - Branding digital", "en": "Ana Grace Salon & Estética - Branding digital" } }
+    ]
+  },
+  "page": {
+    "title": { "es": "Branding Corporativo", "en": "Corporate Branding" },
+    "description": {
+      "es": "Identidades visuales coherentes y memorables que conectan con tu audiencia",
+      "en": "Coherent and memorable visual identities that connect with your audience"
+    },
+    "subtitleSports": { "es": "Deportes & Fitness", "en": "Sports & Fitness" },
+    "subtitleBeauty": { "es": "Belleza & Estética", "en": "Beauty & Aesthetics" },
+    "sportsProjects": [
+      { "id": 1, "src": "/images/wodfest-1.png", "alt": { "es": "WodFest Costa Rica - Campaña publicitaria", "en": "WodFest Costa Rica - Campaña publicitaria" }, "category": { "es": "Campaña Publicitaria", "en": "Campaña Publicitaria" } },
+      { "id": 2, "src": "/images/wodfest-2.png", "alt": { "es": "WodFest Costa Rica - Diseño de marca", "en": "WodFest Costa Rica - Diseño de marca" }, "category": { "es": "Diseño de Marca", "en": "Diseño de Marca" } },
+      { "id": 10, "src": "/images/fitness-deadlift.png", "alt": { "es": "OFF DAY Trainer - Técnica Deadlift", "en": "OFF DAY Trainer - Técnica Deadlift" }, "category": { "es": "Contenido Educativo", "en": "Contenido Educativo" } },
+      { "id": 11, "src": "/images/fitness-pullups.png", "alt": { "es": "OFF DAY Trainer - Técnica Pull-ups", "en": "OFF DAY Trainer - Técnica Pull-ups" }, "category": { "es": "Contenido Educativo", "en": "Contenido Educativo" } },
+      { "id": 16, "src": "/images/snaga-relay.png", "alt": { "es": "SNAGA Team Relay 9th Anniversary", "en": "SNAGA Team Relay 9th Anniversary" }, "category": { "es": "Evento Fitness", "en": "Evento Fitness" } }
+    ],
+    "adrianaMunozProjects": [
+      { "id": 3, "src": "/images/adriana-munoz.png", "alt": { "es": "Adriana Muñoz - Contenido para redes sociales", "en": "Adriana Muñoz - Contenido para redes sociales" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 6, "src": "/images/phicontour-live.png", "alt": { "es": "Live Técnica Phicontour - Adriana Muñoz", "en": "Live Técnica Phicontour - Adriana Muñoz" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 9, "src": "/images/phibrows-course.png", "alt": { "es": "Curso Phibrows - Material Promocional", "en": "Curso Phibrows - Material Promocional" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 12, "src": "/images/phibrows-before-after.png", "alt": { "es": "Curso Phibrows - Antes y Después", "en": "Curso Phibrows - Antes y Después" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 14, "src": "/images/live-microblading.png", "alt": { "es": "Live con Ana Oprea - Técnica Microblading", "en": "Live con Ana Oprea - Técnica Microblading" }, "category": { "es": "Evento Online", "en": "Evento Online" } },
+      { "id": 15, "src": "/images/live-phibrows-shading.png", "alt": { "es": "Live con Stefany Galeano - Phibrows Shading", "en": "Live con Stefany Galeano - Phibrows Shading" }, "category": { "es": "Evento Online", "en": "Evento Online" } }
+    ],
+    "anaGraceProjects": [
+      { "id": 5, "src": "/images/ana-grace.png", "alt": { "es": "Ana Grace Salon & Estética - Branding digital", "en": "Ana Grace Salon & Estética - Branding digital" }, "category": { "es": "Branding Digital", "en": "Branding Digital" } },
+      { "id": 7, "src": "/images/ana-grace-hair.png", "alt": { "es": "Ana Grace - Promoción Tratamiento Capilar", "en": "Ana Grace - Promoción Tratamiento Capilar" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 8, "src": "/images/ana-grace-online.png", "alt": { "es": "Ana Grace - Compra Online", "en": "Ana Grace - Compra Online" }, "category": { "es": "Social Media", "en": "Social Media" } },
+      { "id": 13, "src": "/images/ana-grace-payment.png", "alt": { "es": "Ana Grace - Información de Pago", "en": "Ana Grace - Información de Pago" }, "category": { "es": "Social Media", "en": "Social Media" } }
+    ],
+    "logoProjects": [
+      { "id": 17, "src": "/images/la-dulcereta.png", "alt": { "es": "La Dulcereta Obleas - Diseño de Logo", "en": "La Dulcereta Obleas - Diseño de Logo" }, "category": { "es": "Logo", "en": "Logo" } },
+      { "id": 18, "src": "/images/fit-cookie.png", "alt": { "es": "Fit Cookie by Elsa Cubero - Diseño de Logo", "en": "Fit Cookie by Elsa Cubero - Diseño de Logo" }, "category": { "es": "Logo", "en": "Logo" } },
+      { "id": 19, "src": "/images/nomads.png", "alt": { "es": "Nomads Eighty-Six - Diseño de Logo", "en": "Nomads Eighty-Six - Diseño de Logo" }, "category": { "es": "Logo", "en": "Logo" } },
+      { "id": 20, "src": "/images/la-pedrena.png", "alt": { "es": "Carnicería La Pedreña - Diseño de Logo", "en": "Carnicería La Pedreña - Diseño de Logo" }, "category": { "es": "Logo", "en": "Logo" } },
+      { "id": 21, "src": "/images/falecon.png", "alt": { "es": "Falecon Decoraciones - Diseño de Logo", "en": "Falecon Decoraciones - Diseño de Logo" }, "category": { "es": "Logo", "en": "Logo" } }
+    ]
+  }
+}

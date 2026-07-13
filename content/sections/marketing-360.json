@@ -1,0 +1,66 @@
+{
+  "home": {
+    "heading": { "es": "Diseño 360°", "en": "360° Design" },
+    "description": {
+      "es": "Estrategias integrales de diseño visual",
+      "en": "Comprehensive visual design strategies"
+    },
+    "studioName": "Barbas.Studio",
+    "roleDescription": {
+      "es": "Desarrollo de soluciones de diseño 360° en entorno profesional, adaptando identidad visual a múltiples formatos y canales de comunicación.",
+      "en": "Development of 360° design solutions in a professional environment, adapting visual identity to multiple formats and communication channels."
+    },
+    "cta": { "es": "Ver más proyectos 360°", "en": "View more 360° projects" },
+    "projects": [
+      {
+        "image": "/images/santa-fe-brochure.png",
+        "title": { "es": "Brochure Corporativo", "en": "Brochure Corporativo" },
+        "category": { "es": "Material Impreso - Grupo Santa Fe", "en": "Material Impreso - Grupo Santa Fe" }
+      },
+      {
+        "image": "/images/concert-banner.png",
+        "title": { "es": "Banner de Evento", "en": "Banner de Evento" },
+        "category": { "es": "Publicidad Digital - Concierto", "en": "Publicidad Digital - Concierto" }
+      },
+      {
+        "image": "/images/basketball-mural.png",
+        "title": { "es": "Mural Deportivo", "en": "Mural Deportivo" },
+        "category": { "es": "Publicidad OOH - PAS Eagles", "en": "Publicidad OOH - PAS Eagles" }
+      },
+      {
+        "image": "/images/fisioterapia-cards.png",
+        "title": { "es": "Tarjetas de Presentación", "en": "Tarjetas de Presentación" },
+        "category": { "es": "Branding - Fisioterapia", "en": "Branding - Fisioterapia" }
+      }
+    ]
+  },
+  "page": {
+    "title": { "es": "Diseño 360°", "en": "360° Design" },
+    "description": {
+      "es": "Estrategias integrales de diseño visual para todos los canales",
+      "en": "Comprehensive visual design strategies for all channels"
+    },
+    "projects": [
+      {
+        "image": "/images/santa-fe-brochure.png",
+        "alt": { "es": "Brochure Corporativo - Grupo Santa Fe", "en": "Brochure Corporativo - Grupo Santa Fe" },
+        "category": { "es": "Material Impreso", "en": "Material Impreso" }
+      },
+      {
+        "image": "/images/concert-banner.png",
+        "alt": { "es": "Banner de Evento - Concierto", "en": "Banner de Evento - Concierto" },
+        "category": { "es": "Publicidad Digital", "en": "Publicidad Digital" }
+      },
+      {
+        "image": "/images/basketball-mural.png",
+        "alt": { "es": "Mural Deportivo - PAS Eagles", "en": "Mural Deportivo - PAS Eagles" },
+        "category": { "es": "Publicidad OOH", "en": "Publicidad OOH" }
+      },
+      {
+        "image": "/images/fisioterapia-cards.png",
+        "alt": { "es": "Tarjetas de Presentación - Fisioterapia", "en": "Tarjetas de Presentación - Fisioterapia" },
+        "category": { "es": "Branding", "en": "Branding" }
+      }
+    ]
+  }
+}

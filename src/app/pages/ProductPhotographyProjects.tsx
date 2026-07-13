@@ -2,39 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes existentes
-import crackers from "figma:asset/0331bcc7cb0ecb8bd115a7c0cf30c0a8ff135f20.png";
-import croissant from "figma:asset/2d1ee71b9db3d47cf9b08fb26a0fcc51b694724b.png";
-import breadDargent from "figma:asset/018f2b6c0c838991be0fd695b9a40d96c17a99cb.png";
-import croissantPackaging from "figma:asset/95b1f1901a9a927a55eb85ba8046e64a5a1c45cb.png";
-import giftBox1 from "figma:asset/499ed072f4775e6510a42bfef3ec1b4947d31bd9.png";
-import giftBoxVinte from "figma:asset/7049f97e2491edd848fa3c28b66e0294e0cf12a8.png";
-
-// Nuevas imágenes de producto
-import giftBoxVinte1 from "figma:asset/447691c1d376a057765b58c44c66dccffa8d8a2d.png";
-import giftBoxVinte2 from "figma:asset/8d57df26d4e90777a83fabf9677891fdc9f1521c.png";
-import giftBoxVinte3 from "figma:asset/7f79ef935ac214cfdb3e4ce14f5f634e1d0b58cb.png";
-import giftBoxVinte4 from "figma:asset/7f991d3c54a3581ede5cf4f87a668e5f34041005.png";
-import giftBoxVinte5 from "figma:asset/ae37db016eb028ff2e031bafffe94dcb4980543d.png";
-import giftBoxVinte6 from "figma:asset/02d666e36750db1697f016e1932e0bdcde6ada9f.png";
-
-const productProjects = [
-  { id: 1, src: crackers, alt: "Crackers D'Argent - Fotografía de Producto", category: "Fotografía de Producto" },
-  { id: 2, src: croissant, alt: "Croissant Artesanal - Fotografía de Producto", category: "Fotografía de Producto" },
-  { id: 3, src: breadDargent, alt: "Pan D'Argent - Fotografía de Producto", category: "Fotografía de Producto" },
-  { id: 4, src: croissantPackaging, alt: "Croissant Premium - Packaging & Fotografía", category: "Packaging" },
-  { id: 5, src: giftBox1, alt: "Caja de Regalo Navideña - Packaging & Fotografía", category: "Packaging" },
-  { id: 6, src: giftBoxVinte1, alt: "Set Regalo Vinte-Vinte - Vista 1", category: "Packaging" },
-  { id: 7, src: giftBoxVinte2, alt: "Set Regalo Vinte-Vinte - Vista 2", category: "Packaging" },
-  { id: 8, src: giftBoxVinte3, alt: "Set Regalo Vinte-Vinte - Vista 3", category: "Packaging" },
-  { id: 9, src: giftBoxVinte, alt: "Set Regalo Vinte-Vinte - Vista 4", category: "Packaging" },
-  { id: 10, src: giftBoxVinte4, alt: "Set Regalo Vinte-Vinte - Vista 5", category: "Packaging" },
-  { id: 11, src: giftBoxVinte5, alt: "Set Regalo Vinte-Vinte - Vista 6", category: "Packaging" },
-  { id: 12, src: giftBoxVinte6, alt: "Set Regalo Vinte-Vinte - Vista 7", category: "Packaging" },
-];
+import { Lightbox } from "../components/Lightbox";
+import photography from "../../../content/sections/photography.json";
 
 export function ProductPhotographyProjects() {
+  const { language, t } = useLanguage();
+  const productProjects = photography.page.projects.map((p, id) => ({
+    id,
+    src: p.image,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   const openLightbox = (index: number) => {
@@ -57,8 +36,6 @@ export function ProductPhotographyProjects() {
     }
   };
 
-  const { language } = useLanguage();
-
   return (
     <div className="min-h-screen bg-black pt-32 pb-16 px-6 md:px-12 lg:px-24 relative overflow-hidden">
       {/* Abstract gradient background shapes */}
@@ -74,7 +51,7 @@ export function ProductPhotographyProjects() {
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm tracking-wider uppercase font-semibold">
-              {language === 'es' ? 'Volver al inicio' : 'Back to home'}
+              {t('nav.back')}
             </span>
           </Link>
 
@@ -84,12 +61,10 @@ export function ProductPhotographyProjects() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-            {language === 'es' ? 'Fotografía de Producto y Packaging' : 'Product Photography & Packaging'}
+            {photography.page.title[language]}
           </h1>
           <p className="text-base text-neutral-300 max-w-3xl">
-            {language === 'es'
-              ? 'Dirección de arte y fotografía que resalta la esencia de cada producto'
-              : 'Art direction and photography that highlights the essence of each product'}
+            {photography.page.description[language]}
           </p>
         </div>
 
@@ -132,8 +107,9 @@ export function ProductPhotographyProjects() {
 
         {/* Lightbox con imagen escalada apropiadamente */}
         {selectedImage !== null && (
+          <Lightbox>
           <div
-            className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
+            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
             onClick={closeLightbox}
           >
             <button
@@ -177,6 +153,7 @@ export function ProductPhotographyProjects() {
               </div>
             </div>
           </div>
+          </Lightbox>
         )}
       </div>
     </div>

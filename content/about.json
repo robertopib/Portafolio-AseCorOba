@@ -1,0 +1,51 @@
+{
+  "headings": {
+    "education": { "es": "Formación", "en": "Education" },
+    "tools": { "es": "Herramientas", "en": "Tools" },
+    "languages": { "es": "Idiomas", "en": "Languages" }
+  },
+  "education": {
+    "es": [
+      "The Hero Camp – Diseño de producto digital (2023)",
+      "Universidad Creativa de Costa Rica – Licenciatura en diseño gráfico (2007 – 2009)"
+    ],
+    "en": [
+      "The Hero Camp – Digital Product Design (2023)",
+      "Universidad Creativa de Costa Rica – Bachelor's Degree in Graphic Design (2007 – 2009)"
+    ]
+  },
+  "tools": [
+    "Adobe Illustrator",
+    "Adobe Photoshop",
+    "Adobe InDesign",
+    "Lightroom",
+    "Figma",
+    "PowerPoint",
+    "Excel",
+    "Word"
+  ],
+  "languages": [
+    "Español – Nativo",
+    "Inglés – B2 (Profesional)",
+    "Catalán – A2"
+  ],
+  "contact": {
+    "heading": { "es": "Gracias por tu tiempo.", "en": "Thank you for your time." },
+    "body": {
+      "es": "Quedo disponible para ampliar información o comentar cómo puedo contribuir al equipo.",
+      "en": "I am available to provide more information or discuss how I can contribute to the team."
+    },
+    "email": "asenath.cordero@gmail.com",
+    "phone": "658 607 228"
+  },
+  "socialLinks": [
+    { "name": "LinkedIn", "url": "https://www.linkedin.com/in/asenat-cordero-obando-productdesigner/" },
+    { "name": "Instagram", "url": "https://www.instagram.com/ase_coroba/" }
+  ],
+  "footer": {
+    "copyrightPrefix": "© 2026 Ase-CorOba.",
+    "rights": { "es": "Todos los derechos reservados", "en": "All rights reserved" },
+    "privacy": { "es": "Privacidad", "en": "Privacy" },
+    "terms": { "es": "Términos", "en": "Terms" }
+  }
+}

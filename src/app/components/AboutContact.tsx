@@ -1,42 +1,26 @@
 import { Mail, Phone, Linkedin, Instagram, GraduationCap, Code, Globe } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import about from "../../../content/about.json";
 
-const socialLinks = [
-  { name: "LinkedIn", icon: Linkedin, url: "https://www.linkedin.com/in/asenat-cordero-obando-productdesigner/" },
-  { name: "Instagram", icon: Instagram, url: "https://www.instagram.com/ase_coroba/" },
-];
+const socialIcons: Record<string, typeof Linkedin> = {
+  LinkedIn: Linkedin,
+  Instagram: Instagram,
+};
 
-const educationES = [
-  "The Hero Camp – Diseño de producto digital (2023)",
-  "Universidad Creativa de Costa Rica – Licenciatura en diseño gráfico (2007 – 2009)"
-];
+const socialLinks = about.socialLinks.map((s) => ({
+  name: s.name,
+  icon: socialIcons[s.name],
+  url: s.url,
+}));
 
-const educationEN = [
-  "The Hero Camp – Digital Product Design (2023)",
-  "Universidad Creativa de Costa Rica – Bachelor's Degree in Graphic Design (2007 – 2009)"
-];
+const tools = about.tools;
 
-const tools = [
-  "Adobe Illustrator",
-  "Adobe Photoshop",
-  "Adobe InDesign",
-  "Lightroom",
-  "Figma",
-  "PowerPoint",
-  "Excel",
-  "Word"
-];
-
-const languages = [
-  "Español – Nativo",
-  "Inglés – B2 (Profesional)",
-  "Catalán – A2"
-];
+const languages = about.languages;
 
 export function AboutContact() {
   const { language } = useLanguage();
-  const education = language === 'es' ? educationES : educationEN;
-  const languagesList = language === 'es' ? languages : languages;
+  const education = about.education[language];
+  const languagesList = languages;
 
   return (
     <footer id="about" className="bg-neutral-900 text-white">
@@ -49,7 +33,7 @@ export function AboutContact() {
               <div className="flex items-center gap-3">
                 <GraduationCap className="w-5 h-5 text-violet-600" />
                 <h3 className="text-base tracking-wider uppercase text-white">
-                  {language === 'es' ? 'Formación' : 'Education'}
+                  {about.headings.education[language]}
                 </h3>
               </div>
             </div>
@@ -70,7 +54,7 @@ export function AboutContact() {
                 <div className="flex items-center gap-3">
                   <Code className="w-5 h-5 text-violet-600" />
                   <h3 className="text-base tracking-wider uppercase text-white">
-                    {language === 'es' ? 'Herramientas' : 'Tools'}
+                    {about.headings.tools[language]}
                   </h3>
                 </div>
               </div>
@@ -92,7 +76,7 @@ export function AboutContact() {
                 <div className="flex items-center gap-3">
                   <Globe className="w-5 h-5 text-violet-600" />
                   <h3 className="text-base tracking-wider uppercase text-white">
-                    {language === 'es' ? 'Idiomas' : 'Languages'}
+                    {about.headings.languages[language]}
                   </h3>
                 </div>
               </div>
@@ -114,12 +98,10 @@ export function AboutContact() {
           {/* CTA Box */}
           <div className="max-w-2xl mx-auto text-center mb-12">
             <h2 className="text-3xl md:text-4xl tracking-tight mb-6 text-neutral-900">
-              {language === 'es' ? 'Gracias por tu tiempo.' : 'Thank you for your time.'}
+              {about.contact.heading[language]}
             </h2>
             <p className="text-neutral-900 leading-relaxed text-base">
-              {language === 'es' 
-                ? 'Quedo disponible para ampliar información o comentar cómo puedo contribuir al equipo.'
-                : 'I am available to provide more information or discuss how I can contribute to the team.'}
+              {about.contact.body[language]}
             </p>
           </div>
 
@@ -131,14 +113,14 @@ export function AboutContact() {
               className="flex items-center gap-2 text-neutral-900 hover:text-violet-600 transition-colors"
             >
               <Mail className="w-5 h-5 text-violet-600" />
-              <span className="text-base">asenath.cordero@gmail.com</span>
+              <span className="text-base">{about.contact.email}</span>
             </a>
             <a 
               href="tel:+34658607228" 
               className="flex items-center gap-2 text-neutral-900 hover:text-violet-600 transition-colors"
             >
               <Phone className="w-5 h-5 text-violet-600" />
-              <span className="text-base">658 607 228</span>
+              <span className="text-base">{about.contact.phone}</span>
             </a>
 
             {/* Social Links */}
@@ -161,14 +143,14 @@ export function AboutContact() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-neutral-900">
             <p className="uppercase">
-              © 2026 Ase-CorOba. {language === 'es' ? 'Todos los derechos reservados' : 'All rights reserved'}.
+              {about.footer.copyrightPrefix} {about.footer.rights[language]}.
             </p>
             <div className="flex gap-6">
               <a href="#" className="hover:text-violet-600 transition-colors uppercase">
-                {language === 'es' ? 'Privacidad' : 'Privacy'}
+                {about.footer.privacy[language]}
               </a>
               <a href="#" className="hover:text-violet-600 transition-colors uppercase">
-                {language === 'es' ? 'Términos' : 'Terms'}
+                {about.footer.terms[language]}
               </a>
             </div>
           </div>
