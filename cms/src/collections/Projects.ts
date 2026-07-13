@@ -2,9 +2,16 @@ import type { CollectionConfig } from 'payload'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
+  labels: {
+    singular: 'Imagen de Proyecto',
+    plural: 'Imágenes de Proyectos',
+  },
   admin: {
     useAsTitle: 'alt',
-    defaultColumns: ['alt', 'section', 'placement', 'group', 'order'],
+    group: 'Portafolio',
+    description:
+      'Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.',
+    defaultColumns: ['image', 'section', 'placement', 'group', 'order', 'alt'],
   },
   defaultSort: 'order',
   fields: [
@@ -12,30 +19,39 @@ export const Projects: CollectionConfig = {
       name: 'section',
       type: 'select',
       required: true,
+      label: 'Página',
+      admin: {
+        description: '¿En qué página aparece esta imagen?',
+      },
       options: [
         { label: 'Branding', value: 'branding' },
-        { label: 'Web Apps', value: 'web-apps' },
+        { label: 'Web y Apps', value: 'web-apps' },
         { label: 'UX/UI Producto', value: 'uxui-producto' },
-        { label: 'Fotografia Producto', value: 'fotografia-producto' },
-        { label: 'Marketing 360', value: 'marketing-360' },
+        { label: 'Fotografía de Producto', value: 'fotografia-producto' },
+        { label: 'Marketing 360°', value: 'marketing-360' },
       ],
     },
     {
       name: 'placement',
       type: 'select',
       required: true,
+      label: 'Dónde se muestra',
+      admin: {
+        description: 'Elige dónde aparece esta tarjeta.',
+      },
       options: [
-        { label: 'Home', value: 'home' },
-        { label: 'Page', value: 'page' },
-        { label: 'Both', value: 'both' },
+        { label: 'Solo vista previa (inicio)', value: 'home' },
+        { label: 'Solo página del proyecto', value: 'page' },
+        { label: 'Ambas', value: 'both' },
       ],
     },
     {
       name: 'group',
       type: 'text',
+      label: 'Grupo',
       admin: {
         description:
-          'Optional. Used for branding sub-groups: sports, adrianaMunoz, anaGrace, logos.',
+          'Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).',
       },
     },
     {
@@ -43,29 +59,35 @@ export const Projects: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       required: true,
+      label: 'Imagen',
     },
     {
       name: 'order',
       type: 'number',
       required: true,
+      label: 'Orden',
       admin: {
-        description: 'Used for sorting within a section/group.',
+        description:
+          'Número para ordenar dentro de su grupo (el menor aparece primero).',
       },
     },
     {
       name: 'title',
       type: 'text',
       localized: true,
+      label: 'Título',
     },
     {
       name: 'alt',
       type: 'text',
       localized: true,
+      label: 'Texto alternativo (accesibilidad)',
     },
     {
       name: 'category',
       type: 'text',
       localized: true,
+      label: 'Categoría',
     },
   ],
 }

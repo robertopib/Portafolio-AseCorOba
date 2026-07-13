@@ -30,26 +30,65 @@ import type { GlobalConfig } from 'payload'
  */
 export const Career: GlobalConfig = {
   slug: 'career',
-  admin: { group: 'Content' },
+  label: 'Experiencia Laboral',
+  admin: {
+    group: 'Páginas y Contenido',
+    description: 'Tu trayectoria profesional (el acordeón de experiencia).',
+  },
   fields: [
     {
       type: 'group',
       name: 'headings',
+      label: 'Títulos',
+      admin: { description: 'Títulos que encabezan la sección de experiencia.' },
       fields: [
-        { name: 'careerPath', type: 'text', localized: true },
-        { name: 'professionalExperience', type: 'text', localized: true },
+        {
+          name: 'careerPath',
+          type: 'text',
+          localized: true,
+          label: 'Título "Trayectoria"',
+        },
+        {
+          name: 'professionalExperience',
+          type: 'text',
+          localized: true,
+          label: 'Título "Experiencia profesional"',
+        },
       ],
     },
     {
       name: 'experience',
       type: 'array',
+      label: 'Experiencia',
+      labels: { singular: 'Puesto', plural: 'Puestos' },
+      admin: {
+        description:
+          'Cada puesto de trabajo. Se muestran en orden, del primero al último.',
+      },
       fields: [
-        { name: 'role', type: 'text', localized: true },
-        { name: 'period', type: 'text', localized: true },
+        {
+          name: 'role',
+          type: 'text',
+          localized: true,
+          label: 'Puesto / cargo',
+        },
+        {
+          name: 'period',
+          type: 'text',
+          localized: true,
+          label: 'Periodo (fechas)',
+        },
         {
           name: 'responsibilities',
           type: 'array',
-          fields: [{ name: 'item', type: 'text', localized: true }],
+          label: 'Responsabilidades',
+          labels: { singular: 'Responsabilidad', plural: 'Responsabilidades' },
+          admin: {
+            description: 'Cada punto de lo que hacías en este puesto.',
+          },
+          fields: [
+            { name: 'item', type: 'text', localized: true, label: 'Punto' },
+          ],
         },
       ],
     },

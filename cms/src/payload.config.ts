@@ -26,8 +26,11 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects],
-  globals: [Home, About, Career, UiStrings, SectionText, CaseStudy],
+  // Order so the admin nav groups read logically:
+  //   Páginas y Contenido -> Portafolio -> Ajustes
+  // (Payload orders nav groups by the definition order in which they first appear.)
+  collections: [Media, Projects, Users],
+  globals: [Home, SectionText, CaseStudy, About, Career, UiStrings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

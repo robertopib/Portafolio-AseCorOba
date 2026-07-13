@@ -18,20 +18,43 @@ import type { GlobalConfig } from 'payload'
  */
 export const UiStrings: GlobalConfig = {
   slug: 'ui-strings',
-  admin: { group: 'Content' },
+  label: 'Navegación y Etiquetas',
+  admin: {
+    group: 'Ajustes',
+    description:
+      "Textos del menú de navegación, botones y etiquetas generales. Cambia solo el 'valor', no la 'clave'.",
+  },
   fields: [
     {
       name: 'strings',
       type: 'array',
+      label: 'Textos',
+      labels: { singular: 'Texto', plural: 'Textos' },
       admin: {
         description:
-          'Flat i18n key -> localized value pairs. The key list is driven by the frontend (content/ui.json).',
+          "Cada fila es un texto de la web. Deja la 'Clave' como está y edita solo el 'Valor'.",
       },
       fields: [
         // Fixed identifier key, shared across locales -> NOT localized.
-        { name: 'key', type: 'text', required: true },
+        {
+          name: 'key',
+          type: 'text',
+          required: true,
+          label: 'Clave (no cambiar)',
+          admin: {
+            description: 'Identificador técnico. No lo modifiques.',
+          },
+        },
         // Per-locale string value.
-        { name: 'value', type: 'text', localized: true },
+        {
+          name: 'value',
+          type: 'text',
+          localized: true,
+          label: 'Valor (el texto visible)',
+          admin: {
+            description: 'El texto que se muestra en la web. Este sí puedes cambiarlo.',
+          },
+        },
       ],
     },
   ],

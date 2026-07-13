@@ -20,19 +20,61 @@ import type { GlobalConfig } from 'payload'
  */
 export const Home: GlobalConfig = {
   slug: 'home',
-  admin: { group: 'Content' },
+  label: 'Página de Inicio — Portada',
+  admin: {
+    group: 'Páginas y Contenido',
+    description:
+      'El texto de la portada (la parte de arriba de la página de inicio).',
+  },
   fields: [
     {
       type: 'group',
       name: 'hero',
+      label: 'Portada',
       fields: [
         // Image path is language-agnostic -> NOT localized.
-        { name: 'backgroundImage', type: 'text' },
-        { name: 'title', type: 'text', localized: true },
-        { name: 'subtitle', type: 'text', localized: true },
-        { name: 'body', type: 'textarea', localized: true },
-        { name: 'cta1', type: 'text', localized: true },
-        { name: 'cta2', type: 'text', localized: true },
+        {
+          name: 'backgroundImage',
+          type: 'text',
+          label: 'Imagen de fondo (ruta)',
+          admin: {
+            description: 'Ruta del archivo de la imagen de fondo de la portada.',
+          },
+        },
+        {
+          name: 'title',
+          type: 'text',
+          localized: true,
+          label: 'Título',
+          admin: { description: 'El título grande de la portada.' },
+        },
+        {
+          name: 'subtitle',
+          type: 'text',
+          localized: true,
+          label: 'Subtítulo',
+        },
+        {
+          name: 'body',
+          type: 'textarea',
+          localized: true,
+          label: 'Texto',
+          admin: { description: 'Párrafo de introducción bajo el título.' },
+        },
+        {
+          name: 'cta1',
+          type: 'text',
+          localized: true,
+          label: 'Botón principal',
+          admin: { description: 'Texto del primer botón.' },
+        },
+        {
+          name: 'cta2',
+          type: 'text',
+          localized: true,
+          label: 'Botón secundario',
+          admin: { description: 'Texto del segundo botón.' },
+        },
       ],
     },
   ],

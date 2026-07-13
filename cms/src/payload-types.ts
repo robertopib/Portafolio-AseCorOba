@@ -67,9 +67,9 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
     media: Media;
     projects: Project;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -77,9 +77,9 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -91,19 +91,19 @@ export interface Config {
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('es' | 'en') | ('es' | 'en')[];
   globals: {
     home: Home;
+    'section-text': SectionText;
+    'case-study': CaseStudy;
     about: About;
     career: Career;
     'ui-strings': UiString;
-    'section-text': SectionText;
-    'case-study': CaseStudy;
   };
   globalsSelect: {
     home: HomeSelect<false> | HomeSelect<true>;
+    'section-text': SectionTextSelect<false> | SectionTextSelect<true>;
+    'case-study': CaseStudySelect<false> | CaseStudySelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     career: CareerSelect<false> | CareerSelect<true>;
     'ui-strings': UiStringsSelect<false> | UiStringsSelect<true>;
-    'section-text': SectionTextSelect<false> | SectionTextSelect<true>;
-    'case-study': CaseStudySelect<false> | CaseStudySelect<true>;
   };
   locale: 'es' | 'en';
   widgets: {
@@ -134,6 +134,63 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Breve descripción de la imagen (para accesibilidad). Sirve también como nombre en la biblioteca.
+   */
+  alt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "projects".
+ */
+export interface Project {
+  id: number;
+  /**
+   * ¿En qué página aparece esta imagen?
+   */
+  section: 'branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360';
+  /**
+   * Elige dónde aparece esta tarjeta.
+   */
+  placement: 'home' | 'page' | 'both';
+  /**
+   * Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).
+   */
+  group?: string | null;
+  image: number | Media;
+  /**
+   * Número para ordenar dentro de su grupo (el menor aparece primero).
+   */
+  order: number;
+  title?: string | null;
+  alt?: string | null;
+  category?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Las personas que pueden entrar a este panel de administración.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -161,48 +218,6 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  alt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "projects".
- */
-export interface Project {
-  id: number;
-  section: 'branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360';
-  placement: 'home' | 'page' | 'both';
-  /**
-   * Optional. Used for branding sub-groups: sports, adrianaMunoz, anaGrace, logos.
-   */
-  group?: string | null;
-  image: number | Media;
-  /**
-   * Used for sorting within a section/group.
-   */
-  order: number;
-  title?: string | null;
-  alt?: string | null;
-  category?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -226,16 +241,16 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
-      } | null)
-    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
     | ({
         relationTo: 'projects';
         value: number | Project;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -281,29 +296,6 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
- */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -335,6 +327,29 @@ export interface ProjectsSelect<T extends boolean = true> {
   category?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -377,125 +392,54 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * El texto de la portada (la parte de arriba de la página de inicio).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home".
  */
 export interface Home {
   id: number;
   hero?: {
+    /**
+     * Ruta del archivo de la imagen de fondo de la portada.
+     */
     backgroundImage?: string | null;
+    /**
+     * El título grande de la portada.
+     */
     title?: string | null;
     subtitle?: string | null;
+    /**
+     * Párrafo de introducción bajo el título.
+     */
     body?: string | null;
+    /**
+     * Texto del primer botón.
+     */
     cta1?: string | null;
+    /**
+     * Texto del segundo botón.
+     */
     cta2?: string | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
 /**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "about".
- */
-export interface About {
-  id: number;
-  headings?: {
-    education?: string | null;
-    tools?: string | null;
-    languages?: string | null;
-  };
-  education?:
-    | {
-        item?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  tools?:
-    | {
-        value?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  languages?:
-    | {
-        value?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  contact?: {
-    heading?: string | null;
-    body?: string | null;
-    email?: string | null;
-    phone?: string | null;
-  };
-  socialLinks?:
-    | {
-        name?: string | null;
-        url?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  footer?: {
-    copyrightPrefix?: string | null;
-    rights?: string | null;
-    privacy?: string | null;
-    terms?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "career".
- */
-export interface Career {
-  id: number;
-  headings?: {
-    careerPath?: string | null;
-    professionalExperience?: string | null;
-  };
-  experience?:
-    | {
-        role?: string | null;
-        period?: string | null;
-        responsibilities?:
-          | {
-              item?: string | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ui-strings".
- */
-export interface UiString {
-  id: number;
-  /**
-   * Flat i18n key -> localized value pairs. The key list is driven by the frontend (content/ui.json).
-   */
-  strings?:
-    | {
-        key: string;
-        value?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
+ * Los títulos y textos que aparecen encima de cada grupo de proyectos (en la vista previa de la página de inicio y en las páginas de proyectos).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "section-text".
  */
 export interface SectionText {
   id: number;
+  /**
+   * Controla los textos de la sección "Web y Apps".
+   */
   webApps?: {
+    /**
+     * Se muestra en la vista previa de esta sección en la página de inicio.
+     */
     home?: {
       heading?: string | null;
       description?: string | null;
@@ -503,12 +447,21 @@ export interface SectionText {
       roleDescription?: string | null;
       cta?: string | null;
     };
+    /**
+     * Se muestra arriba de la página de este proyecto.
+     */
     page?: {
       title?: string | null;
       description?: string | null;
     };
   };
+  /**
+   * Controla los textos de la sección "Branding".
+   */
   branding?: {
+    /**
+     * Se muestra en la vista previa de esta sección en la página de inicio.
+     */
     home?: {
       heading?: string | null;
       description?: string | null;
@@ -517,6 +470,9 @@ export interface SectionText {
       cta?: string | null;
       sectionHeading?: string | null;
     };
+    /**
+     * Se muestra arriba de la página de este proyecto.
+     */
     page?: {
       title?: string | null;
       description?: string | null;
@@ -524,7 +480,13 @@ export interface SectionText {
       subtitleBeauty?: string | null;
     };
   };
+  /**
+   * Controla los textos de la sección "Fotografía de Producto".
+   */
   photography?: {
+    /**
+     * Se muestra en la vista previa de esta sección en la página de inicio.
+     */
     home?: {
       heading?: string | null;
       description?: string | null;
@@ -532,12 +494,21 @@ export interface SectionText {
       roleDescription?: string | null;
       cta?: string | null;
     };
+    /**
+     * Se muestra arriba de la página de este proyecto.
+     */
     page?: {
       title?: string | null;
       description?: string | null;
     };
   };
+  /**
+   * Controla los textos de la sección "Marketing 360°".
+   */
   marketing360?: {
+    /**
+     * Se muestra en la vista previa de esta sección en la página de inicio.
+     */
     home?: {
       heading?: string | null;
       description?: string | null;
@@ -545,12 +516,21 @@ export interface SectionText {
       roleDescription?: string | null;
       cta?: string | null;
     };
+    /**
+     * Se muestra arriba de la página de este proyecto.
+     */
     page?: {
       title?: string | null;
       description?: string | null;
     };
   };
+  /**
+   * Controla los textos de la sección "UX/UI". (El contenido completo del caso de estudio está en "Caso de Estudio UX/UI".)
+   */
   uxui?: {
+    /**
+     * Se muestra en la vista previa de esta sección en la página de inicio.
+     */
     home?: {
       heading?: string | null;
       tagline?: string | null;
@@ -566,22 +546,36 @@ export interface SectionText {
   createdAt?: string | null;
 }
 /**
+ * Todo el contenido de la página del caso de estudio (Snaga).
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "case-study".
  */
 export interface CaseStudy {
   id: number;
+  /**
+   * Título y lema en la parte superior de la página.
+   */
   header?: {
     title?: string | null;
     tagline?: string | null;
   };
+  /**
+   * La imagen grande de portada del caso de estudio.
+   */
   hero?: {
     image?: string | null;
     alt?: string | null;
   };
+  /**
+   * Nombre, subtítulo y resumen del proyecto.
+   */
   project?: {
     name?: string | null;
     subtitle?: string | null;
+    /**
+     * Puntos de resumen (etiqueta + texto).
+     */
     overview?:
       | {
           label?: string | null;
@@ -590,12 +584,18 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Párrafos de introducción del caso de estudio.
+   */
   intro?:
     | {
         text?: string | null;
         id?: string | null;
       }[]
     | null;
+  /**
+   * El problema detectado y la solución propuesta.
+   */
   problemSolution?: {
     problem?: {
       label?: string | null;
@@ -606,6 +606,9 @@ export interface CaseStudy {
       text?: string | null;
     };
   };
+  /**
+   * Tabla de herramientas, equipo y rol.
+   */
   details?: {
     headers?: {
       tools?: string | null;
@@ -621,6 +624,9 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Duración y fases del proyecto.
+   */
   timeline?: {
     title?: string | null;
     durationLabel?: string | null;
@@ -633,6 +639,9 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Etapas y preguntas del recorrido del usuario.
+   */
   journey?: {
     title?: string | null;
     intro?:
@@ -670,6 +679,9 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Perfiles de usuarios tipo del proyecto.
+   */
   personas?: {
     title?: string | null;
     intro?:
@@ -729,6 +741,9 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Sección de bocetos e ideas iniciales.
+   */
   sketches?: {
     title?: string | null;
     intro?:
@@ -745,6 +760,9 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Conclusiones y aprendizajes del proyecto.
+   */
   learnings?: {
     title?: string | null;
     qa?:
@@ -764,6 +782,144 @@ export interface CaseStudy {
   createdAt?: string | null;
 }
 /**
+ * Formación, herramientas, idiomas, datos de contacto y pie de página.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: number;
+  /**
+   * Los títulos que encabezan cada bloque en la página "Sobre mí".
+   */
+  headings?: {
+    education?: string | null;
+    tools?: string | null;
+    languages?: string | null;
+  };
+  /**
+   * Lista de tu formación académica (una línea por estudio).
+   */
+  education?:
+    | {
+        item?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Programas y herramientas que usas (igual en ambos idiomas).
+   */
+  tools?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Idiomas que hablas y tu nivel (igual en ambos idiomas).
+   */
+  languages?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Bloque de contacto de la página.
+   */
+  contact?: {
+    heading?: string | null;
+    body?: string | null;
+    email?: string | null;
+    phone?: string | null;
+  };
+  /**
+   * Enlaces a tus redes sociales (igual en ambos idiomas).
+   */
+  socialLinks?:
+    | {
+        name?: string | null;
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Textos del pie de página (aparece en todas las páginas).
+   */
+  footer?: {
+    copyrightPrefix?: string | null;
+    rights?: string | null;
+    privacy?: string | null;
+    terms?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Tu trayectoria profesional (el acordeón de experiencia).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "career".
+ */
+export interface Career {
+  id: number;
+  /**
+   * Títulos que encabezan la sección de experiencia.
+   */
+  headings?: {
+    careerPath?: string | null;
+    professionalExperience?: string | null;
+  };
+  /**
+   * Cada puesto de trabajo. Se muestran en orden, del primero al último.
+   */
+  experience?:
+    | {
+        role?: string | null;
+        period?: string | null;
+        /**
+         * Cada punto de lo que hacías en este puesto.
+         */
+        responsibilities?:
+          | {
+              item?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Textos del menú de navegación, botones y etiquetas generales. Cambia solo el 'valor', no la 'clave'.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-strings".
+ */
+export interface UiString {
+  id: number;
+  /**
+   * Cada fila es un texto de la web. Deja la 'Clave' como está y edita solo el 'Valor'.
+   */
+  strings?:
+    | {
+        /**
+         * Identificador técnico. No lo modifiques.
+         */
+        key: string;
+        /**
+         * El texto que se muestra en la web. Este sí puedes cambiarlo.
+         */
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home_select".
  */
@@ -777,107 +933,6 @@ export interface HomeSelect<T extends boolean = true> {
         body?: T;
         cta1?: T;
         cta2?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "about_select".
- */
-export interface AboutSelect<T extends boolean = true> {
-  headings?:
-    | T
-    | {
-        education?: T;
-        tools?: T;
-        languages?: T;
-      };
-  education?:
-    | T
-    | {
-        item?: T;
-        id?: T;
-      };
-  tools?:
-    | T
-    | {
-        value?: T;
-        id?: T;
-      };
-  languages?:
-    | T
-    | {
-        value?: T;
-        id?: T;
-      };
-  contact?:
-    | T
-    | {
-        heading?: T;
-        body?: T;
-        email?: T;
-        phone?: T;
-      };
-  socialLinks?:
-    | T
-    | {
-        name?: T;
-        url?: T;
-        id?: T;
-      };
-  footer?:
-    | T
-    | {
-        copyrightPrefix?: T;
-        rights?: T;
-        privacy?: T;
-        terms?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "career_select".
- */
-export interface CareerSelect<T extends boolean = true> {
-  headings?:
-    | T
-    | {
-        careerPath?: T;
-        professionalExperience?: T;
-      };
-  experience?:
-    | T
-    | {
-        role?: T;
-        period?: T;
-        responsibilities?:
-          | T
-          | {
-              item?: T;
-              id?: T;
-            };
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ui-strings_select".
- */
-export interface UiStringsSelect<T extends boolean = true> {
-  strings?:
-    | T
-    | {
-        key?: T;
-        value?: T;
-        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1210,6 +1265,107 @@ export interface CaseStudySelect<T extends boolean = true> {
                   };
               id?: T;
             };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        education?: T;
+        tools?: T;
+        languages?: T;
+      };
+  education?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  tools?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  contact?:
+    | T
+    | {
+        heading?: T;
+        body?: T;
+        email?: T;
+        phone?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        name?: T;
+        url?: T;
+        id?: T;
+      };
+  footer?:
+    | T
+    | {
+        copyrightPrefix?: T;
+        rights?: T;
+        privacy?: T;
+        terms?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "career_select".
+ */
+export interface CareerSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        careerPath?: T;
+        professionalExperience?: T;
+      };
+  experience?:
+    | T
+    | {
+        role?: T;
+        period?: T;
+        responsibilities?:
+          | T
+          | {
+              item?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ui-strings_select".
+ */
+export interface UiStringsSelect<T extends boolean = true> {
+  strings?:
+    | T
+    | {
+        key?: T;
+        value?: T;
+        id?: T;
       };
   updatedAt?: T;
   createdAt?: T;

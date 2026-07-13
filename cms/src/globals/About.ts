@@ -28,62 +28,153 @@ import type { GlobalConfig } from 'payload'
  */
 export const About: GlobalConfig = {
   slug: 'about',
-  admin: { group: 'Content' },
+  label: 'Sobre Mí y Contacto',
+  admin: {
+    group: 'Páginas y Contenido',
+    description:
+      'Formación, herramientas, idiomas, datos de contacto y pie de página.',
+  },
   fields: [
     {
       type: 'group',
       name: 'headings',
+      label: 'Títulos de las secciones',
+      admin: {
+        description:
+          'Los títulos que encabezan cada bloque en la página "Sobre mí".',
+      },
       fields: [
-        { name: 'education', type: 'text', localized: true },
-        { name: 'tools', type: 'text', localized: true },
-        { name: 'languages', type: 'text', localized: true },
+        {
+          name: 'education',
+          type: 'text',
+          localized: true,
+          label: 'Título de Formación',
+        },
+        {
+          name: 'tools',
+          type: 'text',
+          localized: true,
+          label: 'Título de Herramientas',
+        },
+        {
+          name: 'languages',
+          type: 'text',
+          localized: true,
+          label: 'Título de Idiomas',
+        },
       ],
     },
     // education: array of localized items (see modeling note above).
     {
       name: 'education',
       type: 'array',
-      fields: [{ name: 'item', type: 'text', localized: true }],
+      label: 'Formación',
+      labels: { singular: 'Estudio', plural: 'Estudios' },
+      admin: {
+        description: 'Lista de tu formación académica (una línea por estudio).',
+      },
+      fields: [
+        { name: 'item', type: 'text', localized: true, label: 'Estudio' },
+      ],
     },
     // tools: language-agnostic list of strings.
     {
       name: 'tools',
       type: 'array',
-      fields: [{ name: 'value', type: 'text' }],
+      label: 'Herramientas',
+      labels: { singular: 'Herramienta', plural: 'Herramientas' },
+      admin: {
+        description:
+          'Programas y herramientas que usas (igual en ambos idiomas).',
+      },
+      fields: [{ name: 'value', type: 'text', label: 'Herramienta' }],
     },
     // languages: language-agnostic list of strings.
     {
       name: 'languages',
       type: 'array',
-      fields: [{ name: 'value', type: 'text' }],
+      label: 'Idiomas',
+      labels: { singular: 'Idioma', plural: 'Idiomas' },
+      admin: {
+        description: 'Idiomas que hablas y tu nivel (igual en ambos idiomas).',
+      },
+      fields: [{ name: 'value', type: 'text', label: 'Idioma' }],
     },
     {
       type: 'group',
       name: 'contact',
+      label: 'Contacto',
+      admin: { description: 'Bloque de contacto de la página.' },
       fields: [
-        { name: 'heading', type: 'text', localized: true },
-        { name: 'body', type: 'textarea', localized: true },
-        { name: 'email', type: 'text' },
-        { name: 'phone', type: 'text' },
+        {
+          name: 'heading',
+          type: 'text',
+          localized: true,
+          label: 'Título de contacto',
+        },
+        {
+          name: 'body',
+          type: 'textarea',
+          localized: true,
+          label: 'Texto de contacto',
+        },
+        {
+          name: 'email',
+          type: 'text',
+          label: 'Correo electrónico',
+        },
+        {
+          name: 'phone',
+          type: 'text',
+          label: 'Teléfono',
+        },
       ],
     },
     // socialLinks: language-agnostic { name, url } list.
     {
       name: 'socialLinks',
       type: 'array',
+      label: 'Redes sociales',
+      labels: { singular: 'Red social', plural: 'Redes sociales' },
+      admin: {
+        description: 'Enlaces a tus redes sociales (igual en ambos idiomas).',
+      },
       fields: [
-        { name: 'name', type: 'text' },
-        { name: 'url', type: 'text' },
+        { name: 'name', type: 'text', label: 'Nombre (p. ej. Instagram)' },
+        { name: 'url', type: 'text', label: 'Enlace (URL)' },
       ],
     },
     {
       type: 'group',
       name: 'footer',
+      label: 'Pie de página',
+      admin: {
+        description: 'Textos del pie de página (aparece en todas las páginas).',
+      },
       fields: [
-        { name: 'copyrightPrefix', type: 'text' },
-        { name: 'rights', type: 'text', localized: true },
-        { name: 'privacy', type: 'text', localized: true },
-        { name: 'terms', type: 'text', localized: true },
+        {
+          name: 'copyrightPrefix',
+          type: 'text',
+          label: 'Texto de copyright',
+        },
+        {
+          name: 'rights',
+          type: 'text',
+          localized: true,
+          label: 'Derechos reservados',
+        },
+        {
+          name: 'privacy',
+          type: 'text',
+          localized: true,
+          label: 'Privacidad',
+        },
+        {
+          name: 'terms',
+          type: 'text',
+          localized: true,
+          label: 'Términos',
+        },
       ],
     },
   ],
