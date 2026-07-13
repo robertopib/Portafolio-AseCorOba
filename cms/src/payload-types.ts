@@ -67,6 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    pages: Page;
     media: Media;
     projects: Project;
     users: User;
@@ -77,6 +78,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -90,6 +92,7 @@ export interface Config {
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('es' | 'en') | ('es' | 'en')[];
   globals: {
+    navigation: Navigation;
     home: Home;
     'section-text': SectionText;
     'case-study': CaseStudy;
@@ -98,6 +101,7 @@ export interface Config {
     'ui-strings': UiString;
   };
   globalsSelect: {
+    navigation: NavigationSelect<false> | NavigationSelect<true>;
     home: HomeSelect<false> | HomeSelect<true>;
     'section-text': SectionTextSelect<false> | SectionTextSelect<true>;
     'case-study': CaseStudySelect<false> | CaseStudySelect<true>;
@@ -134,6 +138,90 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Las páginas del sitio, construidas con bloques. Arrastra bloques para armar cada página.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  title: string;
+  /**
+   * la dirección de la página, p.ej. proyectos/branding; usa '' o 'home' para la portada
+   */
+  slug: string;
+  /**
+   * Cómo aparece esta página en el menú de navegación.
+   */
+  menuLabel?: string | null;
+  showInNav?: boolean | null;
+  /**
+   * El número menor aparece primero.
+   */
+  navOrder?: number | null;
+  /**
+   * Añade y ordena los bloques que forman esta página.
+   */
+  layout?:
+    | (
+        | HeroBlock
+        | PortfolioSectionBlock
+        | ProjectGalleryBlock
+        | SectionHeadingBlock
+        | RichTextBlock
+        | TwoColumnBlock
+        | DetailsTableBlock
+        | TimelineBlock
+        | JourneyMapBlock
+        | PersonaCardsBlock
+        | QABlock
+        | InfoColumnsBlock
+        | ExperienceAccordionBlock
+        | ContactBlock
+        | ImageBlock
+        | CTAButtonBlock
+        | SpacerBlock
+      )[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock".
+ */
+export interface HeroBlock {
+  /**
+   * Imagen de fondo de la portada (elígela de la biblioteca).
+   */
+  backgroundImage?: (number | null) | Media;
+  /**
+   * Solo si no usas una imagen de la biblioteca: ruta del archivo, p. ej. /images/hero-background.jpg
+   */
+  backgroundImagePath?: string | null;
+  /**
+   * El título grande de la portada.
+   */
+  title?: string | null;
+  subtitle?: string | null;
+  /**
+   * Párrafo de introducción bajo el título.
+   */
+  body?: string | null;
+  /**
+   * Texto del primer botón.
+   */
+  cta1?: string | null;
+  /**
+   * Texto del segundo botón.
+   */
+  cta2?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'hero';
+}
+/**
  * Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -156,6 +244,60 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PortfolioSectionBlock".
+ */
+export interface PortfolioSectionBlock {
+  heading?: string | null;
+  description?: string | null;
+  /**
+   * Igual en ambos idiomas.
+   */
+  studioName?: string | null;
+  roleDescription?: string | null;
+  ctaLabel?: string | null;
+  /**
+   * A dónde lleva el botón. Igual en ambos idiomas.
+   */
+  ctaHref?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'portfolioSection';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProjectGalleryBlock".
+ */
+export interface ProjectGalleryBlock {
+  /**
+   * ¿Cómo eliges las imágenes que se muestran?
+   */
+  source: 'by-filter' | 'manual';
+  /**
+   * ¿De qué sección tomar las imágenes?
+   */
+  section?: ('branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360') | null;
+  /**
+   * Filtra por el campo "Dónde se muestra" de cada proyecto.
+   */
+  placement?: ('home' | 'page' | 'both') | null;
+  /**
+   * Opcional. Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).
+   */
+  group?: string | null;
+  /**
+   * Elige a mano las tarjetas de proyecto que quieres mostrar.
+   */
+  projects?: (number | Project)[] | null;
+  /**
+   * Cómo se distribuyen las tarjetas.
+   */
+  layoutVariant: 'masonry-branding' | 'grid-3' | 'masonry-photo' | 'grid-4' | 'single';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'projectGallery';
 }
 /**
  * Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.
@@ -187,6 +329,344 @@ export interface Project {
   category?: string | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SectionHeadingBlock".
+ */
+export interface SectionHeadingBlock {
+  eyebrow?: string | null;
+  number?: string | null;
+  heading?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'sectionHeading';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock".
+ */
+export interface RichTextBlock {
+  heading?: string | null;
+  paragraphs?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'richText';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TwoColumnBlock".
+ */
+export interface TwoColumnBlock {
+  left?: {
+    label?: string | null;
+    text?: string | null;
+  };
+  right?: {
+    label?: string | null;
+    text?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'twoColumn';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "DetailsTableBlock".
+ */
+export interface DetailsTableBlock {
+  title?: string | null;
+  rows?:
+    | {
+        label?: string | null;
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'detailsTable';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TimelineBlock".
+ */
+export interface TimelineBlock {
+  title?: string | null;
+  durationLabel?: string | null;
+  durationValue?: string | null;
+  phases?:
+    | {
+        phase?: string | null;
+        duration?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'timeline';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "JourneyMapBlock".
+ */
+export interface JourneyMapBlock {
+  title?: string | null;
+  intro?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  labels?: {
+    action?: string | null;
+    thought?: string | null;
+    friction?: string | null;
+  };
+  stages?:
+    | {
+        number?: string | null;
+        name?: string | null;
+        action?: string | null;
+        thought?: string | null;
+        friction?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  qa?:
+    | {
+        question?: string | null;
+        answer?: string | null;
+        bullets?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'journeyMap';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PersonaCardsBlock".
+ */
+export interface PersonaCardsBlock {
+  title?: string | null;
+  intro?:
+    | {
+        text?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  qa?:
+    | {
+        question?: string | null;
+        answer?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  sectionLabels?: {
+    basicInfo?: string | null;
+    channels?: string | null;
+    motivations?: string | null;
+    painPoints?: string | null;
+  };
+  cards?:
+    | {
+        name?: string | null;
+        descriptor?: string | null;
+        quote?: string | null;
+        basicInfo?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        channels?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        motivations?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        painPoints?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'personaCards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "QABlock".
+ */
+export interface QABlock {
+  title?: string | null;
+  items?:
+    | {
+        question?: string | null;
+        answer?: string | null;
+        bullets?:
+          | {
+              text?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'qa';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "InfoColumnsBlock".
+ */
+export interface InfoColumnsBlock {
+  headings?: {
+    education?: string | null;
+    tools?: string | null;
+    languages?: string | null;
+  };
+  education?:
+    | {
+        item?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Igual en ambos idiomas.
+   */
+  tools?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Igual en ambos idiomas.
+   */
+  languages?:
+    | {
+        value?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'infoColumns';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ExperienceAccordionBlock".
+ */
+export interface ExperienceAccordionBlock {
+  headings?: {
+    careerPath?: string | null;
+    professionalExperience?: string | null;
+  };
+  experience?:
+    | {
+        role?: string | null;
+        period?: string | null;
+        responsibilities?:
+          | {
+              item?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'experienceAccordion';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBlock".
+ */
+export interface ContactBlock {
+  heading?: string | null;
+  body?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  socialLinks?:
+    | {
+        name?: string | null;
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  footer?: {
+    copyrightPrefix?: string | null;
+    rights?: string | null;
+    privacy?: string | null;
+    terms?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contact';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageBlock".
+ */
+export interface ImageBlock {
+  image: number | Media;
+  caption?: string | null;
+  width?: ('full' | 'contained' | 'half') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'image';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CTAButtonBlock".
+ */
+export interface CTAButtonBlock {
+  label?: string | null;
+  href?: string | null;
+  style?: ('primary' | 'secondary' | 'link') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ctaButton';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpacerBlock".
+ */
+export interface SpacerBlock {
+  size: 'small' | 'medium' | 'large' | 'xlarge';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'spacer';
 }
 /**
  * Las personas que pueden entrar a este panel de administración.
@@ -241,6 +721,10 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -293,6 +777,416 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  menuLabel?: T;
+  showInNav?: T;
+  navOrder?: T;
+  layout?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        portfolioSection?: T | PortfolioSectionBlockSelect<T>;
+        projectGallery?: T | ProjectGalleryBlockSelect<T>;
+        sectionHeading?: T | SectionHeadingBlockSelect<T>;
+        richText?: T | RichTextBlockSelect<T>;
+        twoColumn?: T | TwoColumnBlockSelect<T>;
+        detailsTable?: T | DetailsTableBlockSelect<T>;
+        timeline?: T | TimelineBlockSelect<T>;
+        journeyMap?: T | JourneyMapBlockSelect<T>;
+        personaCards?: T | PersonaCardsBlockSelect<T>;
+        qa?: T | QABlockSelect<T>;
+        infoColumns?: T | InfoColumnsBlockSelect<T>;
+        experienceAccordion?: T | ExperienceAccordionBlockSelect<T>;
+        contact?: T | ContactBlockSelect<T>;
+        image?: T | ImageBlockSelect<T>;
+        ctaButton?: T | CTAButtonBlockSelect<T>;
+        spacer?: T | SpacerBlockSelect<T>;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroBlock_select".
+ */
+export interface HeroBlockSelect<T extends boolean = true> {
+  backgroundImage?: T;
+  backgroundImagePath?: T;
+  title?: T;
+  subtitle?: T;
+  body?: T;
+  cta1?: T;
+  cta2?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PortfolioSectionBlock_select".
+ */
+export interface PortfolioSectionBlockSelect<T extends boolean = true> {
+  heading?: T;
+  description?: T;
+  studioName?: T;
+  roleDescription?: T;
+  ctaLabel?: T;
+  ctaHref?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProjectGalleryBlock_select".
+ */
+export interface ProjectGalleryBlockSelect<T extends boolean = true> {
+  source?: T;
+  section?: T;
+  placement?: T;
+  group?: T;
+  projects?: T;
+  layoutVariant?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SectionHeadingBlock_select".
+ */
+export interface SectionHeadingBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  number?: T;
+  heading?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "RichTextBlock_select".
+ */
+export interface RichTextBlockSelect<T extends boolean = true> {
+  heading?: T;
+  paragraphs?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TwoColumnBlock_select".
+ */
+export interface TwoColumnBlockSelect<T extends boolean = true> {
+  left?:
+    | T
+    | {
+        label?: T;
+        text?: T;
+      };
+  right?:
+    | T
+    | {
+        label?: T;
+        text?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "DetailsTableBlock_select".
+ */
+export interface DetailsTableBlockSelect<T extends boolean = true> {
+  title?: T;
+  rows?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TimelineBlock_select".
+ */
+export interface TimelineBlockSelect<T extends boolean = true> {
+  title?: T;
+  durationLabel?: T;
+  durationValue?: T;
+  phases?:
+    | T
+    | {
+        phase?: T;
+        duration?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "JourneyMapBlock_select".
+ */
+export interface JourneyMapBlockSelect<T extends boolean = true> {
+  title?: T;
+  intro?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  labels?:
+    | T
+    | {
+        action?: T;
+        thought?: T;
+        friction?: T;
+      };
+  stages?:
+    | T
+    | {
+        number?: T;
+        name?: T;
+        action?: T;
+        thought?: T;
+        friction?: T;
+        id?: T;
+      };
+  qa?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        bullets?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PersonaCardsBlock_select".
+ */
+export interface PersonaCardsBlockSelect<T extends boolean = true> {
+  title?: T;
+  intro?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  qa?:
+    | T
+    | {
+        question?: T;
+        answer?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  sectionLabels?:
+    | T
+    | {
+        basicInfo?: T;
+        channels?: T;
+        motivations?: T;
+        painPoints?: T;
+      };
+  cards?:
+    | T
+    | {
+        name?: T;
+        descriptor?: T;
+        quote?: T;
+        basicInfo?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        channels?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        motivations?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        painPoints?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "QABlock_select".
+ */
+export interface QABlockSelect<T extends boolean = true> {
+  title?: T;
+  items?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        bullets?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "InfoColumnsBlock_select".
+ */
+export interface InfoColumnsBlockSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        education?: T;
+        tools?: T;
+        languages?: T;
+      };
+  education?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  tools?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  languages?:
+    | T
+    | {
+        value?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ExperienceAccordionBlock_select".
+ */
+export interface ExperienceAccordionBlockSelect<T extends boolean = true> {
+  headings?:
+    | T
+    | {
+        careerPath?: T;
+        professionalExperience?: T;
+      };
+  experience?:
+    | T
+    | {
+        role?: T;
+        period?: T;
+        responsibilities?:
+          | T
+          | {
+              item?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBlock_select".
+ */
+export interface ContactBlockSelect<T extends boolean = true> {
+  heading?: T;
+  body?: T;
+  email?: T;
+  phone?: T;
+  socialLinks?:
+    | T
+    | {
+        name?: T;
+        url?: T;
+        id?: T;
+      };
+  footer?:
+    | T
+    | {
+        copyrightPrefix?: T;
+        rights?: T;
+        privacy?: T;
+        terms?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageBlock_select".
+ */
+export interface ImageBlockSelect<T extends boolean = true> {
+  image?: T;
+  caption?: T;
+  width?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CTAButtonBlock_select".
+ */
+export interface CTAButtonBlockSelect<T extends boolean = true> {
+  label?: T;
+  href?: T;
+  style?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpacerBlock_select".
+ */
+export interface SpacerBlockSelect<T extends boolean = true> {
+  size?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -390,6 +1284,29 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * El menú principal del sitio. Ordena los enlaces arrastrándolos.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation".
+ */
+export interface Navigation {
+  id: number;
+  /**
+   * Cada fila es un enlace del menú. El orden aquí es el orden en el menú.
+   */
+  items?:
+    | {
+        label?: string | null;
+        linkType: 'page' | 'custom';
+        page?: (number | null) | Page;
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * El texto de la portada (la parte de arriba de la página de inicio).
@@ -906,7 +1823,7 @@ export interface UiString {
   strings?:
     | {
         /**
-         * Identificador técnico. No lo modifiques.
+         * Identificador técnico. Bloqueado a propósito para que no se pueda romper.
          */
         key: string;
         /**
@@ -918,6 +1835,24 @@ export interface UiString {
     | null;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "navigation_select".
+ */
+export interface NavigationSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        label?: T;
+        linkType?: T;
+        page?: T;
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

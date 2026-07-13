@@ -40,9 +40,10 @@ export const UiStrings: GlobalConfig = {
           name: 'key',
           type: 'text',
           required: true,
-          label: 'Clave (no cambiar)',
+          label: 'Clave (no editable)',
           admin: {
-            description: 'Identificador técnico. No lo modifiques.',
+            readOnly: true,
+            description: 'Identificador técnico. Bloqueado a propósito para que no se pueda romper.',
           },
         },
         // Per-locale string value.

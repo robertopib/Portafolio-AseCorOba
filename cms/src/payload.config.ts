@@ -9,12 +9,14 @@ import sharp from 'sharp'
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Projects } from './collections/Projects'
+import { Pages } from './collections/Pages'
 import { Home } from './globals/Home'
 import { About } from './globals/About'
 import { Career } from './globals/Career'
 import { UiStrings } from './globals/UiStrings'
 import { SectionText } from './globals/SectionText'
 import { CaseStudy } from './globals/CaseStudy'
+import { Navigation } from './globals/Navigation'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -29,8 +31,10 @@ export default buildConfig({
   // Order so the admin nav groups read logically:
   //   Páginas y Contenido -> Portafolio -> Ajustes
   // (Payload orders nav groups by the definition order in which they first appear.)
-  collections: [Media, Projects, Users],
-  globals: [Home, SectionText, CaseStudy, About, Career, UiStrings],
+  // Pages is listed FIRST so its group "Páginas y Contenido" is encountered before
+  // "Portafolio" (Media/Projects) and "Ajustes" (Users).
+  collections: [Pages, Media, Projects, Users],
+  globals: [Navigation, Home, SectionText, CaseStudy, About, Career, UiStrings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
