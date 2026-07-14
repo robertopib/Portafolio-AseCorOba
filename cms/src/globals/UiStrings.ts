@@ -18,11 +18,11 @@ import type { GlobalConfig } from 'payload'
  */
 export const UiStrings: GlobalConfig = {
   slug: 'ui-strings',
-  label: 'Navegación y Etiquetas',
+  label: 'Textos y Etiquetas Generales',
   admin: {
     group: 'Ajustes',
     description:
-      "Textos del menú de navegación, botones y etiquetas generales. Cambia solo el 'valor', no la 'clave'.",
+      "Textos cortos reutilizables de la web (botones como 'Ver mi trabajo', 'Volver al inicio', etiquetas). Se editan a mano aquí. El MENÚ del sitio NO está aquí — está en 'Menú de Navegación'.",
   },
   fields: [
     {

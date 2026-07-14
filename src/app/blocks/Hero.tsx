@@ -1,4 +1,5 @@
 import { ArrowDown } from "lucide-react";
+import { useRef } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import type { HeroBlockProps } from "./types";
 
@@ -9,19 +10,24 @@ import type { HeroBlockProps } from "./types";
  */
 export function Hero(props: HeroBlockProps) {
   const { language } = useLanguage();
+  const sectionRef = useRef<HTMLElement>(null);
 
+  // Scroll to the next section below the hero. (Anchor-based scrolling comes
+  // with the block-anchor work; this keeps the CTA functional meanwhile.)
   const scrollToWork = () => {
-    const workSection = document.querySelector('#work');
-    workSection?.scrollIntoView({ behavior: 'smooth' });
+    const next = sectionRef.current?.nextElementSibling;
+    if (next) next.scrollIntoView({ behavior: 'smooth' });
+    else window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
   };
 
   const scrollToContact = () => {
     const contactSection = document.querySelector('#contact');
-    contactSection?.scrollIntoView({ behavior: 'smooth' });
+    if (contactSection) contactSection.scrollIntoView({ behavior: 'smooth' });
+    else window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center px-6 md:px-12 lg:px-24 pt-20 pb-8">
+    <section ref={sectionRef} className="relative min-h-screen flex items-center justify-center px-6 md:px-12 lg:px-24 pt-20 pb-8">
       {/* Background Image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
