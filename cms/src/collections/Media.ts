@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { triggerDeployAfterChange, triggerDeployAfterDelete } from '../hooks/triggerDeploy'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -8,6 +9,10 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployAfterChange],
+    afterDelete: [triggerDeployAfterDelete],
   },
   admin: {
     useAsTitle: 'alt',

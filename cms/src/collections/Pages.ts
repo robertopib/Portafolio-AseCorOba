@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { inlineContentFields } from '../blocks/contentFields'
+import { triggerDeployAfterChange, triggerDeployAfterDelete } from '../hooks/triggerDeploy'
 
 /**
  * Páginas — data-driven page composition.
@@ -85,6 +86,15 @@ export const Pages: CollectionConfig = {
   labels: {
     singular: 'Página',
     plural: 'Páginas',
+  },
+  // Content is public: the front-end build reads it over the REST API without
+  // auth. Create/update/delete stay auth'd (Payload's default when unset).
+  access: {
+    read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployAfterChange],
+    afterDelete: [triggerDeployAfterDelete],
   },
   admin: {
     useAsTitle: 'title',

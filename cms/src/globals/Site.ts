@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Sitio y Navegación — the website title (browser tab), the brand name shown
@@ -10,6 +11,14 @@ import type { GlobalConfig } from 'payload'
 export const Site: GlobalConfig = {
   slug: 'site',
   label: 'Sitio y Navegación',
+  // Content is public: the front-end build reads it over the REST API without
+  // auth. Update stays auth'd (Payload's default when unset).
+  access: {
+    read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployGlobalAfterChange],
+  },
   admin: {
     group: 'Ajustes',
     description:

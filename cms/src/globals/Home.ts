@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/home.json.
@@ -21,6 +22,14 @@ import type { GlobalConfig } from 'payload'
 export const Home: GlobalConfig = {
   slug: 'home',
   label: 'Página de Inicio — Portada',
+  // Content is public: the front-end build reads it over the REST API without
+  // auth. Update stays auth'd (Payload's default when unset).
+  access: {
+    read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployGlobalAfterChange],
+  },
   admin: {
     // Superseded by the inline Hero block on the home Página (edit in place).
     // Hidden from the admin; kept in schema to avoid a destructive table drop.

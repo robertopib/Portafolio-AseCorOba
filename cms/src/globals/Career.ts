@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/career.json.
@@ -31,6 +32,14 @@ import type { GlobalConfig } from 'payload'
 export const Career: GlobalConfig = {
   slug: 'career',
   label: 'Experiencia Laboral',
+  // Content is public: the front-end build reads it over the REST API without
+  // auth. Update stays auth'd (Payload's default when unset).
+  access: {
+    read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployGlobalAfterChange],
+  },
   admin: {
     // Superseded by the inline Experiencia block on the home Página.
     // Hidden from the admin; kept in schema to avoid a destructive table drop.

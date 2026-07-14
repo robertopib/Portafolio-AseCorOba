@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/ui.json.
@@ -19,6 +20,14 @@ import type { GlobalConfig } from 'payload'
 export const UiStrings: GlobalConfig = {
   slug: 'ui-strings',
   label: 'Textos y Etiquetas Generales',
+  // Content is public: the front-end build reads it over the REST API without
+  // auth. Update stays auth'd (Payload's default when unset).
+  access: {
+    read: () => true,
+  },
+  hooks: {
+    afterChange: [triggerDeployGlobalAfterChange],
+  },
   admin: {
     group: 'Ajustes',
     description:
