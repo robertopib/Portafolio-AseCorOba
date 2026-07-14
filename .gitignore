@@ -12,3 +12,6 @@ cms/dist
 
 # visual-parity screenshots (local only)
 screenshots
+
+# local editor settings (per-project gh account)
+.vscode/settings.json

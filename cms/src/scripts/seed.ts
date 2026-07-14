@@ -167,6 +167,24 @@ async function main() {
     description: sectionJson.page.description,
   })
 
+  // PortfolioIntro inline content, built from a section file's `home` keys
+  // (the intro copy the old *Preview section drew). Only present keys are set.
+  const introContentFrom = (sectionJson: any) => {
+    const h = sectionJson.home || {}
+    const out: any = {}
+    if (h.sectionHeading !== undefined) out.sectionHeading = h.sectionHeading
+    if (h.heading !== undefined) out.heading = h.heading
+    if (h.tagline !== undefined) out.tagline = h.tagline
+    if (h.description !== undefined) out.description = h.description
+    if (h.studioName !== undefined) out.studioName = h.studioName
+    if (h.roleDescription !== undefined) out.roleDescription = h.roleDescription
+    if (h.cta !== undefined) out.cta = h.cta
+    if (h.sketchImage !== undefined) out.sketchImage = h.sketchImage
+    if (h.sketchAlt !== undefined) out.sketchAlt = h.sketchAlt
+    return out
+  }
+  const uxuiJson = readSection('uxui.json')
+
   const careerJson = readJson(path.join(CONTENT_DIR, 'career.json'))
   const careerContentValue = (() => {
     const c = careerJson
@@ -284,21 +302,59 @@ async function main() {
     }
   })()
 
-  const PAGE_DEFS: {
+  // Built lazily (as a function) because the CategoryGallery blocks reference
+  // category ids (catIdBySlug), which are only known after the Categorías are
+  // created further below. buildPageDefs() is invoked after that.
+  const buildPageDefs = (catIdBySlug: Record<string, number>): {
     slug: string
     title: Loc
     blocks: any[]
-  }[] = [
+  }[] => [
     {
       slug: 'home',
       title: { es: 'Inicio', en: 'Home' },
+      // Each home preview is split into a PortfolioIntro (inline intro copy) +
+      // a CategoryGallery (query block, placement=home) that renders the
+      // curated preview cards in the faithful layout. The gallery draws the
+      // intro from its preceding PortfolioIntro, so on the home page the pair
+      // renders exactly one <section> (byte-identical to the old *Preview).
       blocks: [
         { blockType: 'hero', heroContent: heroContentFrom(home.hero) },
-        { blockType: 'brandingPreview' },
-        { blockType: 'webAppsPreview' },
-        { blockType: 'uxuiPreview' },
-        { blockType: 'fotografiaPreview' },
-        { blockType: 'marketingPreview' },
+        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(brandingJson) },
+        {
+          blockType: 'categoryGallery',
+          category: catIdBySlug['branding'],
+          layoutVariant: 'branding:home',
+          placement: 'home',
+        },
+        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(webAppsJson) },
+        {
+          blockType: 'categoryGallery',
+          category: catIdBySlug['web-apps'],
+          layoutVariant: 'web-apps:home',
+          placement: 'home',
+        },
+        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(uxuiJson) },
+        {
+          blockType: 'categoryGallery',
+          category: catIdBySlug['uxui-producto'],
+          layoutVariant: 'uxui:home',
+          placement: 'home',
+        },
+        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(photographyJson) },
+        {
+          blockType: 'categoryGallery',
+          category: catIdBySlug['fotografia-producto'],
+          layoutVariant: 'fotografia:home',
+          placement: 'home',
+        },
+        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(marketingJson) },
+        {
+          blockType: 'categoryGallery',
+          category: catIdBySlug['marketing-360'],
+          layoutVariant: 'marketing:home',
+          placement: 'home',
+        },
         { blockType: 'experiencia', careerContent: careerContentValue },
         { blockType: 'contacto', aboutContent: aboutContentValue },
       ],
@@ -309,19 +365,27 @@ async function main() {
       blocks: [
         { blockType: 'brandingHeader', headerContent: headerContentFrom(brandingJson, '02') },
         {
-          blockType: 'gallery:deportes',
+          blockType: 'categoryGallery',
+          category: catIdBySlug['branding'],
+          layoutVariant: 'branding:sports',
+          placement: 'page',
+          grupo: 'sports',
           subheading: brandingJson.page.subtitleSports,
-          source: { category: 'branding', placement: 'page', group: 'sports' },
         },
         {
-          blockType: 'gallery:belleza',
+          blockType: 'categoryGallery',
+          category: catIdBySlug['branding'],
+          layoutVariant: 'branding:beauty',
+          placement: 'page',
           subheading: brandingJson.page.subtitleBeauty,
-          source: { category: 'branding', placement: 'page', group: 'adrianaMunoz' },
         },
         {
-          blockType: 'gallery:logos',
+          blockType: 'categoryGallery',
+          category: catIdBySlug['branding'],
+          layoutVariant: 'branding:logos',
+          placement: 'page',
+          grupo: 'logos',
           subheading: { es: 'Logos', en: 'Logos' },
-          source: { category: 'branding', placement: 'page', group: 'logos' },
         },
       ],
     },
@@ -331,8 +395,10 @@ async function main() {
       blocks: [
         { blockType: 'webAppsHeader', headerContent: headerContentFrom(webAppsJson, '03') },
         {
-          blockType: 'webAppsGallery',
-          source: { category: 'web-apps', placement: 'page' },
+          blockType: 'categoryGallery',
+          category: catIdBySlug['web-apps'],
+          layoutVariant: 'web-apps:page',
+          placement: 'page',
         },
       ],
     },
@@ -359,8 +425,10 @@ async function main() {
       blocks: [
         { blockType: 'fotografiaHeader', headerContent: headerContentFrom(photographyJson, '05') },
         {
-          blockType: 'fotografiaGallery',
-          source: { category: 'fotografia-producto', placement: 'page' },
+          blockType: 'categoryGallery',
+          category: catIdBySlug['fotografia-producto'],
+          layoutVariant: 'fotografia:page',
+          placement: 'page',
         },
       ],
     },
@@ -370,39 +438,14 @@ async function main() {
       blocks: [
         { blockType: 'marketingHeader', headerContent: headerContentFrom(marketingJson, '06') },
         {
-          blockType: 'marketingGallery',
-          source: { category: 'marketing-360', placement: 'page' },
+          blockType: 'categoryGallery',
+          category: catIdBySlug['marketing-360'],
+          layoutVariant: 'marketing:page',
+          placement: 'page',
         },
       ],
     },
   ]
-
-  let pagesUpserted = 0
-  for (const def of PAGE_DEFS) {
-    const pageData = { title: def.title, slug: def.slug, blocks: def.blocks }
-    const existing = await payload.find({
-      collection: 'pages',
-      where: { slug: { equals: def.slug } },
-      limit: 1,
-      depth: 0,
-    })
-    if (existing.docs.length > 0) {
-      await payload.update({
-        collection: 'pages',
-        id: existing.docs[0].id,
-        locale: ALL,
-        data: pageData as any,
-      })
-    } else {
-      await payload.create({
-        collection: 'pages',
-        locale: ALL,
-        data: pageData as any,
-      })
-    }
-    pagesUpserted++
-  }
-  report.pagesUpserted = pagesUpserted
 
   // -------------------- CATEGORÍAS --------------------
   // Wipe existing for an idempotent re-seed. Delete Proyectos FIRST so no
@@ -643,6 +686,38 @@ async function main() {
   })
 
   report.projectsCreated = projectsCreated
+
+  // -------------------- PÁGINAS --------------------
+  // Upsert AFTER Categorías/Proyectos exist, so the CategoryGallery blocks can
+  // reference category ids. Idempotent per slug.
+  const PAGE_DEFS = buildPageDefs(catIdBySlug)
+  let pagesUpserted = 0
+  for (const def of PAGE_DEFS) {
+    const pageData = { title: def.title, slug: def.slug, blocks: def.blocks }
+    const existing = await payload.find({
+      collection: 'pages',
+      where: { slug: { equals: def.slug } },
+      limit: 1,
+      depth: 0,
+    })
+    if (existing.docs.length > 0) {
+      await payload.update({
+        collection: 'pages',
+        id: existing.docs[0].id,
+        locale: ALL,
+        data: pageData as any,
+      })
+    } else {
+      await payload.create({
+        collection: 'pages',
+        locale: ALL,
+        data: pageData as any,
+      })
+    }
+    pagesUpserted++
+  }
+  report.pagesUpserted = pagesUpserted
+
   fs.writeFileSync('/tmp/seed-report.json', JSON.stringify(report, null, 2))
 }
 

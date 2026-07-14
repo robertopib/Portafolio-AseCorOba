@@ -29,6 +29,7 @@ import {
   UXUISketches,
   UXUILearnings,
 } from "./blocks/UXUIBlocks";
+import { CategoryGallery, PortfolioIntro } from "./blocks/CategoryGalleryBlocks";
 import { useScrollRestoration } from "./hooks/useScrollRestoration";
 import pagesData from "../../content/pages.json";
 
@@ -82,6 +83,14 @@ const blockRegistry: Record<string, ComponentType<{ content?: unknown }>> = {
   uxuiPersonas: UXUIPersonas,
   uxuiSketches: UXUISketches,
   uxuiLearnings: UXUILearnings,
+
+  // WordPress "query blocks": a CategoryGallery references a Categoría and
+  // renders its Proyectos in the faithful layout (chosen by layoutVariant),
+  // fed from content/pages.json. PortfolioIntro is the inline intro; on the
+  // home page its content is drawn by the paired CategoryGallery, so it renders
+  // nothing itself.
+  categoryGallery: CategoryGallery,
+  portfolioIntro: PortfolioIntro,
 };
 
 type LocalizedText = { es: string; en: string };

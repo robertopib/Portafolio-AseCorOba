@@ -16,6 +16,8 @@ import { inlineContentFields } from '../blocks/contentFields'
 const BLOCK_OPTIONS = [
   // ---- Home (vista previa) ----
   { label: 'Portada', value: 'hero' },
+  { label: 'Introducción de portafolio (vista previa)', value: 'portfolioIntro' },
+  { label: 'Galería de categoría', value: 'categoryGallery' },
   { label: 'Branding (vista previa)', value: 'brandingPreview' },
   { label: 'Web y Apps (vista previa)', value: 'webAppsPreview' },
   { label: 'UX/UI (vista previa)', value: 'uxuiPreview' },
@@ -147,7 +149,8 @@ export const Pages: CollectionConfig = {
             description:
               'Opcional. Subtítulo mostrado sobre la galería (p. ej. la categoría del grupo).',
             condition: (_data, siblingData) =>
-              GALLERY_BLOCK_TYPES.includes(siblingData?.blockType),
+              GALLERY_BLOCK_TYPES.includes(siblingData?.blockType) ||
+              siblingData?.blockType === 'categoryGallery',
           },
         },
         {
@@ -188,6 +191,74 @@ export const Pages: CollectionConfig = {
               },
             },
           ],
+        },
+        // ---- CategoryGallery (WordPress "query block") fields ----
+        // A CategoryGallery references a Categoría and renders its Proyectos in
+        // the faithful layout. Shown only for the `categoryGallery` blockType.
+        {
+          name: 'category',
+          type: 'relationship',
+          relationTo: 'categories',
+          label: 'Categoría',
+          admin: {
+            description: 'La categoría cuyos proyectos se muestran.',
+            condition: (_data, sibling) => sibling?.blockType === 'categoryGallery',
+          },
+        },
+        {
+          name: 'grupo',
+          type: 'text',
+          label: 'Grupo (subgrupo de marca)',
+          admin: {
+            description:
+              'Opcional. Subgrupo dentro de la categoría (p. ej. sports, adrianaMunoz, anaGrace, logos para Branding; belleza combina adrianaMunoz+anaGrace).',
+            condition: (_data, sibling) => sibling?.blockType === 'categoryGallery',
+          },
+        },
+        {
+          name: 'layoutVariant',
+          type: 'select',
+          label: 'Variante de diseño',
+          options: [
+            { label: 'Branding · Deportes', value: 'branding:sports' },
+            { label: 'Branding · Belleza', value: 'branding:beauty' },
+            { label: 'Branding · Logos', value: 'branding:logos' },
+            { label: 'Web y Apps · Página', value: 'web-apps:page' },
+            { label: 'Fotografía · Página', value: 'fotografia:page' },
+            { label: 'Marketing · Página', value: 'marketing:page' },
+            { label: 'Branding · Inicio', value: 'branding:home' },
+            { label: 'Web y Apps · Inicio', value: 'web-apps:home' },
+            { label: 'UX/UI · Inicio', value: 'uxui:home' },
+            { label: 'Fotografía · Inicio', value: 'fotografia:home' },
+            { label: 'Marketing · Inicio', value: 'marketing:home' },
+          ],
+          admin: {
+            description: 'El diseño fiel con el que se renderiza la galería.',
+            condition: (_data, sibling) => sibling?.blockType === 'categoryGallery',
+          },
+        },
+        {
+          name: 'placement',
+          type: 'select',
+          label: 'Ubicación (filtro de proyectos)',
+          options: [
+            { label: 'Inicio (home)', value: 'home' },
+            { label: 'Página de la categoría', value: 'page' },
+            { label: 'Todos', value: 'all' },
+          ],
+          admin: {
+            description: 'Qué conjunto de Proyectos usar (por su campo "dónde se muestra").',
+            condition: (_data, sibling) => sibling?.blockType === 'categoryGallery',
+          },
+        },
+        {
+          name: 'maxItems',
+          type: 'number',
+          label: 'Máximo de proyectos',
+          admin: {
+            description: 'Opcional. Limita cuántos proyectos se muestran (los primeros por orden).',
+            condition: (_data, sibling) => sibling?.blockType === 'categoryGallery',
+          },
         },
         // Inline CONTENT groups (one per CONTENT block family). Each is shown +
         // populated only for its matching blockType; the front-end reads it via

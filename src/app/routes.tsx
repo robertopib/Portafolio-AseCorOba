@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { PageRenderer } from "./PageRenderer";
+import { CategoryArchive } from "./blocks/CategoryArchive";
 
 export const router = createBrowserRouter([
   {
@@ -8,11 +9,9 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, element: <PageRenderer slug="home" /> },
-      { path: "proyectos/branding", element: <PageRenderer slug="branding" /> },
-      { path: "proyectos/web-apps", element: <PageRenderer slug="web-apps" /> },
-      { path: "proyectos/uxui-producto", element: <PageRenderer slug="uxui-producto" /> },
-      { path: "proyectos/fotografia-producto", element: <PageRenderer slug="fotografia-producto" /> },
-      { path: "proyectos/marketing-360", element: <PageRenderer slug="marketing-360" /> },
+      // Category archive: renders via the category's Página (pixel-identical)
+      // when one exists, else an auto-archive of that category's Proyectos.
+      { path: "proyectos/:categorySlug", element: <CategoryArchive /> },
     ],
   },
 ]);

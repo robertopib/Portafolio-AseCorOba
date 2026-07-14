@@ -101,6 +101,65 @@ async function main() {
     report[relPath] = { match: diffs.length === 0, diffs }
   }
 
+  // ---- Categorías + Proyectos (loaded once; used by BOTH the Páginas block
+  //      -- CategoryGallery resolution -- and the sections reconstruction) ----
+  const cats = await payload.find({ collection: 'categories', limit: 100, depth: 0, locale: 'all' })
+  const catBySlug: Record<string, any> = {}
+  const catIdToSlug: Record<number, string> = {}
+  for (const c of cats.docs as any[]) {
+    catBySlug[c.slug] = c
+    catIdToSlug[c.id] = c.slug
+  }
+
+  const allProjects = await payload.find({ collection: 'projects', limit: 2000, depth: 0, locale: 'all' })
+  const slugOf = (p: any) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
+  const byOrder = (docs: any[]) => [...docs].sort((a, b) => a.order - b.order)
+
+  const projByKey = (slug: string, placement: string, group?: string) =>
+    (allProjects.docs as any[]).filter(
+      (p) =>
+        slugOf(p) === slug &&
+        p.type === 'image' &&
+        p.placement === placement &&
+        (group ? p.group === group : !p.group),
+    )
+
+  /**
+   * Resolve a CategoryGallery block's Proyectos into the front-end card shape.
+   * Filters by category slug + placement ('all' = no placement filter) +
+   * optional grupo, orders by `order`, applies maxItems, and returns cards
+   * carrying image path, localized alt/categoryLabel/title, size and group.
+   */
+  const resolveGalleryCards = (opts: {
+    slug: string
+    placement?: string | null
+    group?: string | null
+    maxItems?: number | null
+  }) => {
+    const { slug, placement, group } = opts
+    let docs = (allProjects.docs as any[]).filter((p) => {
+      if (slugOf(p) !== slug) return false
+      if (p.type !== 'image') return false
+      if (placement && placement !== 'all' && p.placement !== placement) return false
+      if (group) return p.group === group
+      return true
+    })
+    docs = byOrder(docs)
+    if (opts.maxItems && opts.maxItems > 0) docs = docs.slice(0, opts.maxItems)
+    return docs.map((p: any) => {
+      const card: any = {
+        id: p.order,
+        src: imgPathFromMedia(p.image),
+        alt: loc(p.alt),
+        category: loc(p.categoryLabel),
+      }
+      if (p.title && (p.title.es || p.title.en)) card.title = loc(p.title)
+      if (p.size) card.size = p.size
+      if (p.group) card.group = p.group
+      return card
+    })
+  }
+
   // ==================== HOME ====================
   {
     const g: any = await payload.findGlobal({ slug: 'home', locale: 'all', depth: 0 })
@@ -362,43 +421,107 @@ async function main() {
       },
     })
 
+    // PortfolioIntro inline content -> flat intro object. Only non-empty keys
+    // are emitted so, e.g., a non-UX/UI intro omits tagline/sketch* (matching
+    // the original section markup's absent fields).
+    const introFrom = (c: any) => {
+      const out: any = {}
+      const putLoc = (k: string, v: any) => {
+        if (v && (v.es || v.en)) out[k] = loc(v)
+      }
+      putLoc('sectionHeading', c.sectionHeading)
+      putLoc('heading', c.heading)
+      putLoc('tagline', c.tagline)
+      putLoc('description', c.description)
+      if (c.studioName) out.studioName = c.studioName
+      putLoc('roleDescription', c.roleDescription)
+      putLoc('cta', c.cta)
+      if (c.sketchImage) out.sketchImage = c.sketchImage
+      putLoc('sketchAlt', c.sketchAlt)
+      return out
+    }
+
+    // Map a CategoryGallery block's category ref id -> slug.
+    const catSlugOf = (ref: any) =>
+      catIdToSlug[typeof ref === 'object' && ref ? ref.id : ref]
+
     const recon = {
-      pages: (pagesRes.docs as any[]).map((p) => ({
-        slug: p.slug,
-        blocks: (p.blocks || []).map((b: any) => {
-          const block: any = { blockType: b.blockType }
-          if (b.anchorId) block.anchorId = b.anchorId
-          // Gallery blocks carry the localized subheading + the source that
-          // tells the front-end which Proyectos to render.
-          if (GALLERY_BLOCK_TYPES.has(b.blockType)) {
-            if (b.subheading && (b.subheading.es || b.subheading.en)) {
-              block.subheading = loc(b.subheading)
+      pages: (pagesRes.docs as any[]).map((p) => {
+        const rawBlocks = (p.blocks || []) as any[]
+        return {
+          slug: p.slug,
+          blocks: rawBlocks.map((b: any, idx: number) => {
+            const block: any = { blockType: b.blockType }
+            if (b.anchorId) block.anchorId = b.anchorId
+            // Gallery blocks carry the localized subheading + the source that
+            // tells the front-end which Proyectos to render.
+            if (GALLERY_BLOCK_TYPES.has(b.blockType)) {
+              if (b.subheading && (b.subheading.es || b.subheading.en)) {
+                block.subheading = loc(b.subheading)
+              }
+              const s = b.source
+              if (s && (s.category || s.placement || s.group)) {
+                const src: any = {}
+                if (s.category) src.category = s.category
+                if (s.placement) src.placement = s.placement
+                if (s.group) src.group = s.group
+                block.source = src
+              }
             }
-            const s = b.source
-            if (s && (s.category || s.placement || s.group)) {
-              const src: any = {}
-              if (s.category) src.category = s.category
-              if (s.placement) src.placement = s.placement
-              if (s.group) src.group = s.group
-              block.source = src
+            // CategoryGallery: RESOLVE the referenced category's Proyectos into
+            // the block's `content` (layoutVariant + subheading + intro +
+            // resolved cards). This is the WordPress "query block" path.
+            if (b.blockType === 'categoryGallery') {
+              const slug = catSlugOf(b.category)
+              const variant = b.layoutVariant as string
+              // Beauty combines two branding sub-groups; otherwise use grupo.
+              let cards: any[]
+              if (variant === 'branding:beauty') {
+                cards = [
+                  ...resolveGalleryCards({ slug, placement: b.placement, group: 'adrianaMunoz' }),
+                  ...resolveGalleryCards({ slug, placement: b.placement, group: 'anaGrace' }),
+                ]
+              } else {
+                cards = resolveGalleryCards({
+                  slug,
+                  placement: b.placement,
+                  group: b.grupo,
+                  maxItems: b.maxItems,
+                })
+              }
+              const content: any = { layoutVariant: variant, projects: cards }
+              if (b.subheading && (b.subheading.es || b.subheading.en)) {
+                content.subheading = loc(b.subheading)
+              }
+              // Home variants render the intro inline in the same <section>: pull
+              // it from the immediately-preceding portfolioIntro block.
+              const prev = rawBlocks[idx - 1]
+              if (prev && prev.blockType === 'portfolioIntro' && prev.portfolioIntroContent) {
+                content.intro = introFrom(prev.portfolioIntroContent)
+              }
+              block.content = content
             }
-          }
-          // CONTENT blocks carry inline content, emitted as a flat `content`
-          // object matching the front-end renderer's `content` prop shape.
-          if (b.blockType === 'hero' && b.heroContent) {
-            block.content = heroFrom(b.heroContent)
-          } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
-            block.content = headerFrom(b.headerContent)
-          } else if (b.blockType === 'experiencia' && b.careerContent) {
-            block.content = careerFrom(b.careerContent)
-          } else if (b.blockType === 'contacto' && b.aboutContent) {
-            block.content = aboutFrom(b.aboutContent)
-          } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
-            block.content = uxuiFrom(b.uxuiContent)
-          }
-          return block
-        }),
-      })),
+            // CONTENT blocks carry inline content, emitted as a flat `content`
+            // object matching the front-end renderer's `content` prop shape.
+            if (b.blockType === 'hero' && b.heroContent) {
+              block.content = heroFrom(b.heroContent)
+            } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
+              block.content = headerFrom(b.headerContent)
+            } else if (b.blockType === 'experiencia' && b.careerContent) {
+              block.content = careerFrom(b.careerContent)
+            } else if (b.blockType === 'contacto' && b.aboutContent) {
+              block.content = aboutFrom(b.aboutContent)
+            } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
+              block.content = uxuiFrom(b.uxuiContent)
+            } else if (b.blockType === 'portfolioIntro' && b.portfolioIntroContent) {
+              // Keep the intro content on its own block too (edited in place);
+              // it renders nothing but documents the intro authored here.
+              block.content = introFrom(b.portfolioIntroContent)
+            }
+            return block
+          }),
+        }
+      }),
     }
     fs.writeFileSync(
       path.join(CONTENT_DIR, 'pages.json'),
@@ -406,31 +529,48 @@ async function main() {
     )
     written['pages.json'] = recon
     report['pages.json'] = { match: true, diffs: [] }
+
+    // ---- content/categories.json ----
+    // A generic catalog of every Categoría + its page-placement Proyectos.
+    // Consumed by the front-end category-archive route as an AUTO-ARCHIVE
+    // fallback: a category with no Página still renders its projects in a
+    // default gallery layout. (The 5 seeded categories all have Páginas, so this
+    // is a safety net; it also documents the Categorías → Proyectos model.)
+    const catsRecon = {
+      categories: byOrder(cats.docs as any[]).map((c: any) => {
+        const pageDocs = byOrder(
+          (allProjects.docs as any[]).filter(
+            (p) => slugOf(p) === c.slug && p.type === 'image' && (p.placement === 'page' || p.placement === 'both'),
+          ),
+        )
+        return {
+          slug: c.slug,
+          name: loc(c.name),
+          anchorId: c.anchorId,
+          page: {
+            title: loc(c.page?.title),
+            description: loc(c.page?.description),
+          },
+          projects: pageDocs.map((p: any) => ({
+            image: imgPathFromMedia(p.image),
+            alt: loc(p.alt),
+            category: loc(p.categoryLabel),
+            group: p.group ?? null,
+          })),
+        }
+      }),
+    }
+    fs.writeFileSync(
+      path.join(CONTENT_DIR, 'categories.json'),
+      JSON.stringify(catsRecon, null, 2) + '\n',
+    )
+    written['categories.json'] = catsRecon
+    report['categories.json'] = { match: true, diffs: [] }
   }
 
   // ==================== CATEGORÍAS + PROYECTOS ====================
-  // load all categories + projects once
-  const cats = await payload.find({ collection: 'categories', limit: 100, depth: 0, locale: 'all' })
-  const catBySlug: Record<string, any> = {}
-  const catIdToSlug: Record<number, string> = {}
-  for (const c of cats.docs as any[]) {
-    catBySlug[c.slug] = c
-    catIdToSlug[c.id] = c.slug
-  }
-
-  const allProjects = await payload.find({ collection: 'projects', limit: 2000, depth: 0, locale: 'all' })
-  const slugOf = (p: any) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
-
-  const projByKey = (slug: string, placement: string, group?: string) =>
-    (allProjects.docs as any[]).filter(
-      (p) =>
-        slugOf(p) === slug &&
-        p.type === 'image' &&
-        p.placement === placement &&
-        (group ? p.group === group : !p.group),
-    )
-  const byOrder = (docs: any[]) => [...docs].sort((a, b) => a.order - b.order)
-
+  // (categories + projects + helpers were loaded once near the top so the
+  // Páginas block could resolve CategoryGallery cards.)
   for (const spec of SECTION_SPECS) {
     const cat = catBySlug[spec.slug]
     let recon: any

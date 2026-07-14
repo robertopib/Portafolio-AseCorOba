@@ -408,6 +408,34 @@ export const uxuiContent = (): Field => ({
   fields: caseStudyFields(),
 })
 
+// ---------------------------------------------------------------------------
+// PORTFOLIO INTRO (home preview intro) -> portfolioIntroContent
+// ---------------------------------------------------------------------------
+// The inline intro (heading/description/studioName/roleDescription/cta) shown
+// above a home preview gallery. Split OUT of the old *Preview section blocks so
+// the intro copy is edited in place while the gallery becomes a query block.
+export const PORTFOLIO_INTRO_BLOCK_TYPE = 'portfolioIntro'
+export const portfolioIntroContent = (): Field => ({
+  type: 'group',
+  name: 'portfolioIntroContent',
+  label: 'Contenido — Introducción (vista previa)',
+  admin: {
+    condition: gate(PORTFOLIO_INTRO_BLOCK_TYPE),
+    description: 'El texto de introducción de la vista previa (se edita aquí).',
+  },
+  fields: [
+    t('sectionHeading', 'Título de la sección (solo Branding)'),
+    t('heading', 'Título'),
+    t('tagline', 'Lema (solo UX/UI)'),
+    ta('description', 'Descripción'),
+    { name: 'studioName', type: 'text', label: 'Nombre del estudio' }, // agnostic
+    ta('roleDescription', 'Rol / descripción del rol'),
+    t('cta', 'Texto del botón'),
+    { name: 'sketchImage', type: 'text', label: 'Imagen del boceto (ruta, solo UX/UI)' }, // agnostic
+    t('sketchAlt', 'Texto alternativo del boceto (solo UX/UI)'),
+  ],
+})
+
 /** All inline CONTENT groups to spread into the Pages `blocks` array fields. */
 export const inlineContentFields = (): Field[] => [
   heroContent(),
@@ -415,4 +443,5 @@ export const inlineContentFields = (): Field[] => [
   careerContent(),
   aboutContent(),
   uxuiContent(),
+  portfolioIntroContent(),
 ]

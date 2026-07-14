@@ -159,6 +159,8 @@ export interface Page {
          */
         blockType:
           | 'hero'
+          | 'portfolioIntro'
+          | 'categoryGallery'
           | 'brandingPreview'
           | 'webAppsPreview'
           | 'uxuiPreview'
@@ -212,6 +214,40 @@ export interface Page {
            */
           group?: string | null;
         };
+        /**
+         * La categoría cuyos proyectos se muestran.
+         */
+        category?: (number | null) | Category;
+        /**
+         * Opcional. Subgrupo dentro de la categoría (p. ej. sports, adrianaMunoz, anaGrace, logos para Branding; belleza combina adrianaMunoz+anaGrace).
+         */
+        grupo?: string | null;
+        /**
+         * El diseño fiel con el que se renderiza la galería.
+         */
+        layoutVariant?:
+          | (
+              | 'branding:sports'
+              | 'branding:beauty'
+              | 'branding:logos'
+              | 'web-apps:page'
+              | 'fotografia:page'
+              | 'marketing:page'
+              | 'branding:home'
+              | 'web-apps:home'
+              | 'uxui:home'
+              | 'fotografia:home'
+              | 'marketing:home'
+            )
+          | null;
+        /**
+         * Qué conjunto de Proyectos usar (por su campo "dónde se muestra").
+         */
+        placement?: ('home' | 'page' | 'all') | null;
+        /**
+         * Opcional. Limita cuántos proyectos se muestran (los primeros por orden).
+         */
+        maxItems?: number | null;
         /**
          * Contenido de la portada (se edita aquí).
          */
@@ -495,35 +531,25 @@ export interface Page {
               | null;
           };
         };
+        /**
+         * El texto de introducción de la vista previa (se edita aquí).
+         */
+        portfolioIntroContent?: {
+          sectionHeading?: string | null;
+          heading?: string | null;
+          tagline?: string | null;
+          description?: string | null;
+          studioName?: string | null;
+          roleDescription?: string | null;
+          cta?: string | null;
+          sketchImage?: string | null;
+          sketchAlt?: string | null;
+        };
         id?: string | null;
       }[]
     | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  /**
-   * Breve descripción de la imagen (para accesibilidad). Sirve también como nombre en la biblioteca.
-   */
-  alt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
 }
 /**
  * Las grandes áreas del portafolio (Branding, Web y Apps, UX/UI, Fotografía, 360°). Cada una agrupa sus proyectos y controla los textos de introducción.
@@ -592,6 +618,30 @@ export interface Category {
   };
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  /**
+   * Breve descripción de la imagen (para accesibilidad). Sirve también como nombre en la biblioteca.
+   */
+  alt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.
@@ -970,6 +1020,11 @@ export interface PagesSelect<T extends boolean = true> {
               placement?: T;
               group?: T;
             };
+        category?: T;
+        grupo?: T;
+        layoutVariant?: T;
+        placement?: T;
+        maxItems?: T;
         heroContent?:
           | T
           | {
@@ -1285,6 +1340,19 @@ export interface PagesSelect<T extends boolean = true> {
                           id?: T;
                         };
                   };
+            };
+        portfolioIntroContent?:
+          | T
+          | {
+              sectionHeading?: T;
+              heading?: T;
+              tagline?: T;
+              description?: T;
+              studioName?: T;
+              roleDescription?: T;
+              cta?: T;
+              sketchImage?: T;
+              sketchAlt?: T;
             };
         id?: T;
       };
