@@ -165,11 +165,53 @@ export interface Page {
           | 'fotografiaPreview'
           | 'marketingPreview'
           | 'experiencia'
-          | 'contacto';
+          | 'contacto'
+          | 'brandingHeader'
+          | 'gallery:deportes'
+          | 'gallery:belleza'
+          | 'gallery:logos'
+          | 'webAppsHeader'
+          | 'webAppsGallery'
+          | 'fotografiaHeader'
+          | 'fotografiaGallery'
+          | 'marketingHeader'
+          | 'marketingGallery'
+          | 'uxuiHeader'
+          | 'uxuiHero'
+          | 'uxuiOverview'
+          | 'uxuiIntro'
+          | 'uxuiProblemSolution'
+          | 'uxuiDetails'
+          | 'uxuiTimeline'
+          | 'uxuiJourney'
+          | 'uxuiPersonas'
+          | 'uxuiSketches'
+          | 'uxuiLearnings';
         /**
          * Opcional. Id de ancla para saltar a este bloque (uso técnico).
          */
         anchorId?: string | null;
+        /**
+         * Opcional. Subtítulo mostrado sobre la galería (p. ej. la categoría del grupo).
+         */
+        subheading?: string | null;
+        /**
+         * De dónde salen las imágenes de esta galería (categoría + ubicación + grupo).
+         */
+        source?: {
+          /**
+           * Categoría cuyas imágenes se muestran.
+           */
+          category?: ('branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360') | null;
+          /**
+           * Qué conjunto de Proyectos usar.
+           */
+          placement?: ('page' | 'home') | null;
+          /**
+           * Opcional. Subgrupo dentro de la categoría (p. ej. sports, adrianaMunoz, anaGrace, logos para Branding).
+           */
+          group?: string | null;
+        };
         id?: string | null;
       }[]
     | null;
@@ -637,6 +679,14 @@ export interface PagesSelect<T extends boolean = true> {
     | {
         blockType?: T;
         anchorId?: T;
+        subheading?: T;
+        source?:
+          | T
+          | {
+              category?: T;
+              placement?: T;
+              group?: T;
+            };
         id?: T;
       };
   updatedAt?: T;

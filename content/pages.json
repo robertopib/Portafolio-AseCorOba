@@ -1,6 +1,65 @@
 {
   "pages": [
     {
+      "slug": "branding",
+      "blocks": [
+        {
+          "blockType": "brandingHeader"
+        },
+        {
+          "blockType": "gallery:deportes",
+          "subheading": {
+            "es": "Deportes & Fitness",
+            "en": "Sports & Fitness"
+          },
+          "source": {
+            "category": "branding",
+            "placement": "page",
+            "group": "sports"
+          }
+        },
+        {
+          "blockType": "gallery:belleza",
+          "subheading": {
+            "es": "Belleza & Estética",
+            "en": "Beauty & Aesthetics"
+          },
+          "source": {
+            "category": "branding",
+            "placement": "page",
+            "group": "adrianaMunoz"
+          }
+        },
+        {
+          "blockType": "gallery:logos",
+          "subheading": {
+            "es": "Logos",
+            "en": "Logos"
+          },
+          "source": {
+            "category": "branding",
+            "placement": "page",
+            "group": "logos"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "fotografia-producto",
+      "blocks": [
+        {
+          "blockType": "fotografiaHeader"
+        },
+        {
+          "blockType": "fotografiaGallery",
+          "source": {
+            "category": "fotografia-producto",
+            "placement": "page"
+          }
+        }
+      ]
+    },
+    {
       "slug": "home",
       "blocks": [
         {
@@ -26,6 +85,74 @@
         },
         {
           "blockType": "contacto"
+        }
+      ]
+    },
+    {
+      "slug": "marketing-360",
+      "blocks": [
+        {
+          "blockType": "marketingHeader"
+        },
+        {
+          "blockType": "marketingGallery",
+          "source": {
+            "category": "marketing-360",
+            "placement": "page"
+          }
+        }
+      ]
+    },
+    {
+      "slug": "uxui-producto",
+      "blocks": [
+        {
+          "blockType": "uxuiHeader"
+        },
+        {
+          "blockType": "uxuiHero"
+        },
+        {
+          "blockType": "uxuiOverview"
+        },
+        {
+          "blockType": "uxuiIntro"
+        },
+        {
+          "blockType": "uxuiProblemSolution"
+        },
+        {
+          "blockType": "uxuiDetails"
+        },
+        {
+          "blockType": "uxuiTimeline"
+        },
+        {
+          "blockType": "uxuiJourney"
+        },
+        {
+          "blockType": "uxuiPersonas"
+        },
+        {
+          "blockType": "uxuiSketches"
+        },
+        {
+          "blockType": "uxuiLearnings"
+        }
+      ]
+    },
+    {
+      "slug": "web-apps",
+      "blocks": [
+        {
+          "blockType": "webAppsHeader"
+        },
+        {
+          "blockType": "webAppsGallery",
+          "source": {
+            "category": "web-apps",
+            "placement": "page"
+          }
         }
       ]
     }

@@ -191,13 +191,40 @@ async function main() {
       limit: 1000,
       depth: 0,
       sort: 'slug',
+      locale: 'all',
     })
+    // Only gallery blocks carry source/subheading metadata (they draw their
+    // cards from the Categorías → Proyectos model). Keep this list in sync with
+    // GALLERY_BLOCK_TYPES in collections/Pages.ts.
+    const GALLERY_BLOCK_TYPES = new Set([
+      'gallery:deportes',
+      'gallery:belleza',
+      'gallery:logos',
+      'webAppsGallery',
+      'fotografiaGallery',
+      'marketingGallery',
+    ])
     const recon = {
       pages: (pagesRes.docs as any[]).map((p) => ({
         slug: p.slug,
         blocks: (p.blocks || []).map((b: any) => {
           const block: any = { blockType: b.blockType }
           if (b.anchorId) block.anchorId = b.anchorId
+          // Gallery blocks carry the localized subheading + the source that
+          // tells the front-end which Proyectos to render.
+          if (GALLERY_BLOCK_TYPES.has(b.blockType)) {
+            if (b.subheading && (b.subheading.es || b.subheading.en)) {
+              block.subheading = loc(b.subheading)
+            }
+            const s = b.source
+            if (s && (s.category || s.placement || s.group)) {
+              const src: any = {}
+              if (s.category) src.category = s.category
+              if (s.placement) src.placement = s.placement
+              if (s.group) src.group = s.group
+              block.source = src
+            }
+          }
           return block
         }),
       })),

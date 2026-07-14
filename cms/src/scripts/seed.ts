@@ -132,43 +132,133 @@ async function main() {
   })
 
   // -------------------- PÁGINAS --------------------
-  // Upsert the 'home' Page with its ordered block list (idempotent).
-  const HOME_BLOCKS = [
-    { blockType: 'hero' },
-    { blockType: 'brandingPreview' },
-    { blockType: 'webAppsPreview' },
-    { blockType: 'uxuiPreview' },
-    { blockType: 'fotografiaPreview' },
-    { blockType: 'marketingPreview' },
-    { blockType: 'experiencia' },
-    { blockType: 'contacto' },
+  // Upsert each Page with its ordered block list (idempotent). The home page
+  // renders whole preview sections; the project pages are decomposed into their
+  // real sub-sections. Gallery blocks carry a `source` (category slug +
+  // placement + optional group) + optional `subheading` so the export can emit
+  // what the front-end block renderers need.
+  const readSection = (file: string) => readJson(path.join(SECTIONS_DIR, file))
+  const brandingJson = readSection('branding.json')
+
+  const PAGE_DEFS: {
+    slug: string
+    title: Loc
+    blocks: any[]
+  }[] = [
+    {
+      slug: 'home',
+      title: { es: 'Inicio', en: 'Home' },
+      blocks: [
+        { blockType: 'hero' },
+        { blockType: 'brandingPreview' },
+        { blockType: 'webAppsPreview' },
+        { blockType: 'uxuiPreview' },
+        { blockType: 'fotografiaPreview' },
+        { blockType: 'marketingPreview' },
+        { blockType: 'experiencia' },
+        { blockType: 'contacto' },
+      ],
+    },
+    {
+      slug: 'branding',
+      title: { es: 'Branding Corporativo', en: 'Corporate Branding' },
+      blocks: [
+        { blockType: 'brandingHeader' },
+        {
+          blockType: 'gallery:deportes',
+          subheading: brandingJson.page.subtitleSports,
+          source: { category: 'branding', placement: 'page', group: 'sports' },
+        },
+        {
+          blockType: 'gallery:belleza',
+          subheading: brandingJson.page.subtitleBeauty,
+          source: { category: 'branding', placement: 'page', group: 'adrianaMunoz' },
+        },
+        {
+          blockType: 'gallery:logos',
+          subheading: { es: 'Logos', en: 'Logos' },
+          source: { category: 'branding', placement: 'page', group: 'logos' },
+        },
+      ],
+    },
+    {
+      slug: 'web-apps',
+      title: { es: 'Diseño Web y Apps', en: 'Web & App Design' },
+      blocks: [
+        { blockType: 'webAppsHeader' },
+        {
+          blockType: 'webAppsGallery',
+          source: { category: 'web-apps', placement: 'page' },
+        },
+      ],
+    },
+    {
+      slug: 'uxui-producto',
+      title: { es: 'UX/UI Producto', en: 'UX/UI Product' },
+      blocks: [
+        { blockType: 'uxuiHeader' },
+        { blockType: 'uxuiHero' },
+        { blockType: 'uxuiOverview' },
+        { blockType: 'uxuiIntro' },
+        { blockType: 'uxuiProblemSolution' },
+        { blockType: 'uxuiDetails' },
+        { blockType: 'uxuiTimeline' },
+        { blockType: 'uxuiJourney' },
+        { blockType: 'uxuiPersonas' },
+        { blockType: 'uxuiSketches' },
+        { blockType: 'uxuiLearnings' },
+      ],
+    },
+    {
+      slug: 'fotografia-producto',
+      title: { es: 'Fotografía de Producto y Packaging', en: 'Product Photography & Packaging' },
+      blocks: [
+        { blockType: 'fotografiaHeader' },
+        {
+          blockType: 'fotografiaGallery',
+          source: { category: 'fotografia-producto', placement: 'page' },
+        },
+      ],
+    },
+    {
+      slug: 'marketing-360',
+      title: { es: 'Diseño 360°', en: '360° Design' },
+      blocks: [
+        { blockType: 'marketingHeader' },
+        {
+          blockType: 'marketingGallery',
+          source: { category: 'marketing-360', placement: 'page' },
+        },
+      ],
+    },
   ]
-  const homePageData = {
-    title: { es: 'Inicio', en: 'Home' },
-    slug: 'home',
-    blocks: HOME_BLOCKS,
-  }
-  const existingHomePage = await payload.find({
-    collection: 'pages',
-    where: { slug: { equals: 'home' } },
-    limit: 1,
-    depth: 0,
-  })
-  if (existingHomePage.docs.length > 0) {
-    await payload.update({
+
+  let pagesUpserted = 0
+  for (const def of PAGE_DEFS) {
+    const pageData = { title: def.title, slug: def.slug, blocks: def.blocks }
+    const existing = await payload.find({
       collection: 'pages',
-      id: existingHomePage.docs[0].id,
-      locale: ALL,
-      data: homePageData as any,
+      where: { slug: { equals: def.slug } },
+      limit: 1,
+      depth: 0,
     })
-  } else {
-    await payload.create({
-      collection: 'pages',
-      locale: ALL,
-      data: homePageData as any,
-    })
+    if (existing.docs.length > 0) {
+      await payload.update({
+        collection: 'pages',
+        id: existing.docs[0].id,
+        locale: ALL,
+        data: pageData as any,
+      })
+    } else {
+      await payload.create({
+        collection: 'pages',
+        locale: ALL,
+        data: pageData as any,
+      })
+    }
+    pagesUpserted++
   }
-  report.pagesUpserted = 1
+  report.pagesUpserted = pagesUpserted
 
   // -------------------- CATEGORÍAS --------------------
   // Wipe existing for an idempotent re-seed. Delete Proyectos FIRST so no

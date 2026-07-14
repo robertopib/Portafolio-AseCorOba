@@ -1,11 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { PageRenderer } from "./PageRenderer";
-import { BrandingProjects } from "./pages/BrandingProjects";
-import { WebAppProjects } from "./pages/WebAppProjects";
-import { UXUIProductProjects } from "./pages/UXUIProductProjects";
-import { ProductPhotographyProjects } from "./pages/ProductPhotographyProjects";
-import { Marketing360Projects } from "./pages/Marketing360Projects";
 
 export const router = createBrowserRouter([
   {
@@ -13,11 +8,11 @@ export const router = createBrowserRouter([
     Component: Layout,
     children: [
       { index: true, element: <PageRenderer slug="home" /> },
-      { path: "proyectos/branding", Component: BrandingProjects },
-      { path: "proyectos/web-apps", Component: WebAppProjects },
-      { path: "proyectos/uxui-producto", Component: UXUIProductProjects },
-      { path: "proyectos/fotografia-producto", Component: ProductPhotographyProjects },
-      { path: "proyectos/marketing-360", Component: Marketing360Projects },
+      { path: "proyectos/branding", element: <PageRenderer slug="branding" /> },
+      { path: "proyectos/web-apps", element: <PageRenderer slug="web-apps" /> },
+      { path: "proyectos/uxui-producto", element: <PageRenderer slug="uxui-producto" /> },
+      { path: "proyectos/fotografia-producto", element: <PageRenderer slug="fotografia-producto" /> },
+      { path: "proyectos/marketing-360", element: <PageRenderer slug="marketing-360" /> },
     ],
   },
 ]);
