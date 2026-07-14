@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     media: Media;
+    categories: Category;
     projects: Project;
     users: User;
     'payload-kv': PayloadKv;
@@ -78,6 +79,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     media: MediaSelect<false> | MediaSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -91,16 +93,12 @@ export interface Config {
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('es' | 'en') | ('es' | 'en')[];
   globals: {
     home: Home;
-    'section-text': SectionText;
-    'case-study': CaseStudy;
     about: About;
     career: Career;
     'ui-strings': UiString;
   };
   globalsSelect: {
     home: HomeSelect<false> | HomeSelect<true>;
-    'section-text': SectionTextSelect<false> | SectionTextSelect<true>;
-    'case-study': CaseStudySelect<false> | CaseStudySelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     career: CareerSelect<false> | CareerSelect<true>;
     'ui-strings': UiStringsSelect<false> | UiStringsSelect<true>;
@@ -158,7 +156,75 @@ export interface Media {
   focalY?: number | null;
 }
 /**
- * Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.
+ * Las grandes áreas del portafolio (Branding, Web y Apps, UX/UI, Fotografía, 360°). Cada una agrupa sus proyectos y controla los textos de introducción.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  /**
+   * El nombre de la categoría (se usa como título).
+   */
+  name: string;
+  /**
+   * Identificador técnico único (p. ej. "branding"). No cambiar salvo que sepas lo que haces.
+   */
+  slug: string;
+  /**
+   * El ancla de la página a la que se salta al hacer clic (uso técnico).
+   */
+  anchorId?: string | null;
+  /**
+   * Número para ordenar las categorías (el menor aparece primero).
+   */
+  order: number;
+  /**
+   * Se muestra en la vista previa de esta categoría en la página de inicio.
+   */
+  home?: {
+    heading?: string | null;
+    /**
+     * Solo UX/UI: el lema bajo el título.
+     */
+    tagline?: string | null;
+    description?: string | null;
+    studioName?: string | null;
+    roleDescription?: string | null;
+    cta?: string | null;
+    /**
+     * Solo Branding: el título "Proyectos".
+     */
+    sectionHeading?: string | null;
+    /**
+     * Solo UX/UI: ruta de la imagen del boceto.
+     */
+    sketchImage?: string | null;
+    /**
+     * Solo UX/UI.
+     */
+    sketchAlt?: string | null;
+  };
+  /**
+   * Se muestra arriba de la página de esta categoría.
+   */
+  page?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Solo Branding.
+     */
+    subtitleSports?: string | null;
+    /**
+     * Solo Branding.
+     */
+    subtitleBeauty?: string | null;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
@@ -166,25 +232,237 @@ export interface Media {
 export interface Project {
   id: number;
   /**
-   * ¿En qué página aparece esta imagen?
+   * ¿A qué categoría pertenece este proyecto?
    */
-  section: 'branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360';
+  category: number | Category;
+  /**
+   * Una tarjeta de imagen normal, o un caso de estudio completo.
+   */
+  type: 'image' | 'caseStudy';
   /**
    * Elige dónde aparece esta tarjeta.
    */
   placement: 'home' | 'page' | 'both';
   /**
-   * Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).
+   * Solo para Branding: subgrupo (sports, adrianaMunoz, anaGrace, logos).
    */
   group?: string | null;
-  image: number | Media;
+  /**
+   * Cuánto espacio ocupa la tarjeta en la cuadrícula.
+   */
+  size?: ('small' | 'medium' | 'large' | 'wide' | 'tall') | null;
+  /**
+   * La imagen de la tarjeta.
+   */
+  image?: (number | null) | Media;
   /**
    * Número para ordenar dentro de su grupo (el menor aparece primero).
    */
   order: number;
+  /**
+   * Nombre solo para el panel (no se muestra en la web).
+   */
+  internalTitle?: string | null;
   title?: string | null;
   alt?: string | null;
-  category?: string | null;
+  /**
+   * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").
+   */
+  categoryLabel?: string | null;
+  /**
+   * Todo el contenido de la página del caso de estudio.
+   */
+  caseStudy?: {
+    header?: {
+      title?: string | null;
+      tagline?: string | null;
+    };
+    hero?: {
+      image?: string | null;
+      alt?: string | null;
+    };
+    project?: {
+      name?: string | null;
+      subtitle?: string | null;
+      overview?:
+        | {
+            label?: string | null;
+            text?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    intro?:
+      | {
+          text?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    problemSolution?: {
+      problem?: {
+        label?: string | null;
+        text?: string | null;
+      };
+      solution?: {
+        label?: string | null;
+        text?: string | null;
+      };
+    };
+    details?: {
+      headers?: {
+        tools?: string | null;
+        team?: string | null;
+        role?: string | null;
+      };
+      rows?:
+        | {
+            tools?: string | null;
+            team?: string | null;
+            role?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    timeline?: {
+      title?: string | null;
+      durationLabel?: string | null;
+      durationValue?: string | null;
+      phases?:
+        | {
+            phase?: string | null;
+            duration?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    journey?: {
+      title?: string | null;
+      intro?:
+        | {
+            text?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+      labels?: {
+        action?: string | null;
+        thought?: string | null;
+        friction?: string | null;
+      };
+      stages?:
+        | {
+            number?: string | null;
+            name?: string | null;
+            action?: string | null;
+            thought?: string | null;
+            friction?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+      qa?:
+        | {
+            question?: string | null;
+            answer?: string | null;
+            bullets?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    personas?: {
+      title?: string | null;
+      intro?:
+        | {
+            text?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+      qa?:
+        | {
+            question?: string | null;
+            answer?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+      sectionLabels?: {
+        basicInfo?: string | null;
+        channels?: string | null;
+        motivations?: string | null;
+        painPoints?: string | null;
+      };
+      cards?:
+        | {
+            name?: string | null;
+            descriptor?: string | null;
+            quote?: string | null;
+            basicInfo?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            channels?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            motivations?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            painPoints?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    sketches?: {
+      title?: string | null;
+      intro?:
+        | {
+            text?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+      qa?:
+        | {
+            question?: string | null;
+            answer?: string | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+    learnings?: {
+      title?: string | null;
+      qa?:
+        | {
+            question?: string | null;
+            answer?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+          }[]
+        | null;
+    };
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -243,6 +521,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'projects';
@@ -314,17 +596,276 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  anchorId?: T;
+  order?: T;
+  home?:
+    | T
+    | {
+        heading?: T;
+        tagline?: T;
+        description?: T;
+        studioName?: T;
+        roleDescription?: T;
+        cta?: T;
+        sectionHeading?: T;
+        sketchImage?: T;
+        sketchAlt?: T;
+      };
+  page?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        subtitleSports?: T;
+        subtitleBeauty?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects_select".
  */
 export interface ProjectsSelect<T extends boolean = true> {
-  section?: T;
+  category?: T;
+  type?: T;
   placement?: T;
   group?: T;
+  size?: T;
   image?: T;
   order?: T;
+  internalTitle?: T;
   title?: T;
   alt?: T;
-  category?: T;
+  categoryLabel?: T;
+  caseStudy?:
+    | T
+    | {
+        header?:
+          | T
+          | {
+              title?: T;
+              tagline?: T;
+            };
+        hero?:
+          | T
+          | {
+              image?: T;
+              alt?: T;
+            };
+        project?:
+          | T
+          | {
+              name?: T;
+              subtitle?: T;
+              overview?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                    id?: T;
+                  };
+            };
+        intro?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        problemSolution?:
+          | T
+          | {
+              problem?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                  };
+              solution?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                  };
+            };
+        details?:
+          | T
+          | {
+              headers?:
+                | T
+                | {
+                    tools?: T;
+                    team?: T;
+                    role?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    tools?: T;
+                    team?: T;
+                    role?: T;
+                    id?: T;
+                  };
+            };
+        timeline?:
+          | T
+          | {
+              title?: T;
+              durationLabel?: T;
+              durationValue?: T;
+              phases?:
+                | T
+                | {
+                    phase?: T;
+                    duration?: T;
+                    id?: T;
+                  };
+            };
+        journey?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              labels?:
+                | T
+                | {
+                    action?: T;
+                    thought?: T;
+                    friction?: T;
+                  };
+              stages?:
+                | T
+                | {
+                    number?: T;
+                    name?: T;
+                    action?: T;
+                    thought?: T;
+                    friction?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    bullets?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+        personas?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              sectionLabels?:
+                | T
+                | {
+                    basicInfo?: T;
+                    channels?: T;
+                    motivations?: T;
+                    painPoints?: T;
+                  };
+              cards?:
+                | T
+                | {
+                    name?: T;
+                    descriptor?: T;
+                    quote?: T;
+                    basicInfo?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    channels?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    motivations?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    painPoints?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+        sketches?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+            };
+        learnings?:
+          | T
+          | {
+              title?: T;
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+            };
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -421,362 +962,6 @@ export interface Home {
      * Texto del segundo botón.
      */
     cta2?: string | null;
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Los títulos y textos que aparecen encima de cada grupo de proyectos (en la vista previa de la página de inicio y en las páginas de proyectos).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "section-text".
- */
-export interface SectionText {
-  id: number;
-  /**
-   * Controla los textos de la sección "Web y Apps".
-   */
-  webApps?: {
-    /**
-     * Se muestra en la vista previa de esta sección en la página de inicio.
-     */
-    home?: {
-      heading?: string | null;
-      description?: string | null;
-      studioName?: string | null;
-      roleDescription?: string | null;
-      cta?: string | null;
-    };
-    /**
-     * Se muestra arriba de la página de este proyecto.
-     */
-    page?: {
-      title?: string | null;
-      description?: string | null;
-    };
-  };
-  /**
-   * Controla los textos de la sección "Branding".
-   */
-  branding?: {
-    /**
-     * Se muestra en la vista previa de esta sección en la página de inicio.
-     */
-    home?: {
-      heading?: string | null;
-      description?: string | null;
-      studioName?: string | null;
-      roleDescription?: string | null;
-      cta?: string | null;
-      sectionHeading?: string | null;
-    };
-    /**
-     * Se muestra arriba de la página de este proyecto.
-     */
-    page?: {
-      title?: string | null;
-      description?: string | null;
-      subtitleSports?: string | null;
-      subtitleBeauty?: string | null;
-    };
-  };
-  /**
-   * Controla los textos de la sección "Fotografía de Producto".
-   */
-  photography?: {
-    /**
-     * Se muestra en la vista previa de esta sección en la página de inicio.
-     */
-    home?: {
-      heading?: string | null;
-      description?: string | null;
-      studioName?: string | null;
-      roleDescription?: string | null;
-      cta?: string | null;
-    };
-    /**
-     * Se muestra arriba de la página de este proyecto.
-     */
-    page?: {
-      title?: string | null;
-      description?: string | null;
-    };
-  };
-  /**
-   * Controla los textos de la sección "Marketing 360°".
-   */
-  marketing360?: {
-    /**
-     * Se muestra en la vista previa de esta sección en la página de inicio.
-     */
-    home?: {
-      heading?: string | null;
-      description?: string | null;
-      studioName?: string | null;
-      roleDescription?: string | null;
-      cta?: string | null;
-    };
-    /**
-     * Se muestra arriba de la página de este proyecto.
-     */
-    page?: {
-      title?: string | null;
-      description?: string | null;
-    };
-  };
-  /**
-   * Controla los textos de la sección "UX/UI". (El contenido completo del caso de estudio está en "Caso de Estudio UX/UI".)
-   */
-  uxui?: {
-    /**
-     * Se muestra en la vista previa de esta sección en la página de inicio.
-     */
-    home?: {
-      heading?: string | null;
-      tagline?: string | null;
-      description?: string | null;
-      studioName?: string | null;
-      roleDescription?: string | null;
-      sketchImage?: string | null;
-      sketchAlt?: string | null;
-      cta?: string | null;
-    };
-  };
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * Todo el contenido de la página del caso de estudio (Snaga).
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "case-study".
- */
-export interface CaseStudy {
-  id: number;
-  /**
-   * Título y lema en la parte superior de la página.
-   */
-  header?: {
-    title?: string | null;
-    tagline?: string | null;
-  };
-  /**
-   * La imagen grande de portada del caso de estudio.
-   */
-  hero?: {
-    image?: string | null;
-    alt?: string | null;
-  };
-  /**
-   * Nombre, subtítulo y resumen del proyecto.
-   */
-  project?: {
-    name?: string | null;
-    subtitle?: string | null;
-    /**
-     * Puntos de resumen (etiqueta + texto).
-     */
-    overview?:
-      | {
-          label?: string | null;
-          text?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Párrafos de introducción del caso de estudio.
-   */
-  intro?:
-    | {
-        text?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * El problema detectado y la solución propuesta.
-   */
-  problemSolution?: {
-    problem?: {
-      label?: string | null;
-      text?: string | null;
-    };
-    solution?: {
-      label?: string | null;
-      text?: string | null;
-    };
-  };
-  /**
-   * Tabla de herramientas, equipo y rol.
-   */
-  details?: {
-    headers?: {
-      tools?: string | null;
-      team?: string | null;
-      role?: string | null;
-    };
-    rows?:
-      | {
-          tools?: string | null;
-          team?: string | null;
-          role?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Duración y fases del proyecto.
-   */
-  timeline?: {
-    title?: string | null;
-    durationLabel?: string | null;
-    durationValue?: string | null;
-    phases?:
-      | {
-          phase?: string | null;
-          duration?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Etapas y preguntas del recorrido del usuario.
-   */
-  journey?: {
-    title?: string | null;
-    intro?:
-      | {
-          text?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    labels?: {
-      action?: string | null;
-      thought?: string | null;
-      friction?: string | null;
-    };
-    stages?:
-      | {
-          number?: string | null;
-          name?: string | null;
-          action?: string | null;
-          thought?: string | null;
-          friction?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    qa?:
-      | {
-          question?: string | null;
-          answer?: string | null;
-          bullets?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Perfiles de usuarios tipo del proyecto.
-   */
-  personas?: {
-    title?: string | null;
-    intro?:
-      | {
-          text?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    qa?:
-      | {
-          question?: string | null;
-          answer?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
-    sectionLabels?: {
-      basicInfo?: string | null;
-      channels?: string | null;
-      motivations?: string | null;
-      painPoints?: string | null;
-    };
-    cards?:
-      | {
-          name?: string | null;
-          descriptor?: string | null;
-          quote?: string | null;
-          basicInfo?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          channels?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          motivations?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          painPoints?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Sección de bocetos e ideas iniciales.
-   */
-  sketches?: {
-    title?: string | null;
-    intro?:
-      | {
-          text?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    qa?:
-      | {
-          question?: string | null;
-          answer?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  /**
-   * Conclusiones y aprendizajes del proyecto.
-   */
-  learnings?: {
-    title?: string | null;
-    qa?:
-      | {
-          question?: string | null;
-          answer?:
-            | {
-                text?: string | null;
-                id?: string | null;
-              }[]
-            | null;
-          id?: string | null;
-        }[]
-      | null;
   };
   updatedAt?: string | null;
   createdAt?: string | null;
@@ -933,338 +1118,6 @@ export interface HomeSelect<T extends boolean = true> {
         body?: T;
         cta1?: T;
         cta2?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "section-text_select".
- */
-export interface SectionTextSelect<T extends boolean = true> {
-  webApps?:
-    | T
-    | {
-        home?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-            };
-        page?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-            };
-      };
-  branding?:
-    | T
-    | {
-        home?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-              sectionHeading?: T;
-            };
-        page?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              subtitleSports?: T;
-              subtitleBeauty?: T;
-            };
-      };
-  photography?:
-    | T
-    | {
-        home?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-            };
-        page?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-            };
-      };
-  marketing360?:
-    | T
-    | {
-        home?:
-          | T
-          | {
-              heading?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-            };
-        page?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-            };
-      };
-  uxui?:
-    | T
-    | {
-        home?:
-          | T
-          | {
-              heading?: T;
-              tagline?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              sketchImage?: T;
-              sketchAlt?: T;
-              cta?: T;
-            };
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "case-study_select".
- */
-export interface CaseStudySelect<T extends boolean = true> {
-  header?:
-    | T
-    | {
-        title?: T;
-        tagline?: T;
-      };
-  hero?:
-    | T
-    | {
-        image?: T;
-        alt?: T;
-      };
-  project?:
-    | T
-    | {
-        name?: T;
-        subtitle?: T;
-        overview?:
-          | T
-          | {
-              label?: T;
-              text?: T;
-              id?: T;
-            };
-      };
-  intro?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  problemSolution?:
-    | T
-    | {
-        problem?:
-          | T
-          | {
-              label?: T;
-              text?: T;
-            };
-        solution?:
-          | T
-          | {
-              label?: T;
-              text?: T;
-            };
-      };
-  details?:
-    | T
-    | {
-        headers?:
-          | T
-          | {
-              tools?: T;
-              team?: T;
-              role?: T;
-            };
-        rows?:
-          | T
-          | {
-              tools?: T;
-              team?: T;
-              role?: T;
-              id?: T;
-            };
-      };
-  timeline?:
-    | T
-    | {
-        title?: T;
-        durationLabel?: T;
-        durationValue?: T;
-        phases?:
-          | T
-          | {
-              phase?: T;
-              duration?: T;
-              id?: T;
-            };
-      };
-  journey?:
-    | T
-    | {
-        title?: T;
-        intro?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-            };
-        labels?:
-          | T
-          | {
-              action?: T;
-              thought?: T;
-              friction?: T;
-            };
-        stages?:
-          | T
-          | {
-              number?: T;
-              name?: T;
-              action?: T;
-              thought?: T;
-              friction?: T;
-              id?: T;
-            };
-        qa?:
-          | T
-          | {
-              question?: T;
-              answer?: T;
-              bullets?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-      };
-  personas?:
-    | T
-    | {
-        title?: T;
-        intro?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-            };
-        qa?:
-          | T
-          | {
-              question?: T;
-              answer?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        sectionLabels?:
-          | T
-          | {
-              basicInfo?: T;
-              channels?: T;
-              motivations?: T;
-              painPoints?: T;
-            };
-        cards?:
-          | T
-          | {
-              name?: T;
-              descriptor?: T;
-              quote?: T;
-              basicInfo?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              channels?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              motivations?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              painPoints?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-      };
-  sketches?:
-    | T
-    | {
-        title?: T;
-        intro?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-            };
-        qa?:
-          | T
-          | {
-              question?: T;
-              answer?: T;
-              id?: T;
-            };
-      };
-  learnings?:
-    | T
-    | {
-        title?: T;
-        qa?:
-          | T
-          | {
-              question?: T;
-              answer?:
-                | T
-                | {
-                    text?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
       };
   updatedAt?: T;
   createdAt?: T;

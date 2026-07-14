@@ -1,9 +1,13 @@
 /**
- * Fidelity gate: reconstruct each committed content JSON from Payload and
- * deep-compare against the original. Report -> /tmp/roundtrip-report.json
+ * Export + FIDELITY GATE.
  *
- * Run:  pnpm payload run src/scripts/roundtrip.ts
- * Does NOT modify content/*.json.
+ * Reads the Categorías → Proyectos domain model (+ globals) via the Local API
+ * with locale:'all', RECONSTRUCTS the exact original content files, writes them
+ * to a TEMP dir (/tmp/export-out/), then deep-diffs each temp file against the
+ * committed content/*.json.  Writes /tmp/fidelity-report.json.
+ *
+ * Run:  pnpm payload run src/scripts/export-content.ts
+ * Does NOT modify the committed content/*.json (source of truth).
  */
 import fs from 'fs'
 import path from 'path'
@@ -15,8 +19,10 @@ import {
   filenameToPath,
   SECTION_SPECS,
   BRANDING_PAGE_GROUPS,
+  CASE_STUDY_FILE,
 } from './content-map'
 
+const OUT_DIR = '/tmp/export-out'
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'))
 
 // ---------- deep compare ----------
@@ -42,9 +48,7 @@ function deepDiff(a: any, b: any, pathStr = ''): string[] {
   }
 
   if (a !== null && b !== null && ta === 'object' && tb === 'object') {
-    const keysA = Object.keys(a)
-    const keysB = Object.keys(b)
-    const all = new Set([...keysA, ...keysB])
+    const all = new Set([...Object.keys(a), ...Object.keys(b)])
     for (const k of all) {
       const inA = k in a
       const inB = k in b
@@ -61,14 +65,11 @@ function deepDiff(a: any, b: any, pathStr = ''): string[] {
     return diffs
   }
 
-  if (a !== b) {
-    diffs.push(`${pathStr}: ${JSON.stringify(a)} !== ${JSON.stringify(b)}`)
-  }
+  if (a !== b) diffs.push(`${pathStr}: ${JSON.stringify(a)} !== ${JSON.stringify(b)}`)
   return diffs
 }
 
 type LV = { es?: string | null; en?: string | null }
-// localized value from locale:'all' -> { es, en }
 const loc = (v: LV | undefined | null): { es: string; en: string } => ({
   es: (v?.es ?? '') as string,
   en: (v?.en ?? '') as string,
@@ -77,6 +78,9 @@ const loc = (v: LV | undefined | null): { es: string; en: string } => ({
 async function main() {
   const payload = await getPayload({ config })
   const report: Record<string, { match: boolean; diffs: string[] }> = {}
+  const written: Record<string, any> = {}
+
+  fs.mkdirSync(path.join(OUT_DIR, 'sections'), { recursive: true })
 
   // ---- media id -> filename ----
   const media = await payload.find({ collection: 'media', limit: 1000, depth: 0, locale: 'all' })
@@ -90,9 +94,11 @@ async function main() {
     return filenameToPath(fn)
   }
 
-  const cmp = (name: string, recon: any, orig: any) => {
-    const diffs = deepDiff(recon, orig)
-    report[name] = { match: diffs.length === 0, diffs }
+  const emit = (relPath: string, recon: any, origPath: string) => {
+    fs.writeFileSync(path.join(OUT_DIR, relPath), JSON.stringify(recon, null, 2) + '\n')
+    written[relPath] = recon
+    const diffs = deepDiff(recon, readJson(origPath))
+    report[relPath] = { match: diffs.length === 0, diffs }
   }
 
   // ==================== HOME ====================
@@ -108,7 +114,7 @@ async function main() {
         cta2: loc(g.hero.cta2),
       },
     }
-    cmp('home.json', recon, readJson(path.join(CONTENT_DIR, 'home.json')))
+    emit('home.json', recon, path.join(CONTENT_DIR, 'home.json'))
   }
 
   // ==================== ABOUT ====================
@@ -121,8 +127,8 @@ async function main() {
         languages: loc(g.headings.languages),
       },
       education: {
-        es: g.education.map((r: any) => (r.item?.es ?? '')),
-        en: g.education.map((r: any) => (r.item?.en ?? '')),
+        es: g.education.map((r: any) => r.item?.es ?? ''),
+        en: g.education.map((r: any) => r.item?.en ?? ''),
       },
       tools: g.tools.map((r: any) => r.value),
       languages: g.languages.map((r: any) => r.value),
@@ -140,7 +146,7 @@ async function main() {
         terms: loc(g.footer.terms),
       },
     }
-    cmp('about.json', recon, readJson(path.join(CONTENT_DIR, 'about.json')))
+    emit('about.json', recon, path.join(CONTENT_DIR, 'about.json'))
   }
 
   // ==================== CAREER ====================
@@ -159,7 +165,7 @@ async function main() {
       },
       experience: { es: buildExp('es'), en: buildExp('en') },
     }
-    cmp('career.json', recon, readJson(path.join(CONTENT_DIR, 'career.json')))
+    emit('career.json', recon, path.join(CONTENT_DIR, 'career.json'))
   }
 
   // ==================== UI STRINGS ====================
@@ -171,75 +177,82 @@ async function main() {
       es[row.key] = row.value?.es ?? ''
       en[row.key] = row.value?.en ?? ''
     }
-    cmp('ui.json', { es, en }, readJson(path.join(CONTENT_DIR, 'ui.json')))
+    emit('ui.json', { es, en }, path.join(CONTENT_DIR, 'ui.json'))
   }
 
-  // ==================== SECTION TEXT + PROJECTS ====================
-  // load all projects once
+  // ==================== CATEGORÍAS + PROYECTOS ====================
+  // load all categories + projects once
+  const cats = await payload.find({ collection: 'categories', limit: 100, depth: 0, locale: 'all' })
+  const catBySlug: Record<string, any> = {}
+  const catIdToSlug: Record<number, string> = {}
+  for (const c of cats.docs as any[]) {
+    catBySlug[c.slug] = c
+    catIdToSlug[c.id] = c.slug
+  }
+
   const allProjects = await payload.find({ collection: 'projects', limit: 2000, depth: 0, locale: 'all' })
-  const projByKey = (section: string, placement: string, group?: string) =>
-    allProjects.docs.filter(
-      (p: any) => p.section === section && p.placement === placement && (group ? p.group === group : !p.group),
+  const slugOf = (p: any) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
+
+  const projByKey = (slug: string, placement: string, group?: string) =>
+    (allProjects.docs as any[]).filter(
+      (p) =>
+        slugOf(p) === slug &&
+        p.type === 'image' &&
+        p.placement === placement &&
+        (group ? p.group === group : !p.group),
     )
-
-  const st: any = await payload.findGlobal({ slug: 'section-text', locale: 'all', depth: 0 })
-  const cs: any = await payload.findGlobal({ slug: 'case-study', locale: 'all', depth: 0 })
-
-  // helper: sort a project doc set by order asc
   const byOrder = (docs: any[]) => [...docs].sort((a, b) => a.order - b.order)
 
   for (const spec of SECTION_SPECS) {
-    const orig = readJson(path.join(SECTIONS_DIR, spec.file))
+    const cat = catBySlug[spec.slug]
     let recon: any
 
-    if (spec.section === 'web-apps' || spec.section === 'fotografia-producto' || spec.section === 'marketing-360') {
-      const stGroup =
-        spec.section === 'web-apps' ? st.webApps : spec.section === 'fotografia-producto' ? st.photography : st.marketing360
-      const homeDocs = byOrder(projByKey(spec.section, 'home'))
-      const pageDocs = byOrder(projByKey(spec.section, 'page'))
+    if (spec.slug === 'web-apps' || spec.slug === 'fotografia-producto' || spec.slug === 'marketing-360') {
+      const homeDocs = byOrder(projByKey(spec.slug, 'home'))
+      const pageDocs = byOrder(projByKey(spec.slug, 'page'))
       recon = {
         home: {
-          heading: loc(stGroup.home.heading),
-          description: loc(stGroup.home.description),
-          studioName: stGroup.home.studioName,
-          roleDescription: loc(stGroup.home.roleDescription),
-          cta: loc(stGroup.home.cta),
+          heading: loc(cat.home.heading),
+          description: loc(cat.home.description),
+          studioName: cat.home.studioName,
+          roleDescription: loc(cat.home.roleDescription),
+          cta: loc(cat.home.cta),
           projects: homeDocs.map((p: any) => ({
             image: imgPathFromMedia(p.image),
             title: loc(p.title),
-            category: loc(p.category),
+            category: loc(p.categoryLabel),
           })),
         },
         page: {
-          title: loc(stGroup.page.title),
-          description: loc(stGroup.page.description),
+          title: loc(cat.page.title),
+          description: loc(cat.page.description),
           projects: pageDocs.map((p: any) => ({
             image: imgPathFromMedia(p.image),
             alt: loc(p.alt),
-            category: loc(p.category),
+            category: loc(p.categoryLabel),
           })),
         },
       }
-    } else if (spec.section === 'branding') {
+    } else if (spec.slug === 'branding') {
       const homeDocs = byOrder(projByKey('branding', 'home'))
       recon = {
         home: {
-          heading: loc(st.branding.home.heading),
-          description: loc(st.branding.home.description),
-          studioName: st.branding.home.studioName,
-          roleDescription: loc(st.branding.home.roleDescription),
-          cta: loc(st.branding.home.cta),
-          sectionHeading: loc(st.branding.home.sectionHeading),
+          heading: loc(cat.home.heading),
+          description: loc(cat.home.description),
+          studioName: cat.home.studioName,
+          roleDescription: loc(cat.home.roleDescription),
+          cta: loc(cat.home.cta),
+          sectionHeading: loc(cat.home.sectionHeading),
           images: homeDocs.map((p: any) => ({
             src: imgPathFromMedia(p.image),
             alt: loc(p.alt),
           })),
         },
         page: {
-          title: loc(st.branding.page.title),
-          description: loc(st.branding.page.description),
-          subtitleSports: loc(st.branding.page.subtitleSports),
-          subtitleBeauty: loc(st.branding.page.subtitleBeauty),
+          title: loc(cat.page.title),
+          description: loc(cat.page.description),
+          subtitleSports: loc(cat.page.subtitleSports),
+          subtitleBeauty: loc(cat.page.subtitleBeauty),
         },
       }
       for (const g of BRANDING_PAGE_GROUPS) {
@@ -248,30 +261,33 @@ async function main() {
           id: p.order,
           src: imgPathFromMedia(p.image),
           alt: loc(p.alt),
-          category: loc(p.category),
+          category: loc(p.categoryLabel),
         }))
       }
-    } else if (spec.section === 'uxui-producto') {
+    } else if (spec.slug === 'uxui-producto') {
       recon = {
         home: {
-          heading: loc(st.uxui.home.heading),
-          tagline: loc(st.uxui.home.tagline),
-          description: loc(st.uxui.home.description),
-          studioName: st.uxui.home.studioName,
-          roleDescription: loc(st.uxui.home.roleDescription),
-          sketchImage: st.uxui.home.sketchImage,
-          sketchAlt: loc(st.uxui.home.sketchAlt),
-          cta: loc(st.uxui.home.cta),
+          heading: loc(cat.home.heading),
+          tagline: loc(cat.home.tagline),
+          description: loc(cat.home.description),
+          studioName: cat.home.studioName,
+          roleDescription: loc(cat.home.roleDescription),
+          sketchImage: cat.home.sketchImage,
+          sketchAlt: loc(cat.home.sketchAlt),
+          cta: loc(cat.home.cta),
         },
       }
     }
 
-    cmp(`sections/${spec.file}`, recon, orig)
+    emit(`sections/${spec.file}`, recon, path.join(SECTIONS_DIR, spec.file))
   }
 
-  // ==================== CASE STUDY ====================
+  // ==================== CASE STUDY (a Proyecto) ====================
   {
-    const arrText = (arr: any[]) => arr.map((r: any) => loc(r.text))
+    const doc: any = (allProjects.docs as any[]).find((p) => p.type === 'caseStudy')
+    if (!doc) throw new Error('No caseStudy Proyecto found')
+    const cs = doc.caseStudy
+    const arrText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
     const recon = {
       header: { title: loc(cs.header.title), tagline: loc(cs.header.tagline) },
       hero: { image: cs.hero.image, alt: loc(cs.hero.alt) },
@@ -316,11 +332,8 @@ async function main() {
         })),
         qa: cs.journey.qa.map((q: any) => {
           const out: any = { question: loc(q.question) }
-          if (q.bullets && q.bullets.length > 0) {
-            out.bullets = arrText(q.bullets)
-          } else {
-            out.answer = loc(q.answer)
-          }
+          if (q.bullets && q.bullets.length > 0) out.bullets = arrText(q.bullets)
+          else out.answer = loc(q.answer)
           return out
         }),
       },
@@ -354,19 +367,19 @@ async function main() {
         qa: cs.learnings.qa.map((q: any) => ({ question: loc(q.question), answer: arrText(q.answer) })),
       },
     }
-    cmp('sections/uxui-casestudy.json', recon, readJson(path.join(SECTIONS_DIR, 'uxui-casestudy.json')))
+    emit(`sections/${CASE_STUDY_FILE}`, recon, path.join(SECTIONS_DIR, CASE_STUDY_FILE))
   }
 
   const allMatch = Object.values(report).every((r) => r.match)
   fs.writeFileSync(
-    '/tmp/roundtrip-report.json',
-    JSON.stringify({ allMatch, files: report }, null, 2),
+    '/tmp/fidelity-report.json',
+    JSON.stringify({ allMatch, outDir: OUT_DIR, files: report }, null, 2),
   )
 }
 
 try {
   await main()
 } catch (err: any) {
-  fs.writeFileSync('/tmp/roundtrip-error.json', JSON.stringify({ message: err.message, stack: err.stack }, null, 2))
+  fs.writeFileSync('/tmp/export-error.json', JSON.stringify({ message: err.message, stack: err.stack }, null, 2))
 }
 process.exit(0)

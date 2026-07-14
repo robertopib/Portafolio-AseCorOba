@@ -2,8 +2,16 @@
  * Shared mapping tables between the committed frontend content JSON
  * (content/*.json, content/sections/*.json) and the Payload data model.
  *
- * Used by both seed.ts (write) and roundtrip.ts (read + reconstruct) so the
+ * Used by both seed.ts (write) and export-content.ts (read + reconstruct) so the
  * two stay perfectly in sync.
+ *
+ * DOMAIN MODEL (intuitive): Categorías -> Proyectos.
+ *   - Each section JSON maps 1:1 to a Categoría. The Categoría holds ALL the
+ *     non-project presentation text (the old SectionText content), split into a
+ *     `home` group (home.* keys) and a `page` group (page.* keys).
+ *   - Every project card in a section becomes a Proyecto (placement home|page).
+ *   - The uxui case study becomes a single Proyecto (type='caseStudy') whose
+ *     `caseStudy` group mirrors content/sections/uxui-casestudy.json.
  */
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -30,19 +38,44 @@ export function filenameToPath(f: string): string {
 }
 
 /**
- * Section files that contribute Project docs.
- * `section` is the Projects.section select value.
- * `file` is the JSON filename under content/sections/.
- * `homeKind` / `pageKind` describe how project cards are laid out in that file.
+ * The five Categorías. `slug` is the stable identifier used to link Proyectos
+ * to a Categoría and to select the right section JSON. `anchorId` is the DOM
+ * anchor the frontend scrolls to. `order` controls admin/nav ordering. These
+ * three fields are CMS-organizational only and do NOT appear in any content JSON.
+ *
+ * `file` is the section JSON filename that this category reproduces.
+ */
+export interface CategorySpec {
+  slug: 'branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360'
+  file: string
+  anchorId: string
+  order: number
+  name: { es: string; en: string }
+}
+
+export const CATEGORY_SPECS: CategorySpec[] = [
+  { slug: 'branding', file: 'branding.json', anchorId: 'branding', order: 1, name: { es: 'Branding Corporativo', en: 'Corporate Branding' } },
+  { slug: 'web-apps', file: 'web-apps.json', anchorId: 'web-apps', order: 2, name: { es: 'Diseño Web y Apps', en: 'Web & App Design' } },
+  { slug: 'uxui-producto', file: 'uxui.json', anchorId: 'uxui', order: 3, name: { es: 'UX/UI Producto', en: 'UX/UI Product' } },
+  { slug: 'fotografia-producto', file: 'photography.json', anchorId: 'fotografia', order: 4, name: { es: 'Fotografía de Producto y Packaging', en: 'Product Photography & Packaging' } },
+  { slug: 'marketing-360', file: 'marketing-360.json', anchorId: 'marketing-360', order: 5, name: { es: 'Diseño 360°', en: '360° Design' } },
+]
+
+export const categoryBySlug = (slug: string) =>
+  CATEGORY_SPECS.find((c) => c.slug === slug)
+
+/**
+ * Section files that contribute Project docs, and how their cards are laid out.
+ * `homeKind` / `pageKind` describe the shape of the project arrays in that file.
  */
 export interface SectionProjectSpec {
-  section: 'web-apps' | 'branding' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360'
+  slug: CategorySpec['slug']
   file: string
   /**
    * home card layout:
    *  - 'titleProjects': home.projects[] = { image, title, category }
    *  - 'brandingImages': home.images[]  = { src, alt }
-   *  - 'none': no home project cards
+   *  - 'none': no home project cards (uxui)
    */
   homeKind: 'titleProjects' | 'brandingImages' | 'none'
   /**
@@ -55,11 +88,11 @@ export interface SectionProjectSpec {
 }
 
 export const SECTION_SPECS: SectionProjectSpec[] = [
-  { section: 'web-apps', file: 'web-apps.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
-  { section: 'fotografia-producto', file: 'photography.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
-  { section: 'marketing-360', file: 'marketing-360.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
-  { section: 'branding', file: 'branding.json', homeKind: 'brandingImages', pageKind: 'brandingGroups' },
-  { section: 'uxui-producto', file: 'uxui.json', homeKind: 'none', pageKind: 'none' },
+  { slug: 'web-apps', file: 'web-apps.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
+  { slug: 'fotografia-producto', file: 'photography.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
+  { slug: 'marketing-360', file: 'marketing-360.json', homeKind: 'titleProjects', pageKind: 'altProjects' },
+  { slug: 'branding', file: 'branding.json', homeKind: 'brandingImages', pageKind: 'brandingGroups' },
+  { slug: 'uxui-producto', file: 'uxui.json', homeKind: 'none', pageKind: 'none' },
 ]
 
 /** Ordered branding page group keys -> JSON array property names. */
@@ -70,14 +103,6 @@ export const BRANDING_PAGE_GROUPS: { group: string; jsonKey: string }[] = [
   { group: 'logos', jsonKey: 'logoProjects' },
 ]
 
-/**
- * Mapping of SectionText global groups <-> section JSON files.
- * Only the text (non-project-array) portions are captured here.
- */
-export const SECTION_TEXT_MAP: { group: string; file: string; hasSectionHeading?: boolean; hasBrandingPageExtras?: boolean; isUxui?: boolean }[] = [
-  { group: 'webApps', file: 'web-apps.json' },
-  { group: 'branding', file: 'branding.json', hasSectionHeading: true, hasBrandingPageExtras: true },
-  { group: 'photography', file: 'photography.json' },
-  { group: 'marketing360', file: 'marketing-360.json' },
-  { group: 'uxui', file: 'uxui.json', isUxui: true },
-]
+/** The slug of the category the UX/UI case-study Proyecto belongs to. */
+export const CASE_STUDY_CATEGORY_SLUG = 'uxui-producto'
+export const CASE_STUDY_FILE = 'uxui-casestudy.json'
