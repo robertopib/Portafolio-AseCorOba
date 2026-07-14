@@ -2,3 +2,13 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# CMS (Payload) app
+cms/node_modules
+cms/.next
+cms/.env
+cms/build
+cms/dist
+
+# visual-parity screenshots (local only)
+screenshots
