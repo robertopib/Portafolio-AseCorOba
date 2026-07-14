@@ -17,6 +17,7 @@ import { ImageBlock } from './ImageBlock'
 import { CTAButton } from './CTAButton'
 import { SectionHeading } from './SectionHeading'
 import { Spacer } from './Spacer'
+import { CategoryShowcase } from './CategoryShowcase'
 
 export {
   Hero,
@@ -36,13 +37,34 @@ export {
   CTAButton,
   SectionHeading,
   Spacer,
+  CategoryShowcase,
 }
+
+/**
+ * The composable case-study blocks — used both in the Pages page-builder and in
+ * a Proyecto's `caseStudyLayout` (for `type === 'caseStudy'`).
+ */
+export const caseStudyBlocks: Block[] = [
+  SectionHeading,
+  RichTextBlock,
+  ImageBlock,
+  TwoColumn,
+  DetailsTable,
+  Timeline,
+  JourneyMap,
+  PersonaCards,
+  QA,
+  CTAButton,
+  Spacer,
+  ProjectGallery,
+]
 
 /** Every block available to the Pages page-builder layout. */
 export const allBlocks: Block[] = [
   Hero,
   PortfolioSection,
   ProjectGallery,
+  CategoryShowcase,
   SectionHeading,
   RichTextBlock,
   TwoColumn,

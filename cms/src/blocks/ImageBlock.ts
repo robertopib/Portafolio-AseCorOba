@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * ImageBlock — a single image from the media library with an optional caption
  * and display width. Image ref is language-agnostic; caption is localized.
@@ -36,5 +38,6 @@ export const ImageBlock: Block = {
         { label: 'Mitad', value: 'half' },
       ],
     },
+    anchorField,
   ],
 }

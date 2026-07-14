@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * RichTextBlock — a run of localized paragraphs (mirrors CaseStudy.intro and the
  * various `intro: [{ text }]` arrays). Kept as a textarea array so bilingual
@@ -28,5 +30,6 @@ export const RichTextBlock: Block = {
         { name: 'text', type: 'textarea', localized: true, label: 'Párrafo' },
       ],
     },
+    anchorField,
   ],
 }

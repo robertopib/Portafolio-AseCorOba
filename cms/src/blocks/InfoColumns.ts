@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * InfoColumns — mirrors About (education / tools / languages).
  *   - education: array of localized items (per-locale parallel lists).
@@ -49,5 +51,6 @@ export const InfoColumns: Block = {
       admin: { description: 'Igual en ambos idiomas.' },
       fields: [{ name: 'value', type: 'text', label: 'Idioma' }],
     },
+    anchorField,
   ],
 }

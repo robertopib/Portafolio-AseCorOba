@@ -1,57 +1,49 @@
 import type { CollectionConfig } from 'payload'
 
+import { caseStudyBlocks } from '../blocks'
+
 export const Projects: CollectionConfig = {
   slug: 'projects',
   labels: {
-    singular: 'Imagen de Proyecto',
-    plural: 'Imágenes de Proyectos',
+    singular: 'Proyecto',
+    plural: 'Proyectos',
   },
   admin: {
     useAsTitle: 'alt',
     group: 'Portafolio',
     description:
-      'Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.',
-    defaultColumns: ['image', 'section', 'placement', 'group', 'order', 'alt'],
+      'Los proyectos del portafolio. Cada uno es una imagen (galería/lightbox) o un caso de estudio con contenido.',
+    defaultColumns: ['image', 'category', 'type', 'order', 'alt'],
   },
   defaultSort: 'order',
   fields: [
     {
-      name: 'section',
+      name: 'category',
+      type: 'relationship',
+      relationTo: 'categories',
+      required: true,
+      label: 'Categoría',
+      admin: {
+        description: 'La categoría del portafolio a la que pertenece este proyecto.',
+      },
+    },
+    {
+      name: 'type',
       type: 'select',
       required: true,
-      label: 'Página',
-      admin: {
-        description: '¿En qué página aparece esta imagen?',
-      },
+      defaultValue: 'image',
+      label: 'Tipo de proyecto',
       options: [
-        { label: 'Branding', value: 'branding' },
-        { label: 'Web y Apps', value: 'web-apps' },
-        { label: 'UX/UI Producto', value: 'uxui-producto' },
-        { label: 'Fotografía de Producto', value: 'fotografia-producto' },
-        { label: 'Marketing 360°', value: 'marketing-360' },
+        { label: 'Solo imagen (galería/lightbox)', value: 'image' },
+        { label: 'Caso de estudio (contenido)', value: 'caseStudy' },
       ],
     },
     {
-      name: 'placement',
-      type: 'select',
-      required: true,
-      label: 'Dónde se muestra',
-      admin: {
-        description: 'Elige dónde aparece esta tarjeta.',
-      },
-      options: [
-        { label: 'Solo vista previa (inicio)', value: 'home' },
-        { label: 'Solo página del proyecto', value: 'page' },
-        { label: 'Ambas', value: 'both' },
-      ],
-    },
-    {
-      name: 'group',
+      name: 'slug',
       type: 'text',
-      label: 'Grupo',
+      label: 'Dirección (slug)',
       admin: {
-        description:
-          'Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).',
+        description: "para casos de estudio, p.ej. 'snaga'",
       },
     },
     {
@@ -84,10 +76,63 @@ export const Projects: CollectionConfig = {
       label: 'Texto alternativo (accesibilidad)',
     },
     {
-      name: 'category',
+      name: 'categoryLabel',
       type: 'text',
       localized: true,
-      label: 'Categoría',
+      label: 'Etiqueta en la tarjeta',
+      admin: {
+        description: 'La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").',
+      },
+    },
+    {
+      name: 'caseStudyLayout',
+      type: 'blocks',
+      label: 'Contenido del caso de estudio',
+      labels: { singular: 'Bloque', plural: 'Bloques' },
+      admin: {
+        description: 'Añade y ordena los bloques que forman el caso de estudio.',
+        condition: (_, siblingData) => siblingData?.type === 'caseStudy',
+      },
+      blocks: caseStudyBlocks,
+    },
+    // --- Legacy fields (kept for the migration; will be pruned later) ---
+    {
+      name: 'section',
+      type: 'select',
+      label: 'Página (heredado)',
+      admin: {
+        description:
+          'Campo heredado; la migración lo mapea a la Categoría. No usar para proyectos nuevos.',
+      },
+      options: [
+        { label: 'Branding', value: 'branding' },
+        { label: 'Web y Apps', value: 'web-apps' },
+        { label: 'UX/UI Producto', value: 'uxui-producto' },
+        { label: 'Fotografía de Producto', value: 'fotografia-producto' },
+        { label: 'Marketing 360°', value: 'marketing-360' },
+      ],
+    },
+    {
+      name: 'placement',
+      type: 'select',
+      label: 'Dónde se muestra (heredado)',
+      admin: {
+        description: 'Campo heredado.',
+      },
+      options: [
+        { label: 'Solo vista previa (inicio)', value: 'home' },
+        { label: 'Solo página del proyecto', value: 'page' },
+        { label: 'Ambas', value: 'both' },
+      ],
+    },
+    {
+      name: 'group',
+      type: 'text',
+      label: 'Grupo (heredado)',
+      admin: {
+        description:
+          'Campo heredado. Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).',
+      },
     },
   ],
 }

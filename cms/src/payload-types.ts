@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     pages: Page;
     media: Media;
+    categories: Category;
     projects: Project;
     users: User;
     'payload-kv': PayloadKv;
@@ -80,6 +81,7 @@ export interface Config {
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -167,6 +169,7 @@ export interface Page {
         | HeroBlock
         | PortfolioSectionBlock
         | ProjectGalleryBlock
+        | CategoryShowcaseBlock
         | SectionHeadingBlock
         | RichTextBlock
         | TwoColumnBlock
@@ -216,6 +219,10 @@ export interface HeroBlock {
    * Texto del segundo botón.
    */
   cta2?: string | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'hero';
@@ -261,6 +268,10 @@ export interface PortfolioSectionBlock {
    * A dónde lleva el botón. Igual en ambos idiomas.
    */
   ctaHref?: string | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'portfolioSection';
@@ -307,12 +318,16 @@ export interface ProjectGalleryBlock {
    * Cómo se distribuyen las tarjetas.
    */
   layoutVariant: 'grid-3' | 'grid-4' | 'single' | 'masonry-photo' | 'masonry-6' | 'masonry-8' | 'masonry-10';
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'projectGallery';
 }
 /**
- * Las tarjetas con imagen de cada proyecto. Elige la página y dónde se muestra.
+ * Los proyectos del portafolio. Cada uno es una imagen (galería/lightbox) o un caso de estudio con contenido.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
@@ -320,17 +335,14 @@ export interface ProjectGalleryBlock {
 export interface Project {
   id: number;
   /**
-   * ¿En qué página aparece esta imagen?
+   * La categoría del portafolio a la que pertenece este proyecto.
    */
-  section: 'branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360';
+  category: number | Category;
+  type: 'image' | 'caseStudy';
   /**
-   * Elige dónde aparece esta tarjeta.
+   * para casos de estudio, p.ej. 'snaga'
    */
-  placement: 'home' | 'page' | 'both';
-  /**
-   * Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).
-   */
-  group?: string | null;
+  slug?: string | null;
   image: number | Media;
   /**
    * Número para ordenar dentro de su grupo (el menor aparece primero).
@@ -338,7 +350,66 @@ export interface Project {
   order: number;
   title?: string | null;
   alt?: string | null;
-  category?: string | null;
+  /**
+   * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").
+   */
+  categoryLabel?: string | null;
+  /**
+   * Añade y ordena los bloques que forman el caso de estudio.
+   */
+  caseStudyLayout?:
+    | (
+        | SectionHeadingBlock
+        | RichTextBlock
+        | ImageBlock
+        | TwoColumnBlock
+        | DetailsTableBlock
+        | TimelineBlock
+        | JourneyMapBlock
+        | PersonaCardsBlock
+        | QABlock
+        | CTAButtonBlock
+        | SpacerBlock
+        | ProjectGalleryBlock
+      )[]
+    | null;
+  /**
+   * Campo heredado; la migración lo mapea a la Categoría. No usar para proyectos nuevos.
+   */
+  section?: ('branding' | 'web-apps' | 'uxui-producto' | 'fotografia-producto' | 'marketing-360') | null;
+  /**
+   * Campo heredado.
+   */
+  placement?: ('home' | 'page' | 'both') | null;
+  /**
+   * Campo heredado. Solo para Branding: subgrupo (p. ej. deportes, belleza, logos).
+   */
+  group?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Las categorías del portafolio (p. ej. Branding, Web y Apps). Agrupan los proyectos.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  /**
+   * dirección de la categoría, p.ej. 'branding'
+   */
+  slug: string;
+  /**
+   * ID para enlaces de ancla en el menú, p.ej. 'branding'
+   */
+  anchorId: string;
+  intro?: string | null;
+  /**
+   * Número para ordenar las categorías (el menor aparece primero).
+   */
+  order?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -350,6 +421,10 @@ export interface SectionHeadingBlock {
   eyebrow?: string | null;
   number?: string | null;
   heading?: string | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'sectionHeading';
@@ -366,9 +441,29 @@ export interface RichTextBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'richText';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ImageBlock".
+ */
+export interface ImageBlock {
+  image: number | Media;
+  caption?: string | null;
+  width?: ('full' | 'contained' | 'half') | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'image';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -383,6 +478,10 @@ export interface TwoColumnBlock {
     label?: string | null;
     text?: string | null;
   };
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'twoColumn';
@@ -400,6 +499,10 @@ export interface DetailsTableBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'detailsTable';
@@ -419,6 +522,10 @@ export interface TimelineBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'timeline';
@@ -463,6 +570,10 @@ export interface JourneyMapBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'journeyMap';
@@ -529,6 +640,10 @@ export interface PersonaCardsBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'personaCards';
@@ -552,9 +667,72 @@ export interface QABlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'qa';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CTAButtonBlock".
+ */
+export interface CTAButtonBlock {
+  label?: string | null;
+  href?: string | null;
+  style?: ('primary' | 'secondary' | 'link') | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ctaButton';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpacerBlock".
+ */
+export interface SpacerBlock {
+  size: 'small' | 'medium' | 'large' | 'xlarge';
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'spacer';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryShowcaseBlock".
+ */
+export interface CategoryShowcaseBlock {
+  category: number | Category;
+  /**
+   * Si lo dejas vacío, se usa el nombre de la categoría.
+   */
+  headingOverride?: string | null;
+  /**
+   * Cómo se distribuyen las tarjetas.
+   */
+  layoutVariant: 'grid-3' | 'grid-4' | 'single' | 'masonry-photo' | 'masonry-6' | 'masonry-8' | 'masonry-10';
+  /**
+   * Limita cuántos proyectos se muestran. Vacío = todos.
+   */
+  maxItems?: number | null;
+  showCta?: boolean | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'categoryShowcase';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -590,6 +768,10 @@ export interface InfoColumnsBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'infoColumns';
@@ -616,6 +798,10 @@ export interface ExperienceAccordionBlock {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'experienceAccordion';
@@ -642,43 +828,13 @@ export interface ContactBlock {
     privacy?: string | null;
     terms?: string | null;
   };
+  /**
+   * Para enlazar a esta sección desde el menú, p.ej. 'branding'.
+   */
+  anchorId?: string | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'contact';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ImageBlock".
- */
-export interface ImageBlock {
-  image: number | Media;
-  caption?: string | null;
-  width?: ('full' | 'contained' | 'half') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'image';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CTAButtonBlock".
- */
-export interface CTAButtonBlock {
-  label?: string | null;
-  href?: string | null;
-  style?: ('primary' | 'secondary' | 'link') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'ctaButton';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "SpacerBlock".
- */
-export interface SpacerBlock {
-  size: 'small' | 'medium' | 'large' | 'xlarge';
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'spacer';
 }
 /**
  * Las personas que pueden entrar a este panel de administración.
@@ -739,6 +895,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'projects';
@@ -806,6 +966,7 @@ export interface PagesSelect<T extends boolean = true> {
         hero?: T | HeroBlockSelect<T>;
         portfolioSection?: T | PortfolioSectionBlockSelect<T>;
         projectGallery?: T | ProjectGalleryBlockSelect<T>;
+        categoryShowcase?: T | CategoryShowcaseBlockSelect<T>;
         sectionHeading?: T | SectionHeadingBlockSelect<T>;
         richText?: T | RichTextBlockSelect<T>;
         twoColumn?: T | TwoColumnBlockSelect<T>;
@@ -836,6 +997,7 @@ export interface HeroBlockSelect<T extends boolean = true> {
   body?: T;
   cta1?: T;
   cta2?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -850,6 +1012,7 @@ export interface PortfolioSectionBlockSelect<T extends boolean = true> {
   roleDescription?: T;
   ctaLabel?: T;
   ctaHref?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -871,6 +1034,23 @@ export interface ProjectGalleryBlockSelect<T extends boolean = true> {
         id?: T;
       };
   layoutVariant?: T;
+  anchorId?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryShowcaseBlock_select".
+ */
+export interface CategoryShowcaseBlockSelect<T extends boolean = true> {
+  category?: T;
+  headingOverride?: T;
+  layoutVariant?: T;
+  maxItems?: T;
+  showCta?: T;
+  ctaLabel?: T;
+  ctaHref?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -882,6 +1062,7 @@ export interface SectionHeadingBlockSelect<T extends boolean = true> {
   eyebrow?: T;
   number?: T;
   heading?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -897,6 +1078,7 @@ export interface RichTextBlockSelect<T extends boolean = true> {
         text?: T;
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -917,6 +1099,7 @@ export interface TwoColumnBlockSelect<T extends boolean = true> {
         label?: T;
         text?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -933,6 +1116,7 @@ export interface DetailsTableBlockSelect<T extends boolean = true> {
         value?: T;
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -951,6 +1135,7 @@ export interface TimelineBlockSelect<T extends boolean = true> {
         duration?: T;
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -996,6 +1181,7 @@ export interface JourneyMapBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1063,6 +1249,7 @@ export interface PersonaCardsBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1085,6 +1272,7 @@ export interface QABlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1118,6 +1306,7 @@ export interface InfoColumnsBlockSelect<T extends boolean = true> {
         value?: T;
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1145,6 +1334,7 @@ export interface ExperienceAccordionBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1172,6 +1362,7 @@ export interface ContactBlockSelect<T extends boolean = true> {
         privacy?: T;
         terms?: T;
       };
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1183,6 +1374,7 @@ export interface ImageBlockSelect<T extends boolean = true> {
   image?: T;
   caption?: T;
   width?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1194,6 +1386,7 @@ export interface CTAButtonBlockSelect<T extends boolean = true> {
   label?: T;
   href?: T;
   style?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1203,6 +1396,7 @@ export interface CTAButtonBlockSelect<T extends boolean = true> {
  */
 export interface SpacerBlockSelect<T extends boolean = true> {
   size?: T;
+  anchorId?: T;
   id?: T;
   blockName?: T;
 }
@@ -1226,17 +1420,49 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  anchorId?: T;
+  intro?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects_select".
  */
 export interface ProjectsSelect<T extends boolean = true> {
-  section?: T;
-  placement?: T;
-  group?: T;
+  category?: T;
+  type?: T;
+  slug?: T;
   image?: T;
   order?: T;
   title?: T;
   alt?: T;
-  category?: T;
+  categoryLabel?: T;
+  caseStudyLayout?:
+    | T
+    | {
+        sectionHeading?: T | SectionHeadingBlockSelect<T>;
+        richText?: T | RichTextBlockSelect<T>;
+        image?: T | ImageBlockSelect<T>;
+        twoColumn?: T | TwoColumnBlockSelect<T>;
+        detailsTable?: T | DetailsTableBlockSelect<T>;
+        timeline?: T | TimelineBlockSelect<T>;
+        journeyMap?: T | JourneyMapBlockSelect<T>;
+        personaCards?: T | PersonaCardsBlockSelect<T>;
+        qa?: T | QABlockSelect<T>;
+        ctaButton?: T | CTAButtonBlockSelect<T>;
+        spacer?: T | SpacerBlockSelect<T>;
+        projectGallery?: T | ProjectGalleryBlockSelect<T>;
+      };
+  section?: T;
+  placement?: T;
+  group?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1836,7 +2062,7 @@ export interface Career {
   createdAt?: string | null;
 }
 /**
- * Textos del menú de navegación, botones y etiquetas generales. Cambia solo el 'valor', no la 'clave'.
+ * Textos cortos reutilizables de la web (botones como 'Ver mi trabajo', 'Volver al inicio', etiquetas). Se editan a mano aquí. El MENÚ del sitio NO está aquí — está en 'Menú de Navegación'.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ui-strings".

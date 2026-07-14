@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * Hero block — mirrors Home.hero.
  *
@@ -67,5 +69,6 @@ export const Hero: Block = {
       label: 'Botón secundario',
       admin: { description: 'Texto del segundo botón.' },
     },
+    anchorField,
   ],
 }

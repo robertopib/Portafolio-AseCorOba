@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * ProjectGallery block — selects which project cards to render and how.
  *
@@ -147,5 +149,6 @@ export const ProjectGallery: Block = {
         { label: 'Mosaico — 10 columnas', value: 'masonry-10' },
       ],
     },
+    anchorField,
   ],
 }

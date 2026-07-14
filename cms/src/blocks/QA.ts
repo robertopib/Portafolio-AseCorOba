@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * QA — question/answer list (mirrors CaseStudy.sketches.qa / learnings.qa).
  * Each item has a localized question, an optional localized answer, and an
@@ -33,5 +35,6 @@ export const QA: Block = {
         },
       ],
     },
+    anchorField,
   ],
 }

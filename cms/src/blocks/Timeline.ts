@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * Timeline — mirrors CaseStudy.timeline
  * ({ title, durationLabel, durationValue, phases: [{ phase, duration }] }).
@@ -35,5 +37,6 @@ export const Timeline: Block = {
         { name: 'duration', type: 'text', localized: true, label: 'Duración' },
       ],
     },
+    anchorField,
   ],
 }

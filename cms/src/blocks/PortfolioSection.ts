@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * PortfolioSection block — mirrors SectionText.<section>.home.
  * The homepage preview intro that sits above a group of project cards.
@@ -48,5 +50,6 @@ export const PortfolioSection: Block = {
       label: 'Enlace del botón (URL)',
       admin: { description: 'A dónde lleva el botón. Igual en ambos idiomas.' },
     },
+    anchorField,
   ],
 }

@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * TwoColumn — two side-by-side text columns with optional labels.
  * Mirrors CaseStudy.problemSolution ({ problem, solution } each with label + text).
@@ -30,5 +32,6 @@ export const TwoColumn: Block = {
         { name: 'text', type: 'textarea', localized: true, label: 'Texto' },
       ],
     },
+    anchorField,
   ],
 }

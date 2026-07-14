@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * ExperienceAccordion — mirrors Career.experience
  * (rows of role / period / responsibilities, all localized). Optional headings
@@ -51,5 +53,6 @@ export const ExperienceAccordion: Block = {
         },
       ],
     },
+    anchorField,
   ],
 }

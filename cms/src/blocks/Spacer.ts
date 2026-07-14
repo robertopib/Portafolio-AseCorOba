@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * Spacer — vertical spacing between blocks. Language-agnostic.
  */
@@ -24,5 +26,6 @@ export const Spacer: Block = {
         { label: 'Extra grande', value: 'xlarge' },
       ],
     },
+    anchorField,
   ],
 }

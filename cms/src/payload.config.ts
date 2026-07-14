@@ -8,6 +8,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Categories } from './collections/Categories'
 import { Projects } from './collections/Projects'
 import { Pages } from './collections/Pages'
 import { Home } from './globals/Home'
@@ -33,7 +34,7 @@ export default buildConfig({
   // (Payload orders nav groups by the definition order in which they first appear.)
   // Pages is listed FIRST so its group "Páginas y Contenido" is encountered before
   // "Portafolio" (Media/Projects) and "Ajustes" (Users).
-  collections: [Pages, Media, Projects, Users],
+  collections: [Pages, Media, Categories, Projects, Users],
   globals: [Navigation, Home, SectionText, CaseStudy, About, Career, UiStrings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

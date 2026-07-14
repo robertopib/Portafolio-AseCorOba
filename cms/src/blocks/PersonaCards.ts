@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * PersonaCards — mirrors CaseStudy.personas
  * ({ title, intro:[...], qa:[{question, answer:[...]}],
@@ -93,5 +95,6 @@ export const PersonaCards: Block = {
         },
       ],
     },
+    anchorField,
   ],
 }

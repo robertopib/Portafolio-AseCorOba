@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * JourneyMap — mirrors CaseStudy.journey
  * ({ title, intro:[...], labels:{action,thought,friction},
@@ -66,5 +68,6 @@ export const JourneyMap: Block = {
         },
       ],
     },
+    anchorField,
   ],
 }

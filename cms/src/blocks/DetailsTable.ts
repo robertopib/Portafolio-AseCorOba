@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * DetailsTable — a simple label/value table.
  * Mirrors CaseStudy.details (headers + rows of tools/team/role) in a generic
@@ -29,5 +31,6 @@ export const DetailsTable: Block = {
         { name: 'value', type: 'textarea', localized: true, label: 'Valor' },
       ],
     },
+    anchorField,
   ],
 }

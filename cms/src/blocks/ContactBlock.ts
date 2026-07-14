@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * ContactBlock — mirrors About.contact + About.socialLinks + About.footer.
  * Bilingual texts localized; email/phone/urls language-agnostic.
@@ -37,5 +39,6 @@ export const ContactBlock: Block = {
         { name: 'terms', type: 'text', localized: true, label: 'Términos' },
       ],
     },
+    anchorField,
   ],
 }

@@ -1,5 +1,7 @@
 import type { Block } from 'payload'
 
+import { anchorField } from './fields/anchor'
+
 /**
  * CTAButton — a call-to-action button. Label localized; href language-agnostic.
  */
@@ -24,5 +26,6 @@ export const CTAButton: Block = {
         { label: 'Enlace', value: 'link' },
       ],
     },
+    anchorField,
   ],
 }
