@@ -1,12 +1,20 @@
+import { useEffect, Fragment } from "react";
 import { Menu } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageToggle } from "./LanguageToggle";
+import site from "../../../content/site.json";
 
 export function Navigation() {
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const { t } = useLanguage();
+  const { language } = useLanguage();
+
+  // Editable browser-tab title (from the "Sitio y Navegación" CMS global).
+  useEffect(() => {
+    const title = site.siteTitle?.[language];
+    if (title) document.title = title;
+  }, [language]);
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     if (isHome) {
@@ -24,63 +32,33 @@ export function Navigation() {
         <div className="flex items-center justify-between h-20">
           <div className="flex flex-col gap-1">
             <Link to="/" className="text-xl md:text-2xl tracking-tight text-neutral-900 uppercase hover:text-violet-600 transition-colors">
-              {t('nav.brand')}
+              {site.brand[language]}
             </Link>
           </div>
 
-          {/* Desktop Menu */}
+          {/* Desktop Menu — items are CMS-editable (label + target), reorderable */}
           <div className="hidden md:flex items-center gap-1">
-            {isHome ? (
-              <a
-                href="#work"
-                onClick={(e) => handleScrollTo(e, "#work")}
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.projects')}
-              </a>
-            ) : (
-              <Link
-                to="/#work"
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.projects')}
-              </Link>
-            )}
-            <div className="h-6 w-px bg-neutral-300"></div>
-            {isHome ? (
-              <a
-                href="#about"
-                onClick={(e) => handleScrollTo(e, "#about")}
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.about')}
-              </a>
-            ) : (
-              <Link
-                to="/#about"
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.about')}
-              </Link>
-            )}
-            <div className="h-6 w-px bg-neutral-300"></div>
-            {isHome ? (
-              <a
-                href="#contact"
-                onClick={(e) => handleScrollTo(e, "#contact")}
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.contact')}
-              </a>
-            ) : (
-              <Link
-                to="/#contact"
-                className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-              >
-                {t('nav.contact')}
-              </Link>
-            )}
-            <div className="h-6 w-px bg-neutral-300"></div>
+            {site.navItems.map((item) => (
+              <Fragment key={item.target}>
+                {isHome ? (
+                  <a
+                    href={item.target}
+                    onClick={(e) => handleScrollTo(e, item.target)}
+                    className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
+                  >
+                    {item.label[language]}
+                  </a>
+                ) : (
+                  <Link
+                    to={`/${item.target}`}
+                    className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
+                  >
+                    {item.label[language]}
+                  </Link>
+                )}
+                <div className="h-6 w-px bg-neutral-300"></div>
+              </Fragment>
+            ))}
             <LanguageToggle />
           </div>
 

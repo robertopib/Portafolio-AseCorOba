@@ -131,6 +131,14 @@ async function main() {
     strings: uiKeys.map((k) => ({ key: k, value: { es: ui.es[k], en: ui.en[k] } })),
   })
 
+  // -------------------- SITIO Y NAVEGACIÓN --------------------
+  const siteJson = readJson(path.join(CONTENT_DIR, 'site.json'))
+  await setGlobal('site', {
+    siteTitle: siteJson.siteTitle,
+    brand: siteJson.brand,
+    navItems: (siteJson.navItems || []).map((n: any) => ({ label: n.label, target: n.target })),
+  })
+
   // -------------------- PÁGINAS --------------------
   // Upsert each Page with its ordered block list (idempotent). The home page
   // renders whole preview sections; the project pages are decomposed into their

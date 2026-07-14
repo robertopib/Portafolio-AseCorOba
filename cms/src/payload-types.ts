@@ -98,12 +98,14 @@ export interface Config {
     about: About;
     career: Career;
     'ui-strings': UiString;
+    site: Site;
   };
   globalsSelect: {
     home: HomeSelect<false> | HomeSelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     career: CareerSelect<false> | CareerSelect<true>;
     'ui-strings': UiStringsSelect<false> | UiStringsSelect<true>;
+    site: SiteSelect<false> | SiteSelect<true>;
   };
   locale: 'es' | 'en';
   widgets: {
@@ -2373,6 +2375,32 @@ export interface UiString {
   createdAt?: string | null;
 }
 /**
+ * El título del sitio (pestaña del navegador), el nombre/marca de arriba y el menú de navegación.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site".
+ */
+export interface Site {
+  id: number;
+  siteTitle?: string | null;
+  brand?: string | null;
+  /**
+   * Arrastra para reordenar. Cada enlace: el texto visible y su destino.
+   */
+  navItems?:
+    | {
+        label?: string | null;
+        /**
+         * Ancla o ruta, p. ej. #work (Proyectos), #about (Sobre mí), #contact (Contacto).
+         */
+        target: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "home_select".
  */
@@ -2486,6 +2514,24 @@ export interface UiStringsSelect<T extends boolean = true> {
     | {
         key?: T;
         value?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site_select".
+ */
+export interface SiteSelect<T extends boolean = true> {
+  siteTitle?: T;
+  brand?: T;
+  navItems?:
+    | T
+    | {
+        label?: T;
+        target?: T;
         id?: T;
       };
   updatedAt?: T;

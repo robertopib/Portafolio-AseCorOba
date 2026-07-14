@@ -15,6 +15,7 @@ import { Home } from './globals/Home'
 import { About } from './globals/About'
 import { Career } from './globals/Career'
 import { UiStrings } from './globals/UiStrings'
+import { Site } from './globals/Site'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -30,7 +31,7 @@ export default buildConfig({
   //   Páginas y Contenido -> Portafolio -> Ajustes
   // (Payload orders nav groups by the definition order in which they first appear.)
   collections: [Pages, Media, Categories, Projects, Users],
-  globals: [Home, About, Career, UiStrings],
+  globals: [Home, About, Career, UiStrings, Site],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

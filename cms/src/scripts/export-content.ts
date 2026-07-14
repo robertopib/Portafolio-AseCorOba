@@ -241,6 +241,19 @@ async function main() {
     emit('ui.json', { es, en }, path.join(CONTENT_DIR, 'ui.json'))
   }
 
+  // ==================== SITIO Y NAVEGACIÓN ====================
+  // Written directly to content/site.json (front-end reads it; no fidelity-diff
+  // source like pages.json).
+  {
+    const g: any = await payload.findGlobal({ slug: 'site', locale: 'all', depth: 0 })
+    const site = {
+      siteTitle: g.siteTitle,
+      brand: g.brand,
+      navItems: (g.navItems || []).map((n: any) => ({ label: n.label, target: n.target })),
+    }
+    fs.writeFileSync(path.join(CONTENT_DIR, 'site.json'), JSON.stringify(site, null, 2) + '\n')
+  }
+
   // ==================== PÁGINAS ====================
   // The Pages collection is the source of truth for page composition (block
   // order). Unlike the other exports, content/pages.json has no pre-existing
