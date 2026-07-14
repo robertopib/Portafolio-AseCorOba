@@ -131,6 +131,45 @@ async function main() {
     strings: uiKeys.map((k) => ({ key: k, value: { es: ui.es[k], en: ui.en[k] } })),
   })
 
+  // -------------------- PÁGINAS --------------------
+  // Upsert the 'home' Page with its ordered block list (idempotent).
+  const HOME_BLOCKS = [
+    { blockType: 'hero' },
+    { blockType: 'brandingPreview' },
+    { blockType: 'webAppsPreview' },
+    { blockType: 'uxuiPreview' },
+    { blockType: 'fotografiaPreview' },
+    { blockType: 'marketingPreview' },
+    { blockType: 'experiencia' },
+    { blockType: 'contacto' },
+  ]
+  const homePageData = {
+    title: { es: 'Inicio', en: 'Home' },
+    slug: 'home',
+    blocks: HOME_BLOCKS,
+  }
+  const existingHomePage = await payload.find({
+    collection: 'pages',
+    where: { slug: { equals: 'home' } },
+    limit: 1,
+    depth: 0,
+  })
+  if (existingHomePage.docs.length > 0) {
+    await payload.update({
+      collection: 'pages',
+      id: existingHomePage.docs[0].id,
+      locale: ALL,
+      data: homePageData as any,
+    })
+  } else {
+    await payload.create({
+      collection: 'pages',
+      locale: ALL,
+      data: homePageData as any,
+    })
+  }
+  report.pagesUpserted = 1
+
   // -------------------- CATEGORÍAS --------------------
   // Wipe existing for an idempotent re-seed. Delete Proyectos FIRST so no
   // relationship/foreign-key still points at the Categorías we're removing.

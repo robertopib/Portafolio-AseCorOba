@@ -8,6 +8,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Media } from './collections/Media'
+import { Pages } from './collections/Pages'
 import { Categories } from './collections/Categories'
 import { Projects } from './collections/Projects'
 import { Home } from './globals/Home'
@@ -28,7 +29,7 @@ export default buildConfig({
   // Order so the admin nav groups read logically:
   //   Páginas y Contenido -> Portafolio -> Ajustes
   // (Payload orders nav groups by the definition order in which they first appear.)
-  collections: [Media, Categories, Projects, Users],
+  collections: [Pages, Media, Categories, Projects, Users],
   globals: [Home, About, Career, UiStrings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

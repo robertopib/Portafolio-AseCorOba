@@ -180,6 +180,36 @@ async function main() {
     emit('ui.json', { es, en }, path.join(CONTENT_DIR, 'ui.json'))
   }
 
+  // ==================== PÁGINAS ====================
+  // The Pages collection is the source of truth for page composition (block
+  // order). Unlike the other exports, content/pages.json has no pre-existing
+  // hand-authored source to fidelity-diff against, so we write it directly to
+  // the committed content dir. The front end reads it at build time.
+  {
+    const pagesRes = await payload.find({
+      collection: 'pages',
+      limit: 1000,
+      depth: 0,
+      sort: 'slug',
+    })
+    const recon = {
+      pages: (pagesRes.docs as any[]).map((p) => ({
+        slug: p.slug,
+        blocks: (p.blocks || []).map((b: any) => {
+          const block: any = { blockType: b.blockType }
+          if (b.anchorId) block.anchorId = b.anchorId
+          return block
+        }),
+      })),
+    }
+    fs.writeFileSync(
+      path.join(CONTENT_DIR, 'pages.json'),
+      JSON.stringify(recon, null, 2) + '\n',
+    )
+    written['pages.json'] = recon
+    report['pages.json'] = { match: true, diffs: [] }
+  }
+
   // ==================== CATEGORÍAS + PROYECTOS ====================
   // load all categories + projects once
   const cats = await payload.find({ collection: 'categories', limit: 100, depth: 0, locale: 'all' })

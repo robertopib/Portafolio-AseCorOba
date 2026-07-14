@@ -1,0 +1,17 @@
+{
+  "pages": [
+    {
+      "slug": "home",
+      "blocks": [
+        { "blockType": "hero" },
+        { "blockType": "brandingPreview" },
+        { "blockType": "webAppsPreview" },
+        { "blockType": "uxuiPreview" },
+        { "blockType": "fotografiaPreview" },
+        { "blockType": "marketingPreview" },
+        { "blockType": "experiencia" },
+        { "blockType": "contacto" }
+      ]
+    }
+  ]
+}

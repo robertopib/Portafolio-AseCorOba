@@ -67,6 +67,7 @@ export interface Config {
   };
   blocks: {};
   collections: {
+    pages: Page;
     media: Media;
     categories: Category;
     projects: Project;
@@ -78,6 +79,7 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
@@ -130,6 +132,49 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * Cada página del sitio y el orden de sus bloques. Arrastra los bloques para reordenarlos, o agrégalos y elimínalos.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  /**
+   * El nombre de la página (se usa como título en el panel).
+   */
+  title?: string | null;
+  /**
+   * Identificador técnico único (p. ej. "home"). No cambiar salvo que sepas lo que haces.
+   */
+  slug: string;
+  /**
+   * Los bloques de la página, en orden. Arrastra para reordenar; el orden se refleja en la web.
+   */
+  blocks?:
+    | {
+        /**
+         * Qué sección mostrar en este bloque.
+         */
+        blockType:
+          | 'hero'
+          | 'brandingPreview'
+          | 'webAppsPreview'
+          | 'uxuiPreview'
+          | 'fotografiaPreview'
+          | 'marketingPreview'
+          | 'experiencia'
+          | 'contacto';
+        /**
+         * Opcional. Id de ancla para saltar a este bloque (uso técnico).
+         */
+        anchorId?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.
@@ -519,6 +564,10 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
+        relationTo: 'pages';
+        value: number | Page;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -575,6 +624,23 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  blocks?:
+    | T
+    | {
+        blockType?: T;
+        anchorId?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
