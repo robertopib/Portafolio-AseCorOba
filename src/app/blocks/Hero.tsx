@@ -12,9 +12,21 @@ export function Hero(props: HeroBlockProps) {
   const { language } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Scroll to the next section below the hero. (Anchor-based scrolling comes
-  // with the block-anchor work; this keeps the CTA functional meanwhile.)
+  // Scroll to the first anchored section on the page if one exists (blocks with
+  // an `anchorId` are wrapped in a container carrying that html id). If no
+  // anchored section is present, fall back to the next section below the hero.
   const scrollToWork = () => {
+    // The hero itself may be wrapped in an anchor container; look past it for
+    // the first *other* element carrying an id.
+    const anchors = Array.from(document.querySelectorAll<HTMLElement>('main [id]'));
+    const heroTop = sectionRef.current?.getBoundingClientRect().top ?? 0;
+    const firstBelow = anchors.find(
+      (el) => el.getBoundingClientRect().top > heroTop + 1,
+    );
+    if (firstBelow) {
+      firstBelow.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
     const next = sectionRef.current?.nextElementSibling;
     if (next) next.scrollIntoView({ behavior: 'smooth' });
     else window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });

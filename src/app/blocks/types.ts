@@ -16,6 +16,17 @@
 
 export type Localized = { es: string; en: string };
 
+/**
+ * Shared base every block prop extends. Carries the optional `anchorId` (the
+ * CMS `anchorField`) so any block can be linked to from the site menu / hero;
+ * the <Blocks> dispatcher renders it as the wrapping element's html `id`.
+ */
+export interface BlockBase {
+  id?: string;
+  /** Optional html anchor id for in-page navigation (e.g. 'branding'). */
+  anchorId?: string;
+}
+
 /** Per-card size token in a masonry gallery (maps to col/row-span classes). */
 export type ProjectCardSize =
   | 'normal'
@@ -30,17 +41,48 @@ export type ProjectCardSize =
 /** A single project card, pre-resolved from the Payload `projects` collection. */
 export interface ResolvedProject {
   id?: string | number;
+  /**
+   * Kind of project card:
+   *  - 'image'     → clicking opens the shared Lightbox (default, as today).
+   *  - 'caseStudy' → the card links to /proyectos/<categorySlug>/<slug> and
+   *                  renders its own detail page from `caseStudyLayout`.
+   */
+  type?: 'image' | 'caseStudy';
   image: string;
   alt: Localized;
+  /**
+   * The small overlay label on the card. Kept as `category` for backwards
+   * compatibility with existing fixtures; the CMS field is `categoryLabel`.
+   */
   category: Localized;
+  /** Alias emitted by the CMS export; when present it overrides `category`. */
+  categoryLabel?: Localized;
   title: Localized;
+  /** Case-study slug (segment under the category, e.g. 'snaga'). */
+  slug?: string;
+  /** Case-study detail layout — rendered by CaseStudyPage via <Blocks>. */
+  caseStudyLayout?: AnyBlock[];
   /** Optional per-card masonry span (only used by masonry-* variants). */
   size?: ProjectCardSize;
 }
 
-export interface HeroBlockProps {
+/**
+ * Categoría — the top level of the portfolio domain model (mirrors the Payload
+ * `categories` collection). Groups a set of resolved projects.
+ */
+export interface Category {
+  id?: string | number;
+  name: Localized;
+  slug: string;
+  anchorId: string;
+  intro?: Localized;
+  order?: number;
+  /** Projects belonging to this category, pre-resolved & sorted by `order`. */
+  projects: ResolvedProject[];
+}
+
+export interface HeroBlockProps extends BlockBase {
   blockType: 'hero';
-  id?: string;
   backgroundImagePath?: string;
   title?: Localized;
   subtitle?: Localized;
@@ -49,9 +91,8 @@ export interface HeroBlockProps {
   cta2?: Localized;
 }
 
-export interface PortfolioSectionBlockProps {
+export interface PortfolioSectionBlockProps extends BlockBase {
   blockType: 'portfolioSection';
-  id?: string;
   heading?: Localized;
   description?: Localized;
   studioName?: string;
@@ -60,9 +101,8 @@ export interface PortfolioSectionBlockProps {
   ctaHref?: string;
 }
 
-export interface ProjectGalleryBlockProps {
+export interface ProjectGalleryBlockProps extends BlockBase {
   blockType: 'projectGallery';
-  id?: string;
   layoutVariant:
     | 'grid-3'
     | 'grid-4'
@@ -75,47 +115,41 @@ export interface ProjectGalleryBlockProps {
   projects?: ResolvedProject[];
 }
 
-export interface SectionHeadingBlockProps {
+export interface SectionHeadingBlockProps extends BlockBase {
   blockType: 'sectionHeading';
-  id?: string;
   eyebrow?: Localized;
   number?: string;
   heading?: Localized;
 }
 
-export interface RichTextBlockProps {
+export interface RichTextBlockProps extends BlockBase {
   blockType: 'richText';
-  id?: string;
   heading?: Localized;
   paragraphs?: { text?: Localized }[];
 }
 
-export interface TwoColumnBlockProps {
+export interface TwoColumnBlockProps extends BlockBase {
   blockType: 'twoColumn';
-  id?: string;
   left?: { label?: Localized; text?: Localized };
   right?: { label?: Localized; text?: Localized };
 }
 
-export interface DetailsTableBlockProps {
+export interface DetailsTableBlockProps extends BlockBase {
   blockType: 'detailsTable';
-  id?: string;
   title?: Localized;
   rows?: { label?: Localized; value?: Localized }[];
 }
 
-export interface TimelineBlockProps {
+export interface TimelineBlockProps extends BlockBase {
   blockType: 'timeline';
-  id?: string;
   title?: Localized;
   durationLabel?: Localized;
   durationValue?: Localized;
   phases?: { phase?: Localized; duration?: Localized }[];
 }
 
-export interface JourneyMapBlockProps {
+export interface JourneyMapBlockProps extends BlockBase {
   blockType: 'journeyMap';
-  id?: string;
   title?: Localized;
   intro?: { text?: Localized }[];
   labels?: { action?: Localized; thought?: Localized; friction?: Localized };
@@ -129,9 +163,8 @@ export interface JourneyMapBlockProps {
   qa?: { question?: Localized; answer?: Localized; bullets?: { text?: Localized }[] }[];
 }
 
-export interface PersonaCardsBlockProps {
+export interface PersonaCardsBlockProps extends BlockBase {
   blockType: 'personaCards';
-  id?: string;
   title?: Localized;
   intro?: { text?: Localized }[];
   qa?: { question?: Localized; answer?: { text?: Localized }[] }[];
@@ -152,25 +185,22 @@ export interface PersonaCardsBlockProps {
   }[];
 }
 
-export interface QABlockProps {
+export interface QABlockProps extends BlockBase {
   blockType: 'qa';
-  id?: string;
   title?: Localized;
   items?: { question?: Localized; answer?: Localized; bullets?: { text?: Localized }[] }[];
 }
 
-export interface InfoColumnsBlockProps {
+export interface InfoColumnsBlockProps extends BlockBase {
   blockType: 'infoColumns';
-  id?: string;
   headings?: { education?: Localized; tools?: Localized; languages?: Localized };
   education?: { item?: Localized }[];
   tools?: { value?: string }[];
   languages?: { value?: string }[];
 }
 
-export interface ExperienceAccordionBlockProps {
+export interface ExperienceAccordionBlockProps extends BlockBase {
   blockType: 'experienceAccordion';
-  id?: string;
   headings?: { careerPath?: Localized; professionalExperience?: Localized };
   experience?: {
     role?: Localized;
@@ -179,9 +209,8 @@ export interface ExperienceAccordionBlockProps {
   }[];
 }
 
-export interface ContactBlockProps {
+export interface ContactBlockProps extends BlockBase {
   blockType: 'contact';
-  id?: string;
   heading?: Localized;
   body?: Localized;
   email?: string;
@@ -195,27 +224,48 @@ export interface ContactBlockProps {
   };
 }
 
-export interface ImageBlockProps {
+export interface ImageBlockProps extends BlockBase {
   blockType: 'image';
-  id?: string;
   /** Pre-resolved image path. */
   image: string;
   caption?: Localized;
   width?: 'full' | 'contained' | 'half';
 }
 
-export interface CTAButtonBlockProps {
+export interface CTAButtonBlockProps extends BlockBase {
   blockType: 'ctaButton';
-  id?: string;
   label?: Localized;
   href?: string;
   style?: 'primary' | 'secondary' | 'link';
 }
 
-export interface SpacerBlockProps {
+export interface SpacerBlockProps extends BlockBase {
   blockType: 'spacer';
-  id?: string;
   size: 'small' | 'medium' | 'large' | 'xlarge';
+}
+
+/**
+ * CategoryShowcase — a home-page block that previews one category's projects.
+ *
+ * The CMS block references a category by relationship + a set of presentation
+ * options; the fetch script resolves that relationship into the embedded
+ * `category` (with its projects) so the front-end needs no extra lookup. Image
+ * projects open the shared Lightbox; caseStudy projects link to their detail
+ * page. Mirrors `cms/src/blocks/CategoryShowcase.ts`.
+ */
+export interface CategoryShowcaseBlockProps extends BlockBase {
+  blockType: 'categoryShowcase';
+  /** The resolved category (name/slug/anchorId/intro + its projects). */
+  category: Category;
+  /** Optional title shown instead of `category.name`. */
+  headingOverride?: Localized;
+  /** Gallery layout, same variants as ProjectGallery. */
+  layoutVariant: ProjectGalleryBlockProps['layoutVariant'];
+  /** Limit how many projects render (undefined/0 = all). */
+  maxItems?: number;
+  showCta?: boolean;
+  ctaLabel?: Localized;
+  ctaHref?: string;
 }
 
 /** Discriminated union of every block instance a page layout may contain. */
@@ -236,7 +286,8 @@ export type AnyBlock =
   | ContactBlockProps
   | ImageBlockProps
   | CTAButtonBlockProps
-  | SpacerBlockProps;
+  | SpacerBlockProps
+  | CategoryShowcaseBlockProps;
 
 /** A page as emitted by the (future) fetch script from Payload. */
 export interface PageData {

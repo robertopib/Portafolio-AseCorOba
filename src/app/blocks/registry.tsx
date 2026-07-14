@@ -18,6 +18,7 @@ import { Contact } from "./Contact";
 import { ImageBlock } from "./ImageBlock";
 import { CTAButton } from "./CTAButton";
 import { Spacer } from "./Spacer";
+import { CategoryShowcase } from "./CategoryShowcase";
 
 /**
  * Registry mapping each block `blockType` (the Payload block `slug`) to its
@@ -47,6 +48,7 @@ export const blockRegistry: Record<string, ComponentType<any>> = {
   image: ImageBlock,
   ctaButton: CTAButton,
   spacer: Spacer,
+  categoryShowcase: CategoryShowcase,
 };
 
 /**
@@ -66,7 +68,18 @@ export function Blocks({ blocks }: { blocks: AnyBlock[] }) {
           return null;
         }
         const key = block.id ?? `${block.blockType}-${index}`;
-        return <Renderer key={key} {...block} />;
+        const rendered = <Renderer key={key} {...block} />;
+        // When a block carries an anchorId, wrap it in a container that owns the
+        // html `id` so the menu / hero can scroll to it. Layout is otherwise
+        // identical to the un-anchored case (a bare fragment-equivalent wrapper).
+        if (block.anchorId) {
+          return (
+            <div key={key} id={block.anchorId}>
+              {rendered}
+            </div>
+          );
+        }
+        return rendered;
       })}
     </>
   );

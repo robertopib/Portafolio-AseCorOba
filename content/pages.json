@@ -2081,671 +2081,549 @@
           }
         },
         {
-          "blockType": "sectionHeading",
-          "id": "6a55723aaef04e3eb82bab01",
-          "eyebrow": {
-            "es": "Proyectos",
-            "en": "Projects"
+          "blockType": "categoryShowcase",
+          "anchorId": "branding",
+          "category": {
+            "name": {
+              "es": "Branding",
+              "en": "Branding"
+            },
+            "slug": "branding",
+            "anchorId": "branding",
+            "order": 1,
+            "intro": {
+              "es": "Identidades visuales, campañas y sistemas de marca de principio a fin.",
+              "en": "Visual identities, campaigns and brand systems end to end."
+            },
+            "projects": [
+              {
+                "type": "image",
+                "image": "/images/wodfest-1.png",
+                "alt": {
+                  "es": "WodFest Costa Rica - Campaña publicitaria",
+                  "en": "WodFest Costa Rica - Campaña publicitaria"
+                },
+                "categoryLabel": {
+                  "es": "Campaña Publicitaria",
+                  "en": "Campaña Publicitaria"
+                },
+                "title": {
+                  "es": "WodFest Costa Rica - Campaña publicitaria",
+                  "en": "WodFest Costa Rica - Campaña publicitaria"
+                },
+                "size": "hero"
+              },
+              {
+                "type": "image",
+                "image": "/images/wodfest-2.png",
+                "alt": {
+                  "es": "WodFest Costa Rica - Diseño de marca",
+                  "en": "WodFest Costa Rica - Diseño de marca"
+                },
+                "categoryLabel": {
+                  "es": "Diseño de Marca",
+                  "en": "Diseño de Marca"
+                },
+                "title": {
+                  "es": "WodFest Costa Rica - Diseño de marca",
+                  "en": "WodFest Costa Rica - Diseño de marca"
+                },
+                "size": "med"
+              },
+              {
+                "type": "image",
+                "image": "/images/fitness-deadlift.png",
+                "alt": {
+                  "es": "OFF DAY Trainer - Técnica Deadlift",
+                  "en": "OFF DAY Trainer - Técnica Deadlift"
+                },
+                "categoryLabel": {
+                  "es": "Contenido Educativo",
+                  "en": "Contenido Educativo"
+                },
+                "title": {
+                  "es": "OFF DAY Trainer - Técnica Deadlift",
+                  "en": "OFF DAY Trainer - Técnica Deadlift"
+                },
+                "size": "tall"
+              },
+              {
+                "type": "image",
+                "image": "/images/fitness-pullups.png",
+                "alt": {
+                  "es": "OFF DAY Trainer - Técnica Pull-ups",
+                  "en": "OFF DAY Trainer - Técnica Pull-ups"
+                },
+                "categoryLabel": {
+                  "es": "Contenido Educativo",
+                  "en": "Contenido Educativo"
+                },
+                "title": {
+                  "es": "OFF DAY Trainer - Técnica Pull-ups",
+                  "en": "OFF DAY Trainer - Técnica Pull-ups"
+                },
+                "size": "normal"
+              },
+              {
+                "type": "image",
+                "image": "/images/snaga-relay.png",
+                "alt": {
+                  "es": "SNAGA Team Relay 9th Anniversary",
+                  "en": "SNAGA Team Relay 9th Anniversary"
+                },
+                "categoryLabel": {
+                  "es": "Evento Fitness",
+                  "en": "Evento Fitness"
+                },
+                "title": {
+                  "es": "SNAGA Team Relay 9th Anniversary",
+                  "en": "SNAGA Team Relay 9th Anniversary"
+                },
+                "size": "normal"
+              }
+            ]
           },
-          "number": "02",
-          "heading": {
-            "es": "Branding corporativo",
-            "en": "Corporate Branding"
-          }
-        },
-        {
-          "blockType": "portfolioSection",
-          "id": "6a55723aaef04e3eb82bab02",
-          "heading": {
-            "es": "Branding corporativo",
-            "en": "Corporate Branding"
-          },
-          "description": {
-            "es": "Desarrollo de piezas gráficas para canales digitales",
-            "en": "Graphic design development for digital channels"
-          },
-          "studioName": "Barbas.Studio",
-          "roleDescription": {
-            "es": "Dirección de arte, conceptualización y fotografía",
-            "en": "Art direction, conceptualization and photography"
-          },
+          "layoutVariant": "grid-3",
+          "maxItems": 4,
+          "showCta": true,
           "ctaLabel": {
-            "es": "Ver más proyectos de branding",
-            "en": "View more branding projects"
+            "es": "Ver todo",
+            "en": "View all"
           },
           "ctaHref": "/proyectos/branding"
         },
         {
-          "blockType": "projectGallery",
-          "id": "6a55723aaef04e3eb82bab03",
+          "blockType": "categoryShowcase",
+          "anchorId": "web-apps",
+          "category": {
+            "name": {
+              "es": "Web y Apps",
+              "en": "Web & Apps"
+            },
+            "slug": "web-apps",
+            "anchorId": "web-apps",
+            "order": 2,
+            "intro": {
+              "es": "Sitios y aplicaciones responsivas centradas en la conversión.",
+              "en": "Responsive websites and apps focused on conversion."
+            },
+            "projects": [
+              {
+                "type": "image",
+                "image": "/images/offday-trainer.png",
+                "alt": {
+                  "es": "OFF DAY Trainer - Diseño Web de Fitness",
+                  "en": "OFF DAY Trainer - Diseño Web de Fitness"
+                },
+                "categoryLabel": {
+                  "es": "Diseño Web",
+                  "en": "Diseño Web"
+                },
+                "title": {
+                  "es": "OFF DAY Trainer - Diseño Web de Fitness",
+                  "en": "OFF DAY Trainer - Diseño Web de Fitness"
+                },
+                "size": "hero"
+              },
+              {
+                "type": "image",
+                "image": "/images/topmed-ecommerce.png",
+                "alt": {
+                  "es": "TOPMED E-Commerce - Diseño Responsivo",
+                  "en": "TOPMED E-Commerce - Diseño Responsivo"
+                },
+                "categoryLabel": {
+                  "es": "E-Commerce",
+                  "en": "E-Commerce"
+                },
+                "title": {
+                  "es": "TOPMED E-Commerce - Diseño Responsivo",
+                  "en": "TOPMED E-Commerce - Diseño Responsivo"
+                },
+                "size": "wide-tall"
+              },
+              {
+                "type": "image",
+                "image": "/images/live-betting.png",
+                "alt": {
+                  "es": "Live Betting App - UI/UX Mobile",
+                  "en": "Live Betting App - UI/UX Mobile"
+                },
+                "categoryLabel": {
+                  "es": "App Mobile",
+                  "en": "App Mobile"
+                },
+                "title": {
+                  "es": "Live Betting App - UI/UX Mobile",
+                  "en": "Live Betting App - UI/UX Mobile"
+                },
+                "size": "col3"
+              }
+            ]
+          },
           "layoutVariant": "grid-3",
-          "projects": [
-            {
-              "image": "/images/adriana-munoz.png",
-              "alt": {
-                "es": "Adriana Muñoz - Contenido para redes sociales",
-                "en": "Adriana Muñoz - Contenido para redes sociales"
-              },
-              "category": {
-                "es": null,
-                "en": null
-              },
-              "title": {
-                "es": null,
-                "en": null
-              }
-            },
-            {
-              "image": "/images/fisio-equina.png",
-              "alt": {
-                "es": "FisioEquina - Social media marketing",
-                "en": "FisioEquina - Social media marketing"
-              },
-              "category": {
-                "es": null,
-                "en": null
-              },
-              "title": {
-                "es": null,
-                "en": null
-              }
-            },
-            {
-              "image": "/images/ana-grace.png",
-              "alt": {
-                "es": "Ana Grace Salon & Estética - Branding digital",
-                "en": "Ana Grace Salon & Estética - Branding digital"
-              },
-              "category": {
-                "es": null,
-                "en": null
-              },
-              "title": {
-                "es": null,
-                "en": null
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723aaef04e3eb82bab04",
-          "eyebrow": {},
-          "number": "03",
-          "heading": {}
-        },
-        {
-          "blockType": "portfolioSection",
-          "id": "6a55723aaef04e3eb82bab05",
-          "heading": {
-            "es": "Diseño web y apps",
-            "en": "Web & App Design"
-          },
-          "description": {
-            "es": "Interfaces responsivas y centradas en el usuario",
-            "en": "Responsive and user-centered interfaces"
-          },
-          "studioName": "Barbas.Studio",
-          "roleDescription": {
-            "es": "Desarrollo de interfaces web y apps en entorno profesional, trabajando en diseño UI, prototipado y definición de experiencia de usuario para productos digitales escalables.",
-            "en": "Development of web and app interfaces in a professional environment, working on UI design, prototyping and user experience definition for scalable digital products."
-          },
+          "maxItems": 4,
+          "showCta": true,
           "ctaLabel": {
-            "es": "Ver más proyectos web",
-            "en": "View more web projects"
+            "es": "Ver todo",
+            "en": "View all"
           },
           "ctaHref": "/proyectos/web-apps"
         },
         {
-          "blockType": "projectGallery",
-          "id": "6a55723aaef04e3eb82bab06",
-          "layoutVariant": "grid-3",
-          "projects": [
-            {
-              "image": "/images/offday-trainer.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Diseño Web de Fitness",
-                "en": "Diseño Web de Fitness"
-              },
-              "title": {
-                "es": "OFF DAY Trainer",
-                "en": "OFF DAY Trainer"
-              }
+          "blockType": "categoryShowcase",
+          "anchorId": "uxui-producto",
+          "category": {
+            "name": {
+              "es": "UX/UI Producto",
+              "en": "UX/UI Product"
             },
-            {
-              "image": "/images/topmed-ecommerce.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Diseño Responsivo",
-                "en": "Diseño Responsivo"
-              },
-              "title": {
-                "es": "TOPMED E-Commerce",
-                "en": "TOPMED E-Commerce"
-              }
+            "slug": "uxui-producto",
+            "anchorId": "uxui-producto",
+            "order": 3,
+            "intro": {
+              "es": "Diseño de producto de extremo a extremo: investigación, flujos e interfaz.",
+              "en": "End-to-end product design: research, flows and interface."
             },
-            {
-              "image": "/images/live-betting.png",
-              "alt": {
-                "es": null,
-                "en": null
+            "projects": [
+              {
+                "type": "caseStudy",
+                "slug": "snaga",
+                "image": "/images/snaga-relay.png",
+                "alt": {
+                  "es": "SNAGA — Caso de estudio UX/UI",
+                  "en": "SNAGA — UX/UI case study"
+                },
+                "categoryLabel": {
+                  "es": "Caso de estudio",
+                  "en": "Case study"
+                },
+                "title": {
+                  "es": "SNAGA",
+                  "en": "SNAGA"
+                },
+                "size": "hero",
+                "caseStudyLayout": [
+                  {
+                    "blockType": "sectionHeading",
+                    "number": "01",
+                    "eyebrow": {
+                      "es": "Caso de estudio",
+                      "en": "Case study"
+                    },
+                    "heading": {
+                      "es": "SNAGA — App de comunidad fitness",
+                      "en": "SNAGA — Fitness community app"
+                    }
+                  },
+                  {
+                    "blockType": "richText",
+                    "heading": {
+                      "es": "Resumen",
+                      "en": "Overview"
+                    },
+                    "paragraphs": [
+                      {
+                        "text": {
+                          "es": "SNAGA es una app para organizar y vivir eventos fitness en comunidad. Rediseñamos el flujo de inscripción y la experiencia del día del evento.",
+                          "en": "SNAGA is an app to organize and live community fitness events. We redesigned the sign-up flow and the event-day experience."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "image",
+                    "image": "/images/snaga-relay.png",
+                    "caption": {
+                      "es": "SNAGA Team Relay — 9º aniversario",
+                      "en": "SNAGA Team Relay — 9th anniversary"
+                    },
+                    "width": "contained"
+                  },
+                  {
+                    "blockType": "detailsTable",
+                    "title": {
+                      "es": "Detalles",
+                      "en": "Details"
+                    },
+                    "rows": [
+                      {
+                        "label": {
+                          "es": "Rol",
+                          "en": "Role"
+                        },
+                        "value": {
+                          "es": "Diseño de producto (UX/UI)",
+                          "en": "Product design (UX/UI)"
+                        }
+                      },
+                      {
+                        "label": {
+                          "es": "Duración",
+                          "en": "Duration"
+                        },
+                        "value": {
+                          "es": "6 semanas",
+                          "en": "6 weeks"
+                        }
+                      },
+                      {
+                        "label": {
+                          "es": "Plataforma",
+                          "en": "Platform"
+                        },
+                        "value": {
+                          "es": "iOS / Android",
+                          "en": "iOS / Android"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "ctaButton",
+                    "label": {
+                      "es": "Volver a UX/UI",
+                      "en": "Back to UX/UI"
+                    },
+                    "href": "/proyectos/uxui-producto",
+                    "style": "secondary"
+                  }
+                ]
               },
-              "category": {
-                "es": "Aplicación de Apuestas",
-                "en": "Aplicación de Apuestas"
+              {
+                "type": "image",
+                "image": "/images/live-betting.png",
+                "alt": {
+                  "es": "Live Betting App - UI/UX Mobile",
+                  "en": "Live Betting App - UI/UX Mobile"
+                },
+                "categoryLabel": {
+                  "es": "App Mobile",
+                  "en": "App Mobile"
+                },
+                "title": {
+                  "es": "Live Betting App - UI/UX Mobile",
+                  "en": "Live Betting App - UI/UX Mobile"
+                },
+                "size": "wide-tall"
               },
-              "title": {
-                "es": "Live Betting App",
-                "en": "Live Betting App"
+              {
+                "type": "image",
+                "image": "/images/uxui-sketch.png",
+                "alt": {
+                  "es": "Bocetos de wireframes",
+                  "en": "Wireframe sketches"
+                },
+                "categoryLabel": {
+                  "es": "Wireframes",
+                  "en": "Wireframes"
+                },
+                "title": {
+                  "es": "Bocetos de wireframes",
+                  "en": "Wireframe sketches"
+                },
+                "size": "col3"
               }
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723aaef04e3eb82bab07",
-          "eyebrow": {},
-          "number": "04",
-          "heading": {}
-        },
-        {
-          "blockType": "portfolioSection",
-          "id": "6a55723aaef04e3eb82bab08",
-          "heading": {
-            "es": "UX/UI Producto",
-            "en": "UX/UI Product"
+            ]
           },
-          "description": {
-            "es": "Diseño de experiencias digitales centradas en el usuario",
-            "en": "User-centered digital experience design"
-          },
-          "studioName": "Barbas.Studio",
-          "roleDescription": {
-            "es": "Trabajo en diseño de producto digital aplicando metodologías UX: research, definición de flujos, prototipado y testing para optimizar la experiencia del usuario.",
-            "en": "Work in digital product design applying UX methodologies: research, flow definition, prototyping and testing to optimize user experience."
-          },
+          "layoutVariant": "masonry-6",
+          "maxItems": 4,
+          "showCta": true,
           "ctaLabel": {
-            "es": "Ver más proyectos UX/UI",
-            "en": "View more UX/UI projects"
+            "es": "Ver todo",
+            "en": "View all"
           },
           "ctaHref": "/proyectos/uxui-producto"
         },
         {
-          "blockType": "image",
-          "id": "6a55723aaef04e3eb82bab09",
-          "image": "/images/uxui-sketch.png",
-          "caption": {
-            "es": "UX/UI Wireframes & Sketches",
-            "en": "UX/UI Wireframes & Sketches"
+          "blockType": "categoryShowcase",
+          "anchorId": "fotografia",
+          "category": {
+            "name": {
+              "es": "Fotografía",
+              "en": "Photography"
+            },
+            "slug": "fotografia-producto",
+            "anchorId": "fotografia",
+            "order": 4,
+            "intro": {
+              "es": "Fotografía de producto y packaging para marcas de alimentación.",
+              "en": "Product and packaging photography for food brands."
+            },
+            "projects": [
+              {
+                "type": "image",
+                "image": "/images/crackers.png",
+                "alt": {
+                  "es": "Crackers D'Argent - Fotografía de Producto",
+                  "en": "Crackers D'Argent - Fotografía de Producto"
+                },
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                },
+                "title": {
+                  "es": "Crackers D'Argent - Fotografía de Producto",
+                  "en": "Crackers D'Argent - Fotografía de Producto"
+                },
+                "size": "hero"
+              },
+              {
+                "type": "image",
+                "image": "/images/croissant.png",
+                "alt": {
+                  "es": "Croissant Artesanal - Fotografía de Producto",
+                  "en": "Croissant Artesanal - Fotografía de Producto"
+                },
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                },
+                "title": {
+                  "es": "Croissant Artesanal - Fotografía de Producto",
+                  "en": "Croissant Artesanal - Fotografía de Producto"
+                },
+                "size": "med"
+              },
+              {
+                "type": "image",
+                "image": "/images/bread-dargent.png",
+                "alt": {
+                  "es": "Pan D'Argent - Fotografía de Producto",
+                  "en": "Pan D'Argent - Fotografía de Producto"
+                },
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                },
+                "title": {
+                  "es": "Pan D'Argent - Fotografía de Producto",
+                  "en": "Pan D'Argent - Fotografía de Producto"
+                },
+                "size": "wide-tall"
+              },
+              {
+                "type": "image",
+                "image": "/images/croissant-packaging.png",
+                "alt": {
+                  "es": "Croissant Premium - Packaging & Fotografía",
+                  "en": "Croissant Premium - Packaging & Fotografía"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Croissant Premium - Packaging & Fotografía",
+                  "en": "Croissant Premium - Packaging & Fotografía"
+                },
+                "size": "col3"
+              }
+            ]
           },
-          "width": "full"
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723aaef04e3eb82bab0a",
-          "eyebrow": {},
-          "number": "05",
-          "heading": {}
-        },
-        {
-          "blockType": "portfolioSection",
-          "id": "6a55723aaef04e3eb82bab0b",
-          "heading": {
-            "es": "Fotografía de producto y packaging",
-            "en": "Product Photography & Packaging"
-          },
-          "description": {
-            "es": "Fotografía comercial y diseño de empaque",
-            "en": "Commercial photography and packaging design"
-          },
-          "studioName": "Click&Print",
-          "roleDescription": {
-            "es": "Desarrollo visual de producto desde la conceptualización hasta la ejecución: fotografía, diseño de empaque y retoque digital enfocado en comunicación comercial.",
-            "en": "Visual product development from conceptualization to execution: photography, packaging design and digital retouching focused on commercial communication."
-          },
+          "layoutVariant": "masonry-photo",
+          "maxItems": 4,
+          "showCta": true,
           "ctaLabel": {
-            "es": "Ver más fotografías",
-            "en": "View more photos"
+            "es": "Ver todo",
+            "en": "View all"
           },
           "ctaHref": "/proyectos/fotografia-producto"
         },
         {
-          "blockType": "projectGallery",
-          "id": "6a55723aaef04e3eb82bab0c",
-          "layoutVariant": "masonry-photo",
-          "projects": [
-            {
-              "image": "/images/crackers.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Fotografía de Producto",
-                "en": "Fotografía de Producto"
-              },
-              "title": {
-                "es": "Crackers D'Argent",
-                "en": "Crackers D'Argent"
-              }
+          "blockType": "categoryShowcase",
+          "anchorId": "marketing",
+          "category": {
+            "name": {
+              "es": "Marketing 360",
+              "en": "Marketing 360"
             },
-            {
-              "image": "/images/croissant.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Fotografía de Producto",
-                "en": "Fotografía de Producto"
-              },
-              "title": {
-                "es": "Croissant Artesanal",
-                "en": "Croissant Artesanal"
-              }
+            "slug": "marketing-360",
+            "anchorId": "marketing",
+            "order": 5,
+            "intro": {
+              "es": "Campañas integrales: impreso, digital y publicidad exterior.",
+              "en": "Integrated campaigns: print, digital and out-of-home."
             },
-            {
-              "image": "/images/croissant-packaging.png",
-              "alt": {
-                "es": null,
-                "en": null
+            "projects": [
+              {
+                "type": "image",
+                "image": "/images/santa-fe-brochure.png",
+                "alt": {
+                  "es": "Brochure Corporativo - Grupo Santa Fe",
+                  "en": "Brochure Corporativo - Grupo Santa Fe"
+                },
+                "categoryLabel": {
+                  "es": "Material Impreso",
+                  "en": "Material Impreso"
+                },
+                "title": {
+                  "es": "Brochure Corporativo - Grupo Santa Fe",
+                  "en": "Brochure Corporativo - Grupo Santa Fe"
+                },
+                "size": "hero"
               },
-              "category": {
-                "es": "Packaging & Fotografía",
-                "en": "Packaging & Fotografía"
+              {
+                "type": "image",
+                "image": "/images/concert-banner.png",
+                "alt": {
+                  "es": "Banner de Evento - Concierto",
+                  "en": "Banner de Evento - Concierto"
+                },
+                "categoryLabel": {
+                  "es": "Publicidad Digital",
+                  "en": "Publicidad Digital"
+                },
+                "title": {
+                  "es": "Banner de Evento - Concierto",
+                  "en": "Banner de Evento - Concierto"
+                },
+                "size": "tall"
               },
-              "title": {
-                "es": "Croissant Premium",
-                "en": "Croissant Premium"
+              {
+                "type": "image",
+                "image": "/images/basketball-mural.png",
+                "alt": {
+                  "es": "Mural Deportivo - PAS Eagles",
+                  "en": "Mural Deportivo - PAS Eagles"
+                },
+                "categoryLabel": {
+                  "es": "Publicidad OOH",
+                  "en": "Publicidad OOH"
+                },
+                "title": {
+                  "es": "Mural Deportivo - PAS Eagles",
+                  "en": "Mural Deportivo - PAS Eagles"
+                },
+                "size": "col3"
+              },
+              {
+                "type": "image",
+                "image": "/images/fisioterapia-cards.png",
+                "alt": {
+                  "es": "Tarjetas de Presentación - Fisioterapia",
+                  "en": "Tarjetas de Presentación - Fisioterapia"
+                },
+                "categoryLabel": {
+                  "es": "Branding",
+                  "en": "Branding"
+                },
+                "title": {
+                  "es": "Tarjetas de Presentación - Fisioterapia",
+                  "en": "Tarjetas de Presentación - Fisioterapia"
+                },
+                "size": "col3"
               }
-            },
-            {
-              "image": "/images/gift-box-1.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Packaging & Fotografía",
-                "en": "Packaging & Fotografía"
-              },
-              "title": {
-                "es": "Caja de Regalo Navideña",
-                "en": "Caja de Regalo Navideña"
-              }
-            },
-            {
-              "image": "/images/gift-box-vinte.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Packaging & Fotografía",
-                "en": "Packaging & Fotografía"
-              },
-              "title": {
-                "es": "Set Regalo Vinte-Vinte",
-                "en": "Set Regalo Vinte-Vinte"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723aaef04e3eb82bab0d",
-          "eyebrow": {},
-          "number": "06",
-          "heading": {}
-        },
-        {
-          "blockType": "portfolioSection",
-          "id": "6a55723aaef04e3eb82bab0e",
-          "heading": {
-            "es": "Diseño 360°",
-            "en": "360° Design"
+            ]
           },
-          "description": {
-            "es": "Estrategias integrales de diseño visual",
-            "en": "Comprehensive visual design strategies"
-          },
-          "studioName": "Barbas.Studio",
-          "roleDescription": {
-            "es": "Desarrollo de soluciones de diseño 360° en entorno profesional, adaptando identidad visual a múltiples formatos y canales de comunicación.",
-            "en": "Development of 360° design solutions in a professional environment, adapting visual identity to multiple formats and communication channels."
-          },
+          "layoutVariant": "grid-4",
+          "maxItems": 4,
+          "showCta": true,
           "ctaLabel": {
-            "es": "Ver más proyectos 360°",
-            "en": "View more 360° projects"
+            "es": "Ver todo",
+            "en": "View all"
           },
           "ctaHref": "/proyectos/marketing-360"
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a55723aaef04e3eb82bab0f",
-          "layoutVariant": "grid-4",
-          "projects": [
-            {
-              "image": "/images/santa-fe-brochure.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Material Impreso - Grupo Santa Fe",
-                "en": "Material Impreso - Grupo Santa Fe"
-              },
-              "title": {
-                "es": "Brochure Corporativo",
-                "en": "Brochure Corporativo"
-              }
-            },
-            {
-              "image": "/images/concert-banner.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Publicidad Digital - Concierto",
-                "en": "Publicidad Digital - Concierto"
-              },
-              "title": {
-                "es": "Banner de Evento",
-                "en": "Banner de Evento"
-              }
-            },
-            {
-              "image": "/images/basketball-mural.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Publicidad OOH - PAS Eagles",
-                "en": "Publicidad OOH - PAS Eagles"
-              },
-              "title": {
-                "es": "Mural Deportivo",
-                "en": "Mural Deportivo"
-              }
-            },
-            {
-              "image": "/images/fisioterapia-cards.png",
-              "alt": {
-                "es": null,
-                "en": null
-              },
-              "category": {
-                "es": "Branding - Fisioterapia",
-                "en": "Branding - Fisioterapia"
-              },
-              "title": {
-                "es": "Tarjetas de Presentación",
-                "en": "Tarjetas de Presentación"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "experienceAccordion",
-          "id": "6a55723aaef04e3eb82bab28",
-          "headings": {
-            "careerPath": {
-              "es": "Trayectoria",
-              "en": "Career Path"
-            },
-            "professionalExperience": {
-              "es": "Experiencia profesional",
-              "en": "Professional Experience"
-            }
-          },
-          "experience": [
-            {
-              "role": {
-                "es": "Fundadora | Click & Print",
-                "en": "Founder | Click & Print"
-              },
-              "period": {
-                "es": "2023 – 2025",
-                "en": "2023 – 2025"
-              },
-              "responsibilities": [
-                {
-                  "item": {
-                    "es": "Desarrollo integral de identidad de marca y sistema visual 360°",
-                    "en": "Comprehensive development of brand identity and 360° visual system"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Diseño de packaging, mockups y preparación de artes finales para imprenta",
-                    "en": "Packaging design, mockups and preparation of final artwork for printing"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Creación de materiales promocionales offline y online",
-                    "en": "Creation of offline and online promotional materials"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Fotografía de producto y dirección de arte para sesiones de foto y video",
-                    "en": "Product photography and art direction for photo and video sessions"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Desarrollo de estrategias de branding y conceptualización visual de proyectos",
-                    "en": "Development of branding strategies and visual conceptualization of projects"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Diseño de newsletters y contenido para RRSS",
-                    "en": "Design of newsletters and social media content"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Coordinación con proveedores y supervisión de producción gráfica",
-                    "en": "Coordination with suppliers and supervision of graphic production"
-                  }
-                }
-              ]
-            },
-            {
-              "role": {
-                "es": "Diseñadora de producto / diseñadora gráfica | Barbas.Studio",
-                "en": "Product Designer / Graphic Designer | Barbas.Studio"
-              },
-              "period": {
-                "es": "2015 – 2023",
-                "en": "2015 – 2023"
-              },
-              "responsibilities": [
-                {
-                  "item": {
-                    "es": "Desarrollo de materiales gráficos para campañas de marketing y comunicación",
-                    "en": "Development of graphic materials for marketing and communication campaigns"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Diseño de identidad visual y adaptación a múltiples canales",
-                    "en": "Visual identity design and adaptation to multiple channels"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Creación de presentaciones comerciales en PowerPoint",
-                    "en": "Creation of commercial presentations in PowerPoint"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Motion graphics para piezas digitales",
-                    "en": "Motion graphics for digital pieces"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Dirección de arte en proyectos visuales y colaboración en shootings",
-                    "en": "Art direction in visual projects and collaboration in shootings"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Retoque fotográfico avanzado y optimización de imágenes para impresión y digital",
-                    "en": "Advanced photo retouching and image optimization for print and digital"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Coordinación con stakeholders y equipos multidisciplinares",
-                    "en": "Coordination with stakeholders and multidisciplinary teams"
-                  }
-                }
-              ]
-            },
-            {
-              "role": {
-                "es": "IDSca – Diseñadora UX/UI – Web",
-                "en": "IDSca – UX/UI Designer – Web"
-              },
-              "period": {
-                "es": "2012 – 2015",
-                "en": "2012 – 2015"
-              },
-              "responsibilities": [
-                {
-                  "item": {
-                    "es": "Diseño visual de interfaces digitales y adaptación gráfica a entornos online",
-                    "en": "Visual design of digital interfaces and graphic adaptation to online environments"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Optimización de arquitectura visual y experiencia de usuario",
-                    "en": "Optimization of visual architecture and user experience"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Trabajo colaborativo con equipos técnicos en desarrollo de productos digitales",
-                    "en": "Collaborative work with technical teams in digital product development"
-                  }
-                }
-              ]
-            },
-            {
-              "role": {
-                "es": "Arweb – Diseñadora gráfica y web",
-                "en": "Arweb – Graphic and Web Designer"
-              },
-              "period": {
-                "es": "2009 – 2012",
-                "en": "2009 – 2012"
-              },
-              "responsibilities": [
-                {
-                  "item": {
-                    "es": "Diseño de materiales gráficos corporativos y piezas promocionales",
-                    "en": "Design of corporate graphic materials and promotional pieces"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Desarrollo y mantenimiento de sitios web",
-                    "en": "Development and maintenance of websites"
-                  }
-                },
-                {
-                  "item": {
-                    "es": "Creación y adaptación de recursos visuales para distintos formatos digitales e impresos",
-                    "en": "Creation and adaptation of visual resources for different digital and print formats"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "blockType": "infoColumns",
-          "id": "6a55723aaef04e3eb82bab36",
-          "headings": {
-            "education": {
-              "es": "Formación",
-              "en": "Education"
-            },
-            "tools": {
-              "es": "Herramientas",
-              "en": "Tools"
-            },
-            "languages": {
-              "es": "Idiomas",
-              "en": "Languages"
-            }
-          },
-          "education": [
-            {
-              "item": {
-                "es": "The Hero Camp – Diseño de producto digital (2023)",
-                "en": "The Hero Camp – Digital Product Design (2023)"
-              }
-            },
-            {
-              "item": {
-                "es": "Universidad Creativa de Costa Rica – Licenciatura en diseño gráfico (2007 – 2009)",
-                "en": "Universidad Creativa de Costa Rica – Bachelor's Degree in Graphic Design (2007 – 2009)"
-              }
-            }
-          ],
-          "tools": [
-            {
-              "value": "Adobe Illustrator"
-            },
-            {
-              "value": "Adobe Photoshop"
-            },
-            {
-              "value": "Adobe InDesign"
-            },
-            {
-              "value": "Lightroom"
-            },
-            {
-              "value": "Figma"
-            },
-            {
-              "value": "PowerPoint"
-            },
-            {
-              "value": "Excel"
-            },
-            {
-              "value": "Word"
-            }
-          ],
-          "languages": [
-            {
-              "value": "Español – Nativo"
-            },
-            {
-              "value": "Inglés – B2 (Profesional)"
-            },
-            {
-              "value": "Catalán – A2"
-            }
-          ]
         },
         {
           "blockType": "contact",

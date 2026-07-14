@@ -5,27 +5,33 @@
   },
   "items": [
     {
-      "label": {
-        "es": "Proyectos",
-        "en": "Projects"
-      },
-      "href": "#work",
+      "label": { "es": "Branding", "en": "Branding" },
+      "href": "/#branding",
       "anchor": true
     },
     {
-      "label": {
-        "es": "Sobre mí",
-        "en": "About"
-      },
-      "href": "#about",
+      "label": { "es": "Web y Apps", "en": "Web & Apps" },
+      "href": "/#web-apps",
       "anchor": true
     },
     {
-      "label": {
-        "es": "Contacto",
-        "en": "Contact"
-      },
-      "href": "#contact",
+      "label": { "es": "UX/UI", "en": "UX/UI" },
+      "href": "/#uxui-producto",
+      "anchor": true
+    },
+    {
+      "label": { "es": "Fotografía", "en": "Photography" },
+      "href": "/#fotografia",
+      "anchor": true
+    },
+    {
+      "label": { "es": "Marketing 360", "en": "Marketing 360" },
+      "href": "/#marketing",
+      "anchor": true
+    },
+    {
+      "label": { "es": "Contacto", "en": "Contact" },
+      "href": "/#contact",
       "anchor": true
     }
   ]

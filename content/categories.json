@@ -1,0 +1,490 @@
+{
+  "_comment": "Sample fixture for the portfolio domain model — shape matches the front-end types in src/app/blocks/types.ts (Category + ResolvedProject). The CMS export (cms/) must emit this exact shape. Category: { name{es,en}, slug, anchorId, intro{es,en}, order, projects[] }. ResolvedProject: { type:'image'|'caseStudy', image, alt{es,en}, categoryLabel{es,en} (card overlay label; front-end also accepts 'category'), title{es,en}, slug (case studies), size (masonry span token), caseStudyLayout: AnyBlock[] (only for type='caseStudy'). Localized fields are {es,en}; media/relations are pre-resolved to plain values (image paths, embedded category+projects) — no Payload IDs.",
+  "categories": [
+    {
+      "name": {
+        "es": "Branding",
+        "en": "Branding"
+      },
+      "slug": "branding",
+      "anchorId": "branding",
+      "order": 1,
+      "intro": {
+        "es": "Identidades visuales, campañas y sistemas de marca de principio a fin.",
+        "en": "Visual identities, campaigns and brand systems end to end."
+      },
+      "projects": [
+        {
+          "type": "image",
+          "image": "/images/wodfest-1.png",
+          "alt": {
+            "es": "WodFest Costa Rica - Campaña publicitaria",
+            "en": "WodFest Costa Rica - Campaña publicitaria"
+          },
+          "categoryLabel": {
+            "es": "Campaña Publicitaria",
+            "en": "Campaña Publicitaria"
+          },
+          "title": {
+            "es": "WodFest Costa Rica - Campaña publicitaria",
+            "en": "WodFest Costa Rica - Campaña publicitaria"
+          },
+          "size": "hero"
+        },
+        {
+          "type": "image",
+          "image": "/images/wodfest-2.png",
+          "alt": {
+            "es": "WodFest Costa Rica - Diseño de marca",
+            "en": "WodFest Costa Rica - Diseño de marca"
+          },
+          "categoryLabel": {
+            "es": "Diseño de Marca",
+            "en": "Diseño de Marca"
+          },
+          "title": {
+            "es": "WodFest Costa Rica - Diseño de marca",
+            "en": "WodFest Costa Rica - Diseño de marca"
+          },
+          "size": "med"
+        },
+        {
+          "type": "image",
+          "image": "/images/fitness-deadlift.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Técnica Deadlift",
+            "en": "OFF DAY Trainer - Técnica Deadlift"
+          },
+          "categoryLabel": {
+            "es": "Contenido Educativo",
+            "en": "Contenido Educativo"
+          },
+          "title": {
+            "es": "OFF DAY Trainer - Técnica Deadlift",
+            "en": "OFF DAY Trainer - Técnica Deadlift"
+          },
+          "size": "tall"
+        },
+        {
+          "type": "image",
+          "image": "/images/fitness-pullups.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Técnica Pull-ups",
+            "en": "OFF DAY Trainer - Técnica Pull-ups"
+          },
+          "categoryLabel": {
+            "es": "Contenido Educativo",
+            "en": "Contenido Educativo"
+          },
+          "title": {
+            "es": "OFF DAY Trainer - Técnica Pull-ups",
+            "en": "OFF DAY Trainer - Técnica Pull-ups"
+          },
+          "size": "normal"
+        },
+        {
+          "type": "image",
+          "image": "/images/snaga-relay.png",
+          "alt": {
+            "es": "SNAGA Team Relay 9th Anniversary",
+            "en": "SNAGA Team Relay 9th Anniversary"
+          },
+          "categoryLabel": {
+            "es": "Evento Fitness",
+            "en": "Evento Fitness"
+          },
+          "title": {
+            "es": "SNAGA Team Relay 9th Anniversary",
+            "en": "SNAGA Team Relay 9th Anniversary"
+          },
+          "size": "normal"
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Web y Apps",
+        "en": "Web & Apps"
+      },
+      "slug": "web-apps",
+      "anchorId": "web-apps",
+      "order": 2,
+      "intro": {
+        "es": "Sitios y aplicaciones responsivas centradas en la conversión.",
+        "en": "Responsive websites and apps focused on conversion."
+      },
+      "projects": [
+        {
+          "type": "image",
+          "image": "/images/offday-trainer.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Diseño Web de Fitness",
+            "en": "OFF DAY Trainer - Diseño Web de Fitness"
+          },
+          "categoryLabel": {
+            "es": "Diseño Web",
+            "en": "Diseño Web"
+          },
+          "title": {
+            "es": "OFF DAY Trainer - Diseño Web de Fitness",
+            "en": "OFF DAY Trainer - Diseño Web de Fitness"
+          },
+          "size": "hero"
+        },
+        {
+          "type": "image",
+          "image": "/images/topmed-ecommerce.png",
+          "alt": {
+            "es": "TOPMED E-Commerce - Diseño Responsivo",
+            "en": "TOPMED E-Commerce - Diseño Responsivo"
+          },
+          "categoryLabel": {
+            "es": "E-Commerce",
+            "en": "E-Commerce"
+          },
+          "title": {
+            "es": "TOPMED E-Commerce - Diseño Responsivo",
+            "en": "TOPMED E-Commerce - Diseño Responsivo"
+          },
+          "size": "wide-tall"
+        },
+        {
+          "type": "image",
+          "image": "/images/live-betting.png",
+          "alt": {
+            "es": "Live Betting App - UI/UX Mobile",
+            "en": "Live Betting App - UI/UX Mobile"
+          },
+          "categoryLabel": {
+            "es": "App Mobile",
+            "en": "App Mobile"
+          },
+          "title": {
+            "es": "Live Betting App - UI/UX Mobile",
+            "en": "Live Betting App - UI/UX Mobile"
+          },
+          "size": "col3"
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "UX/UI Producto",
+        "en": "UX/UI Product"
+      },
+      "slug": "uxui-producto",
+      "anchorId": "uxui-producto",
+      "order": 3,
+      "intro": {
+        "es": "Diseño de producto de extremo a extremo: investigación, flujos e interfaz.",
+        "en": "End-to-end product design: research, flows and interface."
+      },
+      "projects": [
+        {
+          "type": "caseStudy",
+          "slug": "snaga",
+          "image": "/images/snaga-relay.png",
+          "alt": {
+            "es": "SNAGA — Caso de estudio UX/UI",
+            "en": "SNAGA — UX/UI case study"
+          },
+          "categoryLabel": {
+            "es": "Caso de estudio",
+            "en": "Case study"
+          },
+          "title": {
+            "es": "SNAGA",
+            "en": "SNAGA"
+          },
+          "size": "hero",
+          "caseStudyLayout": [
+            {
+              "blockType": "sectionHeading",
+              "number": "01",
+              "eyebrow": {
+                "es": "Caso de estudio",
+                "en": "Case study"
+              },
+              "heading": {
+                "es": "SNAGA — App de comunidad fitness",
+                "en": "SNAGA — Fitness community app"
+              }
+            },
+            {
+              "blockType": "richText",
+              "heading": {
+                "es": "Resumen",
+                "en": "Overview"
+              },
+              "paragraphs": [
+                {
+                  "text": {
+                    "es": "SNAGA es una app para organizar y vivir eventos fitness en comunidad. Rediseñamos el flujo de inscripción y la experiencia del día del evento.",
+                    "en": "SNAGA is an app to organize and live community fitness events. We redesigned the sign-up flow and the event-day experience."
+                  }
+                }
+              ]
+            },
+            {
+              "blockType": "image",
+              "image": "/images/snaga-relay.png",
+              "caption": {
+                "es": "SNAGA Team Relay — 9º aniversario",
+                "en": "SNAGA Team Relay — 9th anniversary"
+              },
+              "width": "contained"
+            },
+            {
+              "blockType": "detailsTable",
+              "title": {
+                "es": "Detalles",
+                "en": "Details"
+              },
+              "rows": [
+                {
+                  "label": {
+                    "es": "Rol",
+                    "en": "Role"
+                  },
+                  "value": {
+                    "es": "Diseño de producto (UX/UI)",
+                    "en": "Product design (UX/UI)"
+                  }
+                },
+                {
+                  "label": {
+                    "es": "Duración",
+                    "en": "Duration"
+                  },
+                  "value": {
+                    "es": "6 semanas",
+                    "en": "6 weeks"
+                  }
+                },
+                {
+                  "label": {
+                    "es": "Plataforma",
+                    "en": "Platform"
+                  },
+                  "value": {
+                    "es": "iOS / Android",
+                    "en": "iOS / Android"
+                  }
+                }
+              ]
+            },
+            {
+              "blockType": "ctaButton",
+              "label": {
+                "es": "Volver a UX/UI",
+                "en": "Back to UX/UI"
+              },
+              "href": "/proyectos/uxui-producto",
+              "style": "secondary"
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "image": "/images/live-betting.png",
+          "alt": {
+            "es": "Live Betting App - UI/UX Mobile",
+            "en": "Live Betting App - UI/UX Mobile"
+          },
+          "categoryLabel": {
+            "es": "App Mobile",
+            "en": "App Mobile"
+          },
+          "title": {
+            "es": "Live Betting App - UI/UX Mobile",
+            "en": "Live Betting App - UI/UX Mobile"
+          },
+          "size": "wide-tall"
+        },
+        {
+          "type": "image",
+          "image": "/images/uxui-sketch.png",
+          "alt": {
+            "es": "Bocetos de wireframes",
+            "en": "Wireframe sketches"
+          },
+          "categoryLabel": {
+            "es": "Wireframes",
+            "en": "Wireframes"
+          },
+          "title": {
+            "es": "Bocetos de wireframes",
+            "en": "Wireframe sketches"
+          },
+          "size": "col3"
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Fotografía",
+        "en": "Photography"
+      },
+      "slug": "fotografia-producto",
+      "anchorId": "fotografia",
+      "order": 4,
+      "intro": {
+        "es": "Fotografía de producto y packaging para marcas de alimentación.",
+        "en": "Product and packaging photography for food brands."
+      },
+      "projects": [
+        {
+          "type": "image",
+          "image": "/images/crackers.png",
+          "alt": {
+            "es": "Crackers D'Argent - Fotografía de Producto",
+            "en": "Crackers D'Argent - Fotografía de Producto"
+          },
+          "categoryLabel": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "title": {
+            "es": "Crackers D'Argent - Fotografía de Producto",
+            "en": "Crackers D'Argent - Fotografía de Producto"
+          },
+          "size": "hero"
+        },
+        {
+          "type": "image",
+          "image": "/images/croissant.png",
+          "alt": {
+            "es": "Croissant Artesanal - Fotografía de Producto",
+            "en": "Croissant Artesanal - Fotografía de Producto"
+          },
+          "categoryLabel": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "title": {
+            "es": "Croissant Artesanal - Fotografía de Producto",
+            "en": "Croissant Artesanal - Fotografía de Producto"
+          },
+          "size": "med"
+        },
+        {
+          "type": "image",
+          "image": "/images/bread-dargent.png",
+          "alt": {
+            "es": "Pan D'Argent - Fotografía de Producto",
+            "en": "Pan D'Argent - Fotografía de Producto"
+          },
+          "categoryLabel": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "title": {
+            "es": "Pan D'Argent - Fotografía de Producto",
+            "en": "Pan D'Argent - Fotografía de Producto"
+          },
+          "size": "wide-tall"
+        },
+        {
+          "type": "image",
+          "image": "/images/croissant-packaging.png",
+          "alt": {
+            "es": "Croissant Premium - Packaging & Fotografía",
+            "en": "Croissant Premium - Packaging & Fotografía"
+          },
+          "categoryLabel": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "title": {
+            "es": "Croissant Premium - Packaging & Fotografía",
+            "en": "Croissant Premium - Packaging & Fotografía"
+          },
+          "size": "col3"
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Marketing 360",
+        "en": "Marketing 360"
+      },
+      "slug": "marketing-360",
+      "anchorId": "marketing",
+      "order": 5,
+      "intro": {
+        "es": "Campañas integrales: impreso, digital y publicidad exterior.",
+        "en": "Integrated campaigns: print, digital and out-of-home."
+      },
+      "projects": [
+        {
+          "type": "image",
+          "image": "/images/santa-fe-brochure.png",
+          "alt": {
+            "es": "Brochure Corporativo - Grupo Santa Fe",
+            "en": "Brochure Corporativo - Grupo Santa Fe"
+          },
+          "categoryLabel": {
+            "es": "Material Impreso",
+            "en": "Material Impreso"
+          },
+          "title": {
+            "es": "Brochure Corporativo - Grupo Santa Fe",
+            "en": "Brochure Corporativo - Grupo Santa Fe"
+          },
+          "size": "hero"
+        },
+        {
+          "type": "image",
+          "image": "/images/concert-banner.png",
+          "alt": {
+            "es": "Banner de Evento - Concierto",
+            "en": "Banner de Evento - Concierto"
+          },
+          "categoryLabel": {
+            "es": "Publicidad Digital",
+            "en": "Publicidad Digital"
+          },
+          "title": {
+            "es": "Banner de Evento - Concierto",
+            "en": "Banner de Evento - Concierto"
+          },
+          "size": "tall"
+        },
+        {
+          "type": "image",
+          "image": "/images/basketball-mural.png",
+          "alt": {
+            "es": "Mural Deportivo - PAS Eagles",
+            "en": "Mural Deportivo - PAS Eagles"
+          },
+          "categoryLabel": {
+            "es": "Publicidad OOH",
+            "en": "Publicidad OOH"
+          },
+          "title": {
+            "es": "Mural Deportivo - PAS Eagles",
+            "en": "Mural Deportivo - PAS Eagles"
+          },
+          "size": "col3"
+        },
+        {
+          "type": "image",
+          "image": "/images/fisioterapia-cards.png",
+          "alt": {
+            "es": "Tarjetas de Presentación - Fisioterapia",
+            "en": "Tarjetas de Presentación - Fisioterapia"
+          },
+          "categoryLabel": {
+            "es": "Branding",
+            "en": "Branding"
+          },
+          "title": {
+            "es": "Tarjetas de Presentación - Fisioterapia",
+            "en": "Tarjetas de Presentación - Fisioterapia"
+          },
+          "size": "col3"
+        }
+      ]
+    }
+  ]
+}

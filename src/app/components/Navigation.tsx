@@ -1,9 +1,18 @@
 import { Menu } from "lucide-react";
-import { Fragment } from "react";
-import { Link, useLocation } from "react-router";
+import { Fragment, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
 import { LanguageToggle } from "./LanguageToggle";
 import { navBrand, navItems } from "../blocks/pages";
+
+/**
+ * Extract the `#anchor` fragment from a nav href. Accepts both "#branding" and
+ * "/#branding" forms so menu items can use either convention.
+ */
+function anchorId(href: string): string | null {
+  const hashIndex = href.indexOf("#");
+  return hashIndex >= 0 ? href.slice(hashIndex) : null;
+}
 
 /**
  * Navigation — menu items are now data-driven from content/navigation.json
@@ -16,16 +25,29 @@ import { navBrand, navItems } from "../blocks/pages";
  */
 export function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === "/";
   const { language } = useLanguage();
 
-  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  // After navigating home with a hash (e.g. from a category page), scroll to
+  // the target anchor once the home blocks have mounted.
+  useEffect(() => {
+    if (isHome && location.hash) {
+      const el = document.querySelector(location.hash);
+      if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isHome, location.hash]);
+
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const id = anchorId(href);
+    if (!id) return;
+    e.preventDefault();
     if (isHome) {
-      e.preventDefault();
       const element = document.querySelector(id);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
+      if (element) element.scrollIntoView({ behavior: "smooth" });
+    } else {
+      // Navigate to the home page carrying the hash; the effect above scrolls.
+      navigate(`/${id}`);
     }
   };
 
@@ -44,22 +66,13 @@ export function Navigation() {
             {navItems.map((item, index) => (
               <Fragment key={index}>
                 {item.anchor ? (
-                  isHome ? (
-                    <a
-                      href={item.href}
-                      onClick={(e) => handleScrollTo(e, item.href)}
-                      className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-                    >
-                      {item.label[language]}
-                    </a>
-                  ) : (
-                    <Link
-                      to={`/${item.href}`}
-                      className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
-                    >
-                      {item.label[language]}
-                    </Link>
-                  )
+                  <a
+                    href={item.href.startsWith("#") ? `/${item.href}` : item.href}
+                    onClick={(e) => handleScrollTo(e, item.href)}
+                    className="text-xs tracking-wider uppercase hover:text-violet-600 transition-colors px-4 py-2 text-neutral-900"
+                  >
+                    {item.label[language]}
+                  </a>
                 ) : (
                   <Link
                     to={item.href}
