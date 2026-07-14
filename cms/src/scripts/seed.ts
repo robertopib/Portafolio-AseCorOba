@@ -520,6 +520,8 @@ async function main() {
     alt?: Loc
     categoryLabel?: Loc
     caseStudy?: any
+    body?: any
+    projectSlug?: string
   }) {
     await payload.create({
       collection: 'projects',
@@ -536,6 +538,8 @@ async function main() {
         alt: base.alt,
         categoryLabel: base.categoryLabel,
         caseStudy: base.caseStudy,
+        body: base.body,
+        slug: base.projectSlug,
       } as any,
     })
     projectsCreated++
@@ -612,12 +616,93 @@ async function main() {
   // -------------------- CASE STUDY PROYECTO --------------------
   const cs = readJson(path.join(SECTIONS_DIR, CASE_STUDY_FILE))
   const arrText = (arr: Loc[], key = 'text') => arr.map((o) => ({ [key]: o }))
+
+  // The inline case-study BODY: an ordered list of blocks, each carrying its own
+  // slice of the case study (mirrors blocks/caseStudyBody.ts). This is the WP
+  // post-body the front-end case-study template renders. Built from the SAME
+  // committed uxui-casestudy.json so the body is byte-faithful to it.
+  const caseStudyBody = [
+    { blockType: 'uxuiHeader', title: cs.header.title, tagline: cs.header.tagline },
+    { blockType: 'uxuiHero', image: cs.hero.image, alt: cs.hero.alt },
+    {
+      blockType: 'uxuiOverview',
+      name: cs.project.name,
+      subtitle: cs.project.subtitle,
+      overview: cs.project.overview.map((o: any) => ({ label: o.label, text: o.text })),
+    },
+    { blockType: 'uxuiIntro', intro: textRows(cs.intro) },
+    {
+      blockType: 'uxuiProblemSolution',
+      problem: { label: cs.problemSolution.problem.label, text: cs.problemSolution.problem.text },
+      solution: { label: cs.problemSolution.solution.label, text: cs.problemSolution.solution.text },
+    },
+    {
+      blockType: 'uxuiDetails',
+      headers: cs.details.headers,
+      rows: cs.details.rows.map((r: any) => ({ tools: r.tools, team: r.team, role: r.role })),
+    },
+    {
+      blockType: 'uxuiTimeline',
+      title: cs.timeline.title,
+      durationLabel: cs.timeline.durationLabel,
+      durationValue: cs.timeline.durationValue,
+      phases: cs.timeline.phases.map((p: any) => ({ phase: p.phase, duration: p.duration })),
+    },
+    {
+      blockType: 'uxuiJourney',
+      title: cs.journey.title,
+      intro: textRows(cs.journey.intro),
+      labels: cs.journey.labels,
+      stages: cs.journey.stages.map((s: any) => ({
+        number: s.number,
+        name: s.name,
+        action: s.action,
+        thought: s.thought,
+        friction: s.friction,
+      })),
+      qa: cs.journey.qa.map((q: any) => ({
+        question: q.question,
+        answer: q.answer ? q.answer : undefined,
+        bullets: q.bullets ? textRows(q.bullets) : undefined,
+      })),
+    },
+    {
+      blockType: 'uxuiPersonas',
+      title: cs.personas.title,
+      intro: textRows(cs.personas.intro),
+      qa: cs.personas.qa.map((q: any) => ({ question: q.question, answer: textRows(q.answer) })),
+      sectionLabels: cs.personas.sectionLabels,
+      cards: cs.personas.cards.map((c: any) => ({
+        name: c.name,
+        descriptor: c.descriptor,
+        quote: c.quote,
+        basicInfo: textRows(c.basicInfo),
+        channels: textRows(c.channels),
+        motivations: textRows(c.motivations),
+        painPoints: textRows(c.painPoints),
+      })),
+    },
+    {
+      blockType: 'uxuiSketches',
+      title: cs.sketches.title,
+      intro: textRows(cs.sketches.intro),
+      qa: cs.sketches.qa.map((q: any) => ({ question: q.question, answer: q.answer })),
+    },
+    {
+      blockType: 'uxuiLearnings',
+      title: cs.learnings.title,
+      qa: cs.learnings.qa.map((q: any) => ({ question: q.question, answer: textRows(q.answer) })),
+    },
+  ]
+
   await createProject({
     slug: CASE_STUDY_CATEGORY_SLUG,
     type: 'caseStudy',
     placement: 'page',
     order: 0,
     internalTitle: cs.project?.name?.es,
+    projectSlug: 'snaga',
+    body: caseStudyBody,
     caseStudy: {
       header: { title: cs.header.title, tagline: cs.header.tagline },
       hero: { image: cs.hero.image, alt: cs.hero.alt },

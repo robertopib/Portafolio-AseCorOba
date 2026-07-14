@@ -5,6 +5,7 @@ import { PageRenderer } from "../PageRenderer";
 import { useLanguage } from "../context/LanguageContext";
 import { useScrollRestoration } from "../hooks/useScrollRestoration";
 import { CategoryGallery } from "./CategoryGalleryBlocks";
+import { CaseStudyTemplate, findCaseStudy } from "./CaseStudyTemplate";
 import pagesData from "../../../content/pages.json";
 import categoriesData from "../../../content/categories.json";
 
@@ -84,6 +85,14 @@ function AutoArchive({ category }: { category: ArchiveCategory }) {
 export function CategoryArchive() {
   const { categorySlug } = useParams();
 
+  // A category whose single Proyecto is a case study renders that case study's
+  // inline body via the case-study TEMPLATE (single source of truth = the
+  // Proyecto body). This is the pixel-identical path for /proyectos/uxui-producto.
+  const singleCaseStudy = findCaseStudy(categorySlug);
+  if (singleCaseStudy) {
+    return <CaseStudyTemplate entry={singleCaseStudy} />;
+  }
+
   // A hand-authored Página wins (pixel-identical project pages).
   if (categorySlug && pageSlugs.has(categorySlug)) {
     return <PageRenderer slug={categorySlug} />;
@@ -95,5 +104,16 @@ export function CategoryArchive() {
     return <AutoArchive category={category} />;
   }
 
+  return null;
+}
+
+/**
+ * Case-study route: /proyectos/:categorySlug/:projectSlug.
+ * Renders the named case study's inline body via the case-study template.
+ */
+export function CaseStudyRoute() {
+  const { categorySlug, projectSlug } = useParams();
+  const entry = findCaseStudy(categorySlug, projectSlug);
+  if (entry) return <CaseStudyTemplate entry={entry} />;
   return null;
 }

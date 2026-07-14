@@ -106,3 +106,27 @@ export const BRANDING_PAGE_GROUPS: { group: string; jsonKey: string }[] = [
 /** The slug of the category the UX/UI case-study Proyecto belongs to. */
 export const CASE_STUDY_CATEGORY_SLUG = 'uxui-producto'
 export const CASE_STUDY_FILE = 'uxui-casestudy.json'
+
+/**
+ * Emitted catalog of every caseStudy Proyecto's resolved inline `body`, consumed
+ * by the front-end case-study TEMPLATE (src/app/blocks/CaseStudyTemplate.tsx).
+ * Each entry: { categorySlug, slug, body:[{ blockType, content }] } where a
+ * block's `content` is `{ [sliceKey]: resolvedSlice }` matching the shape the
+ * UX/UI sub-block renderers read.
+ */
+export const CASE_STUDIES_FILE = 'case-studies.json'
+
+/** body block slug (front-end blockType) -> the case-study top-level slice key. */
+export const CASE_STUDY_BODY_SLICE_KEY: Record<string, string> = {
+  uxuiHeader: 'header',
+  uxuiHero: 'hero',
+  uxuiOverview: 'project',
+  uxuiIntro: 'intro',
+  uxuiProblemSolution: 'problemSolution',
+  uxuiDetails: 'details',
+  uxuiTimeline: 'timeline',
+  uxuiJourney: 'journey',
+  uxuiPersonas: 'personas',
+  uxuiSketches: 'sketches',
+  uxuiLearnings: 'learnings',
+}

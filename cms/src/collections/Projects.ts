@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { caseStudyBodyField } from '../blocks/caseStudyBody'
 
 /**
  * Proyectos — the leaf level of the "Categorías → Proyectos" model.
@@ -123,6 +124,17 @@ export const Projects: CollectionConfig = {
       },
     },
     {
+      name: 'slug',
+      type: 'text',
+      label: 'Identificador (slug)',
+      index: true,
+      admin: {
+        description:
+          'Solo casos de estudio: identificador de la página del caso, usado en la URL /proyectos/<categoría>/<slug>.',
+        condition: (data) => data?.type === 'caseStudy',
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       localized: true,
@@ -144,8 +156,19 @@ export const Projects: CollectionConfig = {
       },
     },
 
-    // ================= CASE STUDY =================
-    // Only used when type='caseStudy'. Mirrors content/sections/uxui-casestudy.json.
+    // ================= CASE STUDY BODY (inline post body) =================
+    // Only used when type='caseStudy'. The case study as an ordered, inline
+    // block layout edited on the Proyecto (like a WP post body). Each block is
+    // one case-study sub-block carrying its own slice. This is the SOURCE the
+    // front-end case-study TEMPLATE renders at /proyectos/:cat/:slug (and, for
+    // the single uxui case study, at /proyectos/uxui-producto). See
+    // blocks/caseStudyBody.ts.
+    caseStudyBodyField(),
+
+    // ================= CASE STUDY (legacy round-trip source) =================
+    // Only used when type='caseStudy'. Mirrors content/sections/uxui-casestudy.json
+    // and remains the round-trip source for that committed file (seed reads it in;
+    // export reconstructs it). The `body` above is populated from the same JSON.
     {
       type: 'group',
       name: 'caseStudy',

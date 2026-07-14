@@ -20,6 +20,8 @@ import {
   SECTION_SPECS,
   BRANDING_PAGE_GROUPS,
   CASE_STUDY_FILE,
+  CASE_STUDIES_FILE,
+  CASE_STUDY_BODY_SLICE_KEY,
 } from './content-map'
 
 const OUT_DIR = '/tmp/export-out'
@@ -736,6 +738,131 @@ async function main() {
       },
     }
     emit(`sections/${CASE_STUDY_FILE}`, recon, path.join(SECTIONS_DIR, CASE_STUDY_FILE))
+  }
+
+  // ==================== CASE STUDIES (resolved Proyecto bodies) ====================
+  // Emit each caseStudy Proyecto's inline `body` as an ordered list of blocks,
+  // each with a `content` = { [sliceKey]: resolvedSlice } matching what the
+  // front-end UX/UI sub-block renderers read. Consumed by CaseStudyTemplate to
+  // render /proyectos/:cat/:slug (and the uxui-producto category page).
+  // Written directly to the committed content dir (no pre-existing hand-authored
+  // source to fidelity-diff against).
+  {
+    const arrText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
+
+    // Reconstruct one body block's slice from its stored fields (block is the
+    // flat block instance; b.blockType selects the slice shape).
+    const sliceFrom = (b: any): any => {
+      switch (b.blockType) {
+        case 'uxuiHeader':
+          return { title: loc(b.title), tagline: loc(b.tagline) }
+        case 'uxuiHero':
+          return { image: b.image, alt: loc(b.alt) }
+        case 'uxuiOverview':
+          return {
+            name: loc(b.name),
+            subtitle: loc(b.subtitle),
+            overview: (b.overview || []).map((o: any) => ({ label: loc(o.label), text: loc(o.text) })),
+          }
+        case 'uxuiIntro':
+          return arrText(b.intro)
+        case 'uxuiProblemSolution':
+          return {
+            problem: { label: loc(b.problem.label), text: loc(b.problem.text) },
+            solution: { label: loc(b.solution.label), text: loc(b.solution.text) },
+          }
+        case 'uxuiDetails':
+          return {
+            headers: { tools: loc(b.headers.tools), team: loc(b.headers.team), role: loc(b.headers.role) },
+            rows: (b.rows || []).map((r: any) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+          }
+        case 'uxuiTimeline':
+          return {
+            title: loc(b.title),
+            durationLabel: loc(b.durationLabel),
+            durationValue: loc(b.durationValue),
+            phases: (b.phases || []).map((p: any) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+          }
+        case 'uxuiJourney':
+          return {
+            title: loc(b.title),
+            intro: arrText(b.intro),
+            labels: {
+              action: loc(b.labels.action),
+              thought: loc(b.labels.thought),
+              friction: loc(b.labels.friction),
+            },
+            stages: (b.stages || []).map((s: any) => ({
+              number: s.number,
+              name: loc(s.name),
+              action: loc(s.action),
+              thought: loc(s.thought),
+              friction: loc(s.friction),
+            })),
+            qa: (b.qa || []).map((q: any) => {
+              const out: any = { question: loc(q.question) }
+              if (q.bullets && q.bullets.length > 0) out.bullets = arrText(q.bullets)
+              else out.answer = loc(q.answer)
+              return out
+            }),
+          }
+        case 'uxuiPersonas':
+          return {
+            title: loc(b.title),
+            intro: arrText(b.intro),
+            qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+            sectionLabels: {
+              basicInfo: loc(b.sectionLabels.basicInfo),
+              channels: loc(b.sectionLabels.channels),
+              motivations: loc(b.sectionLabels.motivations),
+              painPoints: loc(b.sectionLabels.painPoints),
+            },
+            cards: (b.cards || []).map((c: any) => ({
+              name: loc(c.name),
+              descriptor: loc(c.descriptor),
+              quote: loc(c.quote),
+              basicInfo: arrText(c.basicInfo),
+              channels: arrText(c.channels),
+              motivations: arrText(c.motivations),
+              painPoints: arrText(c.painPoints),
+            })),
+          }
+        case 'uxuiSketches':
+          return {
+            title: loc(b.title),
+            intro: arrText(b.intro),
+            qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: loc(q.answer) })),
+          }
+        case 'uxuiLearnings':
+          return {
+            title: loc(b.title),
+            qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+          }
+        default:
+          return {}
+      }
+    }
+
+    const caseStudyDocs = (allProjects.docs as any[]).filter((p) => p.type === 'caseStudy')
+    const recon = {
+      caseStudies: caseStudyDocs.map((doc: any) => ({
+        categorySlug: slugOf(doc),
+        slug: doc.slug || null,
+        body: (doc.body || []).map((b: any) => {
+          const sliceKey = CASE_STUDY_BODY_SLICE_KEY[b.blockType]
+          return {
+            blockType: b.blockType,
+            content: sliceKey ? { [sliceKey]: sliceFrom(b) } : {},
+          }
+        }),
+      })),
+    }
+    fs.writeFileSync(
+      path.join(CONTENT_DIR, CASE_STUDIES_FILE),
+      JSON.stringify(recon, null, 2) + '\n',
+    )
+    written[CASE_STUDIES_FILE] = recon
+    report[CASE_STUDIES_FILE] = { match: true, diffs: [] }
   }
 
   const allMatch = Object.values(report).every((r) => r.match)

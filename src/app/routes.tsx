@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
 import { PageRenderer } from "./PageRenderer";
-import { CategoryArchive } from "./blocks/CategoryArchive";
+import { CategoryArchive, CaseStudyRoute } from "./blocks/CategoryArchive";
 
 export const router = createBrowserRouter([
   {
@@ -12,6 +12,9 @@ export const router = createBrowserRouter([
       // Category archive: renders via the category's Página (pixel-identical)
       // when one exists, else an auto-archive of that category's Proyectos.
       { path: "proyectos/:categorySlug", element: <CategoryArchive /> },
+      // Case-study post: renders a caseStudy Proyecto's inline body via the
+      // case-study template.
+      { path: "proyectos/:categorySlug/:projectSlug", element: <CaseStudyRoute /> },
     ],
   },
 ]);

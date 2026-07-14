@@ -683,12 +683,247 @@ export interface Project {
    * Nombre solo para el panel (no se muestra en la web).
    */
   internalTitle?: string | null;
+  /**
+   * Solo casos de estudio: identificador de la página del caso, usado en la URL /proyectos/<categoría>/<slug>.
+   */
+  slug?: string | null;
   title?: string | null;
   alt?: string | null;
   /**
    * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").
    */
   categoryLabel?: string | null;
+  /**
+   * El contenido del caso de estudio, en bloques y en orden (como el cuerpo de un post). Arrastra para reordenar; agrega o elimina sub-bloques.
+   */
+  body?:
+    | (
+        | {
+            title?: string | null;
+            tagline?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiHeader';
+          }
+        | {
+            image?: string | null;
+            alt?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiHero';
+          }
+        | {
+            name?: string | null;
+            subtitle?: string | null;
+            overview?:
+              | {
+                  label?: string | null;
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiOverview';
+          }
+        | {
+            intro?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiIntro';
+          }
+        | {
+            problem?: {
+              label?: string | null;
+              text?: string | null;
+            };
+            solution?: {
+              label?: string | null;
+              text?: string | null;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiProblemSolution';
+          }
+        | {
+            headers?: {
+              tools?: string | null;
+              team?: string | null;
+              role?: string | null;
+            };
+            rows?:
+              | {
+                  tools?: string | null;
+                  team?: string | null;
+                  role?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiDetails';
+          }
+        | {
+            title?: string | null;
+            durationLabel?: string | null;
+            durationValue?: string | null;
+            phases?:
+              | {
+                  phase?: string | null;
+                  duration?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiTimeline';
+          }
+        | {
+            title?: string | null;
+            intro?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            labels?: {
+              action?: string | null;
+              thought?: string | null;
+              friction?: string | null;
+            };
+            stages?:
+              | {
+                  number?: string | null;
+                  name?: string | null;
+                  action?: string | null;
+                  thought?: string | null;
+                  friction?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            qa?:
+              | {
+                  question?: string | null;
+                  answer?: string | null;
+                  bullets?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiJourney';
+          }
+        | {
+            title?: string | null;
+            intro?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            qa?:
+              | {
+                  question?: string | null;
+                  answer?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            sectionLabels?: {
+              basicInfo?: string | null;
+              channels?: string | null;
+              motivations?: string | null;
+              painPoints?: string | null;
+            };
+            cards?:
+              | {
+                  name?: string | null;
+                  descriptor?: string | null;
+                  quote?: string | null;
+                  basicInfo?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  channels?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  motivations?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  painPoints?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiPersonas';
+          }
+        | {
+            title?: string | null;
+            intro?:
+              | {
+                  text?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            qa?:
+              | {
+                  question?: string | null;
+                  answer?: string | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiSketches';
+          }
+        | {
+            title?: string | null;
+            qa?:
+              | {
+                  question?: string | null;
+                  answer?:
+                    | {
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                }[]
+              | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'uxuiLearnings';
+          }
+      )[]
+    | null;
   /**
    * Todo el contenido de la página del caso de estudio.
    */
@@ -1423,9 +1658,259 @@ export interface ProjectsSelect<T extends boolean = true> {
   image?: T;
   order?: T;
   internalTitle?: T;
+  slug?: T;
   title?: T;
   alt?: T;
   categoryLabel?: T;
+  body?:
+    | T
+    | {
+        uxuiHeader?:
+          | T
+          | {
+              title?: T;
+              tagline?: T;
+              id?: T;
+              blockName?: T;
+            };
+        uxuiHero?:
+          | T
+          | {
+              image?: T;
+              alt?: T;
+              id?: T;
+              blockName?: T;
+            };
+        uxuiOverview?:
+          | T
+          | {
+              name?: T;
+              subtitle?: T;
+              overview?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiIntro?:
+          | T
+          | {
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiProblemSolution?:
+          | T
+          | {
+              problem?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                  };
+              solution?:
+                | T
+                | {
+                    label?: T;
+                    text?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiDetails?:
+          | T
+          | {
+              headers?:
+                | T
+                | {
+                    tools?: T;
+                    team?: T;
+                    role?: T;
+                  };
+              rows?:
+                | T
+                | {
+                    tools?: T;
+                    team?: T;
+                    role?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiTimeline?:
+          | T
+          | {
+              title?: T;
+              durationLabel?: T;
+              durationValue?: T;
+              phases?:
+                | T
+                | {
+                    phase?: T;
+                    duration?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiJourney?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              labels?:
+                | T
+                | {
+                    action?: T;
+                    thought?: T;
+                    friction?: T;
+                  };
+              stages?:
+                | T
+                | {
+                    number?: T;
+                    name?: T;
+                    action?: T;
+                    thought?: T;
+                    friction?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    bullets?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiPersonas?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              sectionLabels?:
+                | T
+                | {
+                    basicInfo?: T;
+                    channels?: T;
+                    motivations?: T;
+                    painPoints?: T;
+                  };
+              cards?:
+                | T
+                | {
+                    name?: T;
+                    descriptor?: T;
+                    quote?: T;
+                    basicInfo?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    channels?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    motivations?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    painPoints?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiSketches?:
+          | T
+          | {
+              title?: T;
+              intro?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        uxuiLearnings?:
+          | T
+          | {
+              title?: T;
+              qa?:
+                | T
+                | {
+                    question?: T;
+                    answer?:
+                      | T
+                      | {
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
   caseStudy?:
     | T
     | {
