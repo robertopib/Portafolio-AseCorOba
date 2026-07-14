@@ -5,32 +5,50 @@
   },
   "items": [
     {
-      "label": { "es": "Branding", "en": "Branding" },
+      "label": {
+        "es": "Branding",
+        "en": "Branding"
+      },
       "href": "/#branding",
       "anchor": true
     },
     {
-      "label": { "es": "Web y Apps", "en": "Web & Apps" },
+      "label": {
+        "es": "Web y Apps",
+        "en": "Web & Apps"
+      },
       "href": "/#web-apps",
       "anchor": true
     },
     {
-      "label": { "es": "UX/UI", "en": "UX/UI" },
+      "label": {
+        "es": "UX/UI",
+        "en": "UX/UI"
+      },
       "href": "/#uxui-producto",
       "anchor": true
     },
     {
-      "label": { "es": "Fotografía", "en": "Photography" },
+      "label": {
+        "es": "Fotografía",
+        "en": "Photography"
+      },
       "href": "/#fotografia",
       "anchor": true
     },
     {
-      "label": { "es": "Marketing 360", "en": "Marketing 360" },
+      "label": {
+        "es": "Marketing 360",
+        "en": "Marketing 360"
+      },
       "href": "/#marketing",
       "anchor": true
     },
     {
-      "label": { "es": "Contacto", "en": "Contact" },
+      "label": {
+        "es": "Contacto",
+        "en": "Contact"
+      },
       "href": "/#contact",
       "anchor": true
     }

@@ -1,46 +1,56 @@
 /**
- * Idempotent seed: loads content/*.json + public/images into Payload, and builds
- * the CMS Pages (block layouts) + Navigation global that reproduce the current
- * site exactly (Phase 3 page-builder migration).
+ * Idempotent seed for the Categorías → Proyectos domain model (Phase 18).
+ *
+ * Loads content/*.json + public/images into Payload and builds:
+ *   - Media   (42 images, upserted by filename → R2)
+ *   - Categorías (5)   with name/slug/anchorId/intro/order
+ *   - Proyectos        image cards (type:'image') + the SNAGA caseStudy
+ *   - Home Page        Hero + 5 CategoryShowcase + ExperienceAccordion +
+ *                      InfoColumns + Contact
+ *   - Navigation       brand + category anchors + #contact
+ *   - UiStrings        (still used by the front-end: nav.back, etc.)
  *
  * Run:  pnpm payload run src/scripts/seed.ts
- * NOTE: console output is swallowed in this sandbox -> results go to /tmp/seed-report.json
+ * NOTE: stdout is swallowed -> results go to /tmp/seed-report.json
  *
- * Localized fields are written in a SINGLE pass with `locale: 'all'`, passing each
- * localized leaf as an { es, en } object. This preserves array row identity across
- * locales (writing es then en in two passes drops the first pass's array rows).
- *
- * Media + Projects seeding stays idempotent (media is upserted by filename;
- * projects are wiped + recreated deterministically). Pages are upserted by slug.
+ * Localized fields are written in a SINGLE pass with `locale: 'all'`, passing
+ * each localized leaf as an { es, en } object so array row identity is kept
+ * across locales.
  */
 import fs from 'fs'
 import path from 'path'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import {
-  CONTENT_DIR,
-  SECTIONS_DIR,
-  IMAGES_DIR,
-  pathToFilename,
-  SECTION_SPECS,
-  BRANDING_PAGE_GROUPS,
-  SECTION_TEXT_MAP,
-} from './content-map'
+import { CONTENT_DIR, SECTIONS_DIR, IMAGES_DIR, pathToFilename } from './content-map'
 
 type Loc = { es: string; en: string }
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'))
 const ALL = 'all' as any
+const loc = (es: string, en: string): Loc => ({ es, en })
 
 async function main() {
   const payload = await getPayload({ config })
   const report: Record<string, unknown> = {}
 
+  const home = readJson(path.join(CONTENT_DIR, 'home.json'))
+  const about = readJson(path.join(CONTENT_DIR, 'about.json'))
+  const career = readJson(path.join(CONTENT_DIR, 'career.json'))
+  const ui = readJson(path.join(CONTENT_DIR, 'ui.json'))
+  const cs = readJson(path.join(SECTIONS_DIR, 'uxui-casestudy.json'))
+  const sec = {
+    branding: readJson(path.join(SECTIONS_DIR, 'branding.json')),
+    'web-apps': readJson(path.join(SECTIONS_DIR, 'web-apps.json')),
+    'uxui-producto': readJson(path.join(SECTIONS_DIR, 'uxui.json')),
+    'fotografia-producto': readJson(path.join(SECTIONS_DIR, 'photography.json')),
+    'marketing-360': readJson(path.join(SECTIONS_DIR, 'marketing-360.json')),
+  } as Record<string, any>
+
   // -------------------- MEDIA --------------------
   const imageFiles = fs.readdirSync(IMAGES_DIR).filter((f) => !f.startsWith('.'))
   const mediaMap: Record<string, number> = {} // filename -> id
 
-  const existing = await payload.find({ collection: 'media', limit: 1000, depth: 0 })
-  for (const m of existing.docs) {
+  const existingMedia = await payload.find({ collection: 'media', limit: 1000, depth: 0 })
+  for (const m of existingMedia.docs) {
     if (m.filename) mediaMap[m.filename as string] = m.id as number
   }
 
@@ -67,546 +77,215 @@ async function main() {
     return id
   }
 
-  const setGlobal = (slug: any, data: any) => payload.updateGlobal({ slug, locale: ALL, data })
+  // -------------------- CLEAR (idempotent) --------------------
+  // Delete projects first (they reference categories), then categories, then pages.
+  for (const coll of ['projects', 'categories', 'pages'] as const) {
+    const found = await payload.find({ collection: coll, limit: 2000, depth: 0 })
+    for (const d of found.docs) await payload.delete({ collection: coll, id: d.id })
+  }
 
-  // -------------------- HOME --------------------
-  const home = readJson(path.join(CONTENT_DIR, 'home.json'))
-  await setGlobal('home', {
-    hero: {
-      backgroundImage: home.hero.backgroundImage,
-      title: home.hero.title,
-      subtitle: home.hero.subtitle,
-      body: home.hero.body,
-      cta1: home.hero.cta1,
-      cta2: home.hero.cta2,
+  // ==================================================================
+  // CATEGORÍAS
+  // ==================================================================
+  // name from ui.json portfolio.* labels; intro from portfolio.*.desc.
+  // anchorId matches content/navigation.json anchors (branding, web-apps,
+  // uxui-producto, fotografia, marketing).
+  const categoryDefs: {
+    slug: string
+    anchorId: string
+    name: Loc
+    intro: Loc
+    order: number
+  }[] = [
+    {
+      slug: 'branding',
+      anchorId: 'branding',
+      order: 1,
+      name: loc(ui.es['portfolio.branding'], ui.en['portfolio.branding']),
+      intro: loc(ui.es['portfolio.branding.desc'], ui.en['portfolio.branding.desc']),
     },
-  })
+    {
+      slug: 'web-apps',
+      anchorId: 'web-apps',
+      order: 2,
+      name: loc(ui.es['portfolio.web'], ui.en['portfolio.web']),
+      intro: loc(ui.es['portfolio.web.desc'], ui.en['portfolio.web.desc']),
+    },
+    {
+      slug: 'uxui-producto',
+      anchorId: 'uxui-producto',
+      order: 3,
+      name: loc(sec['uxui-producto'].home.heading.es, sec['uxui-producto'].home.heading.en),
+      intro: loc(
+        sec['uxui-producto'].home.description.es,
+        sec['uxui-producto'].home.description.en,
+      ),
+    },
+    {
+      slug: 'fotografia-producto',
+      anchorId: 'fotografia',
+      order: 4,
+      name: loc(ui.es['portfolio.photography'], ui.en['portfolio.photography']),
+      intro: loc(ui.es['portfolio.photography.desc'], ui.en['portfolio.photography.desc']),
+    },
+    {
+      slug: 'marketing-360',
+      anchorId: 'marketing',
+      order: 5,
+      name: loc(ui.es['portfolio.marketing'], ui.en['portfolio.marketing']),
+      intro: loc(ui.es['portfolio.marketing.desc'], ui.en['portfolio.marketing.desc']),
+    },
+  ]
 
-  // -------------------- ABOUT --------------------
-  const about = readJson(path.join(CONTENT_DIR, 'about.json'))
-  const eduLen = about.education.es.length
-  await setGlobal('about', {
-    headings: about.headings,
-    education: Array.from({ length: eduLen }, (_, i) => ({
-      item: { es: about.education.es[i], en: about.education.en[i] },
-    })),
-    tools: about.tools.map((v: string) => ({ value: v })),
-    languages: about.languages.map((v: string) => ({ value: v })),
-    contact: {
-      heading: about.contact.heading,
-      body: about.contact.body,
-      email: about.contact.email,
-      phone: about.contact.phone,
-    },
-    socialLinks: about.socialLinks.map((s: any) => ({ name: s.name, url: s.url })),
-    footer: {
-      copyrightPrefix: about.footer.copyrightPrefix,
-      rights: about.footer.rights,
-      privacy: about.footer.privacy,
-      terms: about.footer.terms,
-    },
-  })
+  const categoryIdBySlug: Record<string, number> = {}
+  for (const def of categoryDefs) {
+    const doc = await payload.create({
+      collection: 'categories',
+      locale: ALL,
+      data: {
+        name: def.name,
+        slug: def.slug,
+        anchorId: def.anchorId,
+        intro: def.intro,
+        order: def.order,
+      } as any,
+    })
+    categoryIdBySlug[def.slug] = doc.id as number
+  }
+  report.categoriesCreated = categoryDefs.length
 
-  // -------------------- CAREER --------------------
-  const career = readJson(path.join(CONTENT_DIR, 'career.json'))
-  const expLen = career.experience.es.length
-  await setGlobal('career', {
-    headings: career.headings,
-    experience: Array.from({ length: expLen }, (_, i) => {
-      const es = career.experience.es[i]
-      const en = career.experience.en[i]
-      const respLen = es.responsibilities.length
-      return {
-        role: { es: es.role, en: en.role },
-        period: { es: es.period, en: en.period },
-        responsibilities: Array.from({ length: respLen }, (_, j) => ({
-          item: { es: es.responsibilities[j], en: en.responsibilities[j] },
-        })),
-      }
+  // ==================================================================
+  // PROYECTOS
+  // ==================================================================
+  type Card = { image: string; alt: Loc; category: Loc; size: string }
+
+  // Per-category project cards (the full galleries the category page renders as
+  // masonry-6). Sizes follow the Phase-3 page-gallery composition, adapted to a
+  // single masonry-6 grid per category.
+  const brandingSizeOf = (i: number): string =>
+    i === 0 ? 'hero' : i === 1 ? 'med' : i === 2 ? 'tall' : 'normal'
+  const brandingCards: Card[] = [
+    ...(sec.branding.page.sportsProjects as any[]),
+    ...(sec.branding.page.adrianaMunozProjects as any[]),
+    ...(sec.branding.page.anaGraceProjects as any[]),
+    ...(sec.branding.page.logoProjects as any[]),
+  ].map((p: any, i: number) => ({
+    image: p.src,
+    alt: p.alt,
+    category: p.category,
+    size: brandingSizeOf(i),
+  }))
+
+  const webAppsCards: Card[] = (sec['web-apps'].page.projects as any[]).map((p: any, i: number) => ({
+    image: p.image,
+    alt: p.alt,
+    category: p.category,
+    size: i === 0 ? 'hero' : i === 1 ? 'wide-tall' : 'col3',
+  }))
+
+  const photoSizeOf = (i: number): string => {
+    switch (i) {
+      case 0:
+        return 'hero'
+      case 1:
+        return 'med'
+      case 2:
+        return 'wide-tall'
+      case 3:
+        return 'col3'
+      case 4:
+        return 'wide5-tall'
+      case 5:
+        return 'wide-tall'
+      case 7:
+        return 'col4'
+      default:
+        return 'normal'
+    }
+  }
+  const photoCards: Card[] = (sec['fotografia-producto'].page.projects as any[]).map(
+    (p: any, i: number) => ({
+      image: p.image,
+      alt: p.alt,
+      category: p.category,
+      size: photoSizeOf(i),
     }),
-  })
+  )
 
-  // -------------------- UI STRINGS --------------------
-  const ui = readJson(path.join(CONTENT_DIR, 'ui.json'))
-  const uiKeys = Object.keys(ui.es)
-  await setGlobal('ui-strings', {
-    strings: uiKeys.map((k) => ({ key: k, value: { es: ui.es[k], en: ui.en[k] } })),
-  })
+  const marketingCards: Card[] = (sec['marketing-360'].page.projects as any[]).map(
+    (p: any, i: number) => ({
+      image: p.image,
+      alt: p.alt,
+      category: p.category,
+      size: i === 0 ? 'hero' : i === 1 ? 'tall' : 'col3',
+    }),
+  )
 
-  // -------------------- SECTION TEXT --------------------
-  const sectionFiles: Record<string, any> = {}
-  for (const spec of SECTION_TEXT_MAP) {
-    sectionFiles[spec.group] = readJson(path.join(SECTIONS_DIR, spec.file))
-  }
-  const buildSectionText = (group: string, opts: { isUxui?: boolean; hasSectionHeading?: boolean; hasBrandingPageExtras?: boolean } = {}) => {
-    const f = sectionFiles[group]
-    if (opts.isUxui) {
-      return {
-        home: {
-          heading: f.home.heading,
-          tagline: f.home.tagline,
-          description: f.home.description,
-          studioName: f.home.studioName,
-          roleDescription: f.home.roleDescription,
-          sketchImage: f.home.sketchImage,
-          sketchAlt: f.home.sketchAlt,
-          cta: f.home.cta,
-        },
-      }
-    }
-    const homeGroup: any = {
-      heading: f.home.heading,
-      description: f.home.description,
-      studioName: f.home.studioName,
-      roleDescription: f.home.roleDescription,
-      cta: f.home.cta,
-    }
-    if (opts.hasSectionHeading) homeGroup.sectionHeading = f.home.sectionHeading
-    const pageGroup: any = {
-      title: f.page.title,
-      description: f.page.description,
-    }
-    if (opts.hasBrandingPageExtras) {
-      pageGroup.subtitleSports = f.page.subtitleSports
-      pageGroup.subtitleBeauty = f.page.subtitleBeauty
-    }
-    return { home: homeGroup, page: pageGroup }
-  }
-  await setGlobal('section-text', {
-    webApps: buildSectionText('webApps'),
-    branding: buildSectionText('branding', { hasSectionHeading: true, hasBrandingPageExtras: true }),
-    photography: buildSectionText('photography'),
-    marketing360: buildSectionText('marketing360'),
-    uxui: buildSectionText('uxui', { isUxui: true }),
-  })
-
-  // -------------------- CASE STUDY --------------------
-  const cs = readJson(path.join(SECTIONS_DIR, 'uxui-casestudy.json'))
-  const arrText = (arr: Loc[], key = 'text') => arr.map((o) => ({ [key]: o }))
-  await setGlobal('case-study', {
-    header: { title: cs.header.title, tagline: cs.header.tagline },
-    hero: { image: cs.hero.image, alt: cs.hero.alt },
-    project: {
-      name: cs.project.name,
-      subtitle: cs.project.subtitle,
-      overview: cs.project.overview.map((o: any) => ({ label: o.label, text: o.text })),
+  // UX/UI image cards (non-case-study). The category also gets the SNAGA
+  // caseStudy (created below, first in order).
+  const uxuiImageCards: Card[] = [
+    {
+      image: '/images/live-betting.png',
+      alt: loc('Live Betting App - UI/UX Mobile', 'Live Betting App - UI/UX Mobile'),
+      category: loc(ui.es['category.uiux'], ui.en['category.uiux']),
+      size: 'wide-tall',
     },
-    intro: arrText(cs.intro),
-    problemSolution: {
-      problem: { label: cs.problemSolution.problem.label, text: cs.problemSolution.problem.text },
-      solution: { label: cs.problemSolution.solution.label, text: cs.problemSolution.solution.text },
+    {
+      image: '/images/uxui-sketch.png',
+      alt: sec['uxui-producto'].home.sketchAlt,
+      category: loc('Wireframes', 'Wireframes'),
+      size: 'col3',
     },
-    details: {
-      headers: cs.details.headers,
-      rows: cs.details.rows.map((r: any) => ({ tools: r.tools, team: r.team, role: r.role })),
-    },
-    timeline: {
-      title: cs.timeline.title,
-      durationLabel: cs.timeline.durationLabel,
-      durationValue: cs.timeline.durationValue,
-      phases: cs.timeline.phases.map((p: any) => ({ phase: p.phase, duration: p.duration })),
-    },
-    journey: {
-      title: cs.journey.title,
-      intro: arrText(cs.journey.intro),
-      labels: cs.journey.labels,
-      stages: cs.journey.stages.map((s: any) => ({
-        number: s.number,
-        name: s.name,
-        action: s.action,
-        thought: s.thought,
-        friction: s.friction,
-      })),
-      qa: cs.journey.qa.map((q: any) => ({
-        question: q.question,
-        answer: q.answer ? q.answer : undefined,
-        bullets: q.bullets ? arrText(q.bullets) : undefined,
-      })),
-    },
-    personas: {
-      title: cs.personas.title,
-      intro: arrText(cs.personas.intro),
-      qa: cs.personas.qa.map((q: any) => ({ question: q.question, answer: arrText(q.answer) })),
-      sectionLabels: cs.personas.sectionLabels,
-      cards: cs.personas.cards.map((c: any) => ({
-        name: c.name,
-        descriptor: c.descriptor,
-        quote: c.quote,
-        basicInfo: arrText(c.basicInfo),
-        channels: arrText(c.channels),
-        motivations: arrText(c.motivations),
-        painPoints: arrText(c.painPoints),
-      })),
-    },
-    sketches: {
-      title: cs.sketches.title,
-      intro: arrText(cs.sketches.intro),
-      qa: cs.sketches.qa.map((q: any) => ({ question: q.question, answer: q.answer })),
-    },
-    learnings: {
-      title: cs.learnings.title,
-      qa: cs.learnings.qa.map((q: any) => ({ question: q.question, answer: arrText(q.answer) })),
-    },
-  })
-
-  // -------------------- PROJECTS --------------------
-  const existingProjects = await payload.find({ collection: 'projects', limit: 2000, depth: 0 })
-  for (const p of existingProjects.docs) {
-    await payload.delete({ collection: 'projects', id: p.id })
-  }
+  ]
 
   let projectsCreated = 0
-  // Lookup key -> created project id, so page galleries can reference exact docs.
-  // key = `${section}|${placement}|${group ?? ''}|${order}`
-  const projectKey = (section: string, placement: string, group: string | undefined, order: number) =>
-    `${section}|${placement}|${group ?? ''}|${order}`
-  const projectIdByKey: Record<string, number> = {}
+  let caseStudyCount = 0
+  const projectsPerCategory: Record<string, number> = {}
 
-  async function createProject(base: {
-    section: string
-    placement: 'home' | 'page'
-    group?: string
-    image: number
-    order: number
-    title?: Loc
-    alt?: Loc
-    category?: Loc
-  }) {
-    const doc = await payload.create({
+  const createImageProject = async (
+    categorySlug: string,
+    card: Card,
+    order: number,
+  ) => {
+    await payload.create({
       collection: 'projects',
       locale: ALL,
       data: {
-        section: base.section,
-        placement: base.placement,
-        group: base.group,
-        image: base.image,
-        order: base.order,
-        title: base.title,
-        alt: base.alt,
-        category: base.category,
+        category: categoryIdBySlug[categorySlug],
+        type: 'image',
+        image: mediaId(card.image),
+        order,
+        title: card.alt,
+        alt: card.alt,
+        categoryLabel: card.category,
+        size: (card as any).size,
       } as any,
     })
-    projectIdByKey[projectKey(base.section, base.placement, base.group, base.order)] = doc.id as number
     projectsCreated++
+    projectsPerCategory[categorySlug] = (projectsPerCategory[categorySlug] ?? 0) + 1
   }
 
-  for (const spec of SECTION_SPECS) {
-    const f = readJson(path.join(SECTIONS_DIR, spec.file))
-
-    // HOME
-    if (spec.homeKind === 'titleProjects') {
-      const arr = f.home.projects as any[]
-      for (let i = 0; i < arr.length; i++) {
-        const it = arr[i]
-        await createProject({
-          section: spec.section,
-          placement: 'home',
-          image: mediaId(it.image),
-          order: i,
-          title: it.title,
-          category: it.category,
-        })
-      }
-    } else if (spec.homeKind === 'brandingImages') {
-      const arr = f.home.images as any[]
-      for (let i = 0; i < arr.length; i++) {
-        const it = arr[i]
-        await createProject({
-          section: spec.section,
-          placement: 'home',
-          image: mediaId(it.src),
-          order: i,
-          alt: it.alt,
-        })
-      }
-    }
-
-    // PAGE
-    if (spec.pageKind === 'altProjects') {
-      const arr = f.page.projects as any[]
-      for (let i = 0; i < arr.length; i++) {
-        const it = arr[i]
-        await createProject({
-          section: spec.section,
-          placement: 'page',
-          image: mediaId(it.image),
-          order: i,
-          alt: it.alt,
-          category: it.category,
-        })
-      }
-    } else if (spec.pageKind === 'brandingGroups') {
-      for (const g of BRANDING_PAGE_GROUPS) {
-        const arr = f.page[g.jsonKey] as any[]
-        for (let i = 0; i < arr.length; i++) {
-          const it = arr[i]
-          await createProject({
-            section: spec.section,
-            placement: 'page',
-            group: g.group,
-            image: mediaId(it.src),
-            order: it.id, // preserve original id ordering value
-            alt: it.alt,
-            category: it.category,
-          })
-        }
-      }
-    }
-  }
-  report.projectsCreated = projectsCreated
-
-  // ==================================================================
-  // PAGES — block compositions reproducing the current site.
-  // ==================================================================
-
-  // ---- helpers for reading section text back from the JSON files ----
-  const sec: Record<string, any> = {}
-  for (const spec of SECTION_SPECS) sec[spec.section] = readJson(path.join(SECTIONS_DIR, spec.file))
-
-  const pid = (section: string, placement: string, group: string | undefined, order: number) => {
-    const id = projectIdByKey[projectKey(section, placement, group, order)]
-    if (!id) throw new Error(`No project for ${projectKey(section, placement, group, order)}`)
-    return id
-  }
-
-  // Block factories -------------------------------------------------
-  const sectionHeading = (number: string, eyebrow?: Loc, heading?: Loc) => ({
-    blockType: 'sectionHeading',
-    number,
-    ...(eyebrow ? { eyebrow } : {}),
-    ...(heading ? { heading } : {}),
-  })
-
-  const portfolioSection = (s: any, ctaHref: string) => ({
-    blockType: 'portfolioSection',
-    heading: s.home.heading,
-    description: s.home.description,
-    studioName: s.home.studioName,
-    roleDescription: s.home.roleDescription,
-    ctaLabel: s.home.cta,
-    ctaHref,
-  })
-
-  // by-filter gallery (equal cards) referencing existing project docs by list.
-  const galleryManual = (layoutVariant: string, ids: number[]) => ({
-    blockType: 'projectGallery',
-    source: 'manual',
-    layoutVariant,
-    projects: ids,
-  })
-
-  // sized gallery (masonry) referencing docs with per-card size.
-  const gallerySized = (layoutVariant: string, items: { project: number; size: string }[]) => ({
-    blockType: 'projectGallery',
-    source: 'items',
-    layoutVariant,
-    items,
-  })
-
-  // ---- HOME layout ----
-  // Home preview galleries reproduce the exact cards each home section shows.
-  // Branding home: original renders home.images.slice(2,5) => orders 2,3,4 (grid-3).
-  const brandingHomeIds = [2, 3, 4].map((o) => pid('branding', 'home', undefined, o))
-  // Web-apps home: home.projects[0..2] (grid-3).
-  const webAppsHomeIds = [0, 1, 2].map((o) => pid('web-apps', 'home', undefined, o))
-  // Photography home: original renders indices 0,1,3,4,5 (masonry-photo; 1 large + 4).
-  const photoHomeIds = [0, 1, 3, 4, 5].map((o) => pid('fotografia-producto', 'home', undefined, o))
-  // Marketing home: home.projects[0..3] (grid-4).
-  const marketingHomeIds = [0, 1, 2, 3].map((o) => pid('marketing-360', 'home', undefined, o))
-
-  const homeLayout: any[] = [
-    // Hero
+  // ---- SNAGA case study layout (reproduces uxui-casestudy.json) ----
+  const arrText = (arr: Loc[]) => arr.map((t) => ({ text: t }))
+  const snagaLayout: any[] = [
     {
-      blockType: 'hero',
-      backgroundImagePath: home.hero.backgroundImage,
-      title: home.hero.title,
-      subtitle: home.hero.subtitle,
-      body: home.hero.body,
-      cta1: home.hero.cta1,
-      cta2: home.hero.cta2,
-    },
-    // 02 Branding (has the big "Proyectos" section heading in the original)
-    sectionHeading('02', sec['branding'].home.sectionHeading, sec['branding'].home.heading),
-    portfolioSection(sec['branding'], '/proyectos/branding'),
-    galleryManual('grid-3', brandingHomeIds),
-    // 03 Web & Apps
-    sectionHeading('03'),
-    portfolioSection(sec['web-apps'], '/proyectos/web-apps'),
-    galleryManual('grid-3', webAppsHomeIds),
-    // 04 UX/UI (single sketch image + CTA; no gallery cards)
-    sectionHeading('04'),
-    {
-      blockType: 'portfolioSection',
-      heading: sec['uxui-producto'].home.heading,
-      description: sec['uxui-producto'].home.description,
-      studioName: sec['uxui-producto'].home.studioName,
-      roleDescription: sec['uxui-producto'].home.roleDescription,
-      ctaLabel: sec['uxui-producto'].home.cta,
-      ctaHref: '/proyectos/uxui-producto',
+      blockType: 'sectionHeading',
+      number: '04',
+      eyebrow: cs.header.title,
+      heading: cs.header.tagline,
     },
     {
       blockType: 'image',
-      image: mediaId(sec['uxui-producto'].home.sketchImage),
-      caption: sec['uxui-producto'].home.sketchAlt,
+      image: mediaId(cs.hero.image),
+      caption: cs.hero.alt,
       width: 'full',
     },
-    // 05 Photography
-    sectionHeading('05'),
-    portfolioSection(sec['fotografia-producto'], '/proyectos/fotografia-producto'),
-    galleryManual('masonry-photo', photoHomeIds),
-    // 06 Marketing 360
-    sectionHeading('06'),
-    portfolioSection(sec['marketing-360'], '/proyectos/marketing-360'),
-    galleryManual('grid-4', marketingHomeIds),
-    // 01 About: career accordion + info columns + contact (footer)
-    {
-      blockType: 'experienceAccordion',
-      headings: career.headings,
-      experience: Array.from({ length: expLen }, (_, i) => {
-        const es = career.experience.es[i]
-        const en = career.experience.en[i]
-        const respLen = es.responsibilities.length
-        return {
-          role: { es: es.role, en: en.role },
-          period: { es: es.period, en: en.period },
-          responsibilities: Array.from({ length: respLen }, (_, j) => ({
-            item: { es: es.responsibilities[j], en: en.responsibilities[j] },
-          })),
-        }
-      }),
-    },
-    {
-      blockType: 'infoColumns',
-      headings: about.headings,
-      education: Array.from({ length: eduLen }, (_, i) => ({
-        item: { es: about.education.es[i], en: about.education.en[i] },
-      })),
-      tools: about.tools.map((v: string) => ({ value: v })),
-      languages: about.languages.map((v: string) => ({ value: v })),
-    },
-    {
-      blockType: 'contact',
-      heading: about.contact.heading,
-      body: about.contact.body,
-      email: about.contact.email,
-      phone: about.contact.phone,
-      socialLinks: about.socialLinks.map((s: any) => ({ name: s.name, url: s.url })),
-      footer: {
-        copyrightPrefix: about.footer.copyrightPrefix,
-        rights: about.footer.rights,
-        privacy: about.footer.privacy,
-        terms: about.footer.terms,
-      },
-    },
-  ]
-
-  // ---- BRANDING page layout ----
-  // Sports (6-col grid): idx0 hero, idx1 med, idx2 tall, rest normal. orders: 1,2,10,11,16
-  const brandingSportsOrders = sec['branding'].page.sportsProjects.map((p: any) => p.id)
-  const brandingSportsItems = brandingSportsOrders.map((order: number, i: number) => ({
-    project: pid('branding', 'page', 'sports', order),
-    size: i === 0 ? 'hero' : i === 1 ? 'med' : i === 2 ? 'tall' : 'normal',
-  }))
-
-  // Beauty (8-col grid): adriana[0] wide5-tall, adriana[1] wide-tall, then anaGrace normal,
-  // then adriana[2..] (index%3===0 ? col3 : normal). Original render order:
-  //   [adriana0, adriana1, ...anaGrace, ...adriana(2..)]
-  const adriana = sec['branding'].page.adrianaMunozProjects
-  const anaGrace = sec['branding'].page.anaGraceProjects
-  const beautyItems: { project: number; size: string }[] = []
-  beautyItems.push({ project: pid('branding', 'page', 'adrianaMunoz', adriana[0].id), size: 'wide5-tall' })
-  beautyItems.push({ project: pid('branding', 'page', 'adrianaMunoz', adriana[1].id), size: 'wide-tall' })
-  for (const g of anaGrace) {
-    beautyItems.push({ project: pid('branding', 'page', 'anaGrace', g.id), size: 'normal' })
-  }
-  adriana.slice(2).forEach((p: any, index: number) => {
-    beautyItems.push({
-      project: pid('branding', 'page', 'adrianaMunoz', p.id),
-      size: index % 3 === 0 ? 'col3' : 'normal',
-    })
-  })
-
-  // Logos (10-col grid): idx0 hero, rest normal.
-  const logos = sec['branding'].page.logoProjects
-  const logoItems = logos.map((p: any, i: number) => ({
-    project: pid('branding', 'page', 'logos', p.id),
-    size: i === 0 ? 'hero' : 'normal',
-  }))
-
-  const brandingLayout: any[] = [
-    sectionHeading('02', sec['branding'].page.title, sec['branding'].page.title),
-    {
-      blockType: 'richText',
-      paragraphs: [{ text: sec['branding'].page.description }],
-    },
-    { blockType: 'sectionHeading', number: '', heading: sec['branding'].page.subtitleSports },
-    gallerySized('masonry-6', brandingSportsItems),
-    { blockType: 'sectionHeading', number: '', heading: sec['branding'].page.subtitleBeauty },
-    gallerySized('masonry-8', beautyItems),
-    { blockType: 'sectionHeading', number: '', heading: { es: 'Logos', en: 'Logos' } },
-    gallerySized('masonry-10', logoItems),
-  ]
-
-  // ---- WEB-APPS page layout ----
-  // 6-col: idx0 hero(4x2), idx1 wide-tall(3x2), rest col3.
-  const webAppsPageItems = (sec['web-apps'].page.projects as any[]).map((_p, i) => ({
-    project: pid('web-apps', 'page', undefined, i),
-    size: i === 0 ? 'hero' : i === 1 ? 'wide-tall' : 'col3',
-  }))
-  const webAppsLayout: any[] = [
-    sectionHeading('03', sec['web-apps'].page.title, sec['web-apps'].page.title),
-    { blockType: 'richText', paragraphs: [{ text: sec['web-apps'].page.description }] },
-    gallerySized('masonry-6', webAppsPageItems),
-  ]
-
-  // ---- PHOTOGRAPHY page layout ----
-  // 6-col explicit per-index (see ProductPhotographyProjects.tsx).
-  const photoSizeByIndex = (i: number): string => {
-    switch (i) {
-      case 0: return 'hero'        // col-4 row-2
-      case 1: return 'med'         // col-2 row-1
-      case 2: return 'wide-tall'   // col-3 row-2
-      case 3: return 'col3'        // col-3
-      case 4: return 'wide5-tall'  // col-5 row-2
-      case 5: return 'wide-tall'   // col-3 row-2
-      case 6: return 'normal'      // col-2
-      case 7: return 'col4'        // col-4
-      default: return 'normal'     // col-2
-    }
-  }
-  const photoPageItems = (sec['fotografia-producto'].page.projects as any[]).map((_p, i) => ({
-    project: pid('fotografia-producto', 'page', undefined, i),
-    size: photoSizeByIndex(i),
-  }))
-  const photographyLayout: any[] = [
-    sectionHeading('05', sec['fotografia-producto'].page.title, sec['fotografia-producto'].page.title),
-    { blockType: 'richText', paragraphs: [{ text: sec['fotografia-producto'].page.description }] },
-    gallerySized('masonry-6', photoPageItems),
-  ]
-
-  // ---- MARKETING page layout ----
-  // 6-col: idx0 hero(4x2), idx1 tall(2x2), rest col3.
-  const marketingPageItems = (sec['marketing-360'].page.projects as any[]).map((_p, i) => ({
-    project: pid('marketing-360', 'page', undefined, i),
-    size: i === 0 ? 'hero' : i === 1 ? 'tall' : 'col3',
-  }))
-  const marketingLayout: any[] = [
-    sectionHeading('06', sec['marketing-360'].page.title, sec['marketing-360'].page.title),
-    { blockType: 'richText', paragraphs: [{ text: sec['marketing-360'].page.description }] },
-    gallerySized('masonry-6', marketingPageItems),
-  ]
-
-  // ---- UX/UI case study page layout ----
-  const uxuiLayout: any[] = [
-    sectionHeading('04', cs.header.title, cs.header.title),
-    { blockType: 'richText', heading: cs.header.tagline },
-    { blockType: 'image', image: mediaId(cs.hero.image), caption: cs.hero.alt, width: 'full' },
     {
       blockType: 'detailsTable',
       title: cs.project.name,
       rows: cs.project.overview.map((o: any) => ({ label: o.label, value: o.text })),
     },
-    { blockType: 'richText', paragraphs: cs.intro.map((t: Loc) => ({ text: t })) },
+    { blockType: 'richText', paragraphs: arrText(cs.intro) },
     {
       blockType: 'twoColumn',
       left: { label: cs.problemSolution.problem.label, text: cs.problemSolution.problem.text },
@@ -632,7 +311,7 @@ async function main() {
     {
       blockType: 'journeyMap',
       title: cs.journey.title,
-      intro: cs.journey.intro.map((t: Loc) => ({ text: t })),
+      intro: arrText(cs.journey.intro),
       labels: cs.journey.labels,
       stages: cs.journey.stages.map((s: any) => ({
         number: s.number,
@@ -644,29 +323,29 @@ async function main() {
       qa: cs.journey.qa.map((q: any) => ({
         question: q.question,
         ...(q.answer ? { answer: q.answer } : {}),
-        ...(q.bullets ? { bullets: q.bullets.map((b: Loc) => ({ text: b })) } : {}),
+        ...(q.bullets ? { bullets: arrText(q.bullets) } : {}),
       })),
     },
     {
       blockType: 'personaCards',
       title: cs.personas.title,
-      intro: cs.personas.intro.map((t: Loc) => ({ text: t })),
-      qa: cs.personas.qa.map((q: any) => ({ question: q.question, answer: q.answer.map((t: Loc) => ({ text: t })) })),
+      intro: arrText(cs.personas.intro),
+      qa: cs.personas.qa.map((q: any) => ({ question: q.question, answer: arrText(q.answer) })),
       sectionLabels: cs.personas.sectionLabels,
       cards: cs.personas.cards.map((c: any) => ({
         name: c.name,
         descriptor: c.descriptor,
         quote: c.quote,
-        basicInfo: c.basicInfo.map((t: Loc) => ({ text: t })),
-        channels: c.channels.map((t: Loc) => ({ text: t })),
-        motivations: c.motivations.map((t: Loc) => ({ text: t })),
-        painPoints: c.painPoints.map((t: Loc) => ({ text: t })),
+        basicInfo: arrText(c.basicInfo),
+        channels: arrText(c.channels),
+        motivations: arrText(c.motivations),
+        painPoints: arrText(c.painPoints),
       })),
     },
     {
       blockType: 'richText',
       heading: cs.sketches.title,
-      paragraphs: cs.sketches.intro.map((t: Loc) => ({ text: t })),
+      paragraphs: arrText(cs.sketches.intro),
     },
     {
       blockType: 'qa',
@@ -677,61 +356,181 @@ async function main() {
       title: cs.learnings.title,
       items: cs.learnings.qa.map((q: any) => ({
         question: q.question,
-        bullets: q.answer.map((t: Loc) => ({ text: t })),
+        bullets: arrText(q.answer),
       })),
+    },
+    {
+      blockType: 'ctaButton',
+      label: loc('Volver a UX/UI', 'Back to UX/UI'),
+      href: '/proyectos/uxui-producto',
+      style: 'secondary',
     },
   ]
 
-  // ---- upsert all pages by slug ----
-  const pageDefs: { slug: string; title: Loc; menuLabel?: Loc; showInNav?: boolean; navOrder?: number; layout: any[] }[] = [
-    { slug: 'home', title: { es: 'Inicio', en: 'Home' }, layout: homeLayout },
-    { slug: 'proyectos/branding', title: sec['branding'].page.title, layout: brandingLayout },
-    { slug: 'proyectos/web-apps', title: sec['web-apps'].page.title, layout: webAppsLayout },
-    { slug: 'proyectos/uxui-producto', title: cs.header.title, layout: uxuiLayout },
-    { slug: 'proyectos/fotografia-producto', title: sec['fotografia-producto'].page.title, layout: photographyLayout },
-    { slug: 'proyectos/marketing-360', title: sec['marketing-360'].page.title, layout: marketingLayout },
+  // Create projects per category. UX/UI gets the caseStudy first (order 0).
+  await payload.create({
+    collection: 'projects',
+    locale: ALL,
+    data: {
+      category: categoryIdBySlug['uxui-producto'],
+      type: 'caseStudy',
+      slug: 'snaga',
+      image: mediaId('/images/uxui-sketch.png'),
+      order: 0,
+      title: cs.project.name,
+      alt: cs.hero.alt,
+      categoryLabel: loc('Caso de estudio', 'Case study'),
+      size: 'hero',
+      caseStudyLayout: snagaLayout,
+    } as any,
+  })
+  projectsCreated++
+  caseStudyCount++
+  projectsPerCategory['uxui-producto'] = 1
+
+  const perCategoryImageCards: [string, Card[]][] = [
+    ['branding', brandingCards],
+    ['web-apps', webAppsCards],
+    ['fotografia-producto', photoCards],
+    ['marketing-360', marketingCards],
+  ]
+  for (const [slug, cards] of perCategoryImageCards) {
+    for (let i = 0; i < cards.length; i++) await createImageProject(slug, cards[i], i)
+  }
+  // UX/UI image cards after the caseStudy (orders 1, 2).
+  for (let i = 0; i < uxuiImageCards.length; i++) {
+    await createImageProject('uxui-producto', uxuiImageCards[i], i + 1)
+  }
+
+  report.projectsCreated = projectsCreated
+  report.caseStudyCount = caseStudyCount
+  report.projectsPerCategory = projectsPerCategory
+
+  // ==================================================================
+  // HOME PAGE
+  // ==================================================================
+  const eduLen = about.education.es.length
+  const expLen = career.experience.es.length
+
+  const showcase = (
+    categorySlug: string,
+    anchorId: string,
+    layoutVariant: string,
+    maxItems: number,
+    ctaHref: string,
+  ) => ({
+    blockType: 'categoryShowcase',
+    category: categoryIdBySlug[categorySlug],
+    layoutVariant,
+    maxItems,
+    showCta: true,
+    ctaLabel: loc('Ver más proyectos', 'View more projects'),
+    ctaHref,
+    anchorId,
+  })
+
+  const homeLayout: any[] = [
+    {
+      blockType: 'hero',
+      backgroundImagePath: home.hero.backgroundImage,
+      title: home.hero.title,
+      subtitle: home.hero.subtitle,
+      body: home.hero.body,
+      cta1: home.hero.cta1,
+      cta2: home.hero.cta2,
+    },
+    // 5 category showcases, layout/maxItems matching the original home previews.
+    showcase('branding', 'branding', 'grid-3', 3, '/proyectos/branding'),
+    showcase('web-apps', 'web-apps', 'grid-3', 3, '/proyectos/web-apps'),
+    showcase('uxui-producto', 'uxui-producto', 'single', 1, '/proyectos/uxui-producto'),
+    showcase('fotografia-producto', 'fotografia', 'masonry-photo', 5, '/proyectos/fotografia-producto'),
+    showcase('marketing-360', 'marketing', 'grid-4', 4, '/proyectos/marketing-360'),
+    // Career accordion
+    {
+      blockType: 'experienceAccordion',
+      headings: career.headings,
+      experience: Array.from({ length: expLen }, (_, i) => {
+        const es = career.experience.es[i]
+        const en = career.experience.en[i]
+        const respLen = es.responsibilities.length
+        return {
+          role: loc(es.role, en.role),
+          period: loc(es.period, en.period),
+          responsibilities: Array.from({ length: respLen }, (_, j) => ({
+            item: loc(es.responsibilities[j], en.responsibilities[j]),
+          })),
+        }
+      }),
+    },
+    // About info columns
+    {
+      blockType: 'infoColumns',
+      headings: about.headings,
+      education: Array.from({ length: eduLen }, (_, i) => ({
+        item: loc(about.education.es[i], about.education.en[i]),
+      })),
+      tools: about.tools.map((v: string) => ({ value: v })),
+      languages: about.languages.map((v: string) => ({ value: v })),
+    },
+    // Contact + footer
+    {
+      blockType: 'contact',
+      anchorId: 'contact',
+      heading: about.contact.heading,
+      body: about.contact.body,
+      email: about.contact.email,
+      phone: about.contact.phone,
+      socialLinks: about.socialLinks.map((s: any) => ({ name: s.name, url: s.url })),
+      footer: {
+        copyrightPrefix: about.footer.copyrightPrefix,
+        rights: about.footer.rights,
+        privacy: about.footer.privacy,
+        terms: about.footer.terms,
+      },
+    },
   ]
 
-  const pageIdBySlug: Record<string, number> = {}
-  let pagesUpserted = 0
-  for (const def of pageDefs) {
-    const found = await payload.find({
-      collection: 'pages',
-      where: { slug: { equals: def.slug } },
-      limit: 1,
-      depth: 0,
-      locale: ALL,
-    })
-    const data: any = {
-      slug: def.slug,
-      title: def.title,
-      layout: def.layout,
-    }
-    if (found.docs.length > 0) {
-      const doc = await payload.update({
-        collection: 'pages',
-        id: found.docs[0].id,
-        locale: ALL,
-        data,
-      })
-      pageIdBySlug[def.slug] = doc.id as number
-    } else {
-      const doc = await payload.create({ collection: 'pages', locale: ALL, data })
-      pageIdBySlug[def.slug] = doc.id as number
-    }
-    pagesUpserted++
-  }
-  report.pagesUpserted = pagesUpserted
-  report.blockCountsPerPage = Object.fromEntries(pageDefs.map((d) => [d.slug, d.layout.length]))
+  const homeDoc = await payload.create({
+    collection: 'pages',
+    locale: ALL,
+    data: {
+      slug: 'home',
+      title: loc('Inicio', 'Home'),
+      layout: homeLayout,
+    } as any,
+  })
+  report.homePageId = homeDoc.id
+  report.homeBlockTypes = homeLayout.map((b) => b.blockType)
 
-  // -------------------- NAVIGATION --------------------
-  await setGlobal('navigation', {
-    brand: { es: 'Asenath Cordero', en: 'Asenath Cordero' },
-    items: [
-      { label: { es: 'Proyectos', en: 'Projects' }, linkType: 'anchor', anchor: '#work' },
-      { label: { es: 'Sobre mí', en: 'About' }, linkType: 'anchor', anchor: '#about' },
-      { label: { es: 'Contacto', en: 'Contact' }, linkType: 'anchor', anchor: '#contact' },
-    ],
+  // ==================================================================
+  // NAVIGATION
+  // ==================================================================
+  await payload.updateGlobal({
+    slug: 'navigation',
+    locale: ALL,
+    data: {
+      brand: loc('Asenath Cordero', 'Asenath Cordero'),
+      items: [
+        { label: loc('Branding', 'Branding'), linkType: 'anchor', anchor: '/#branding' },
+        { label: loc('Web y Apps', 'Web & Apps'), linkType: 'anchor', anchor: '/#web-apps' },
+        { label: loc('UX/UI', 'UX/UI'), linkType: 'anchor', anchor: '/#uxui-producto' },
+        { label: loc('Fotografía', 'Photography'), linkType: 'anchor', anchor: '/#fotografia' },
+        { label: loc('Marketing 360', 'Marketing 360'), linkType: 'anchor', anchor: '/#marketing' },
+        { label: loc('Contacto', 'Contact'), linkType: 'anchor', anchor: '/#contact' },
+      ],
+    } as any,
+  })
+
+  // ==================================================================
+  // UI STRINGS (still used by the front-end)
+  // ==================================================================
+  const uiKeys = Object.keys(ui.es)
+  await payload.updateGlobal({
+    slug: 'ui-strings',
+    locale: ALL,
+    data: {
+      strings: uiKeys.map((k) => ({ key: k, value: loc(ui.es[k], ui.en[k]) })),
+    } as any,
   })
 
   fs.writeFileSync('/tmp/seed-report.json', JSON.stringify(report, null, 2))

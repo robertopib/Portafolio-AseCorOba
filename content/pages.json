@@ -1,2054 +1,6 @@
 {
   "pages": [
     {
-      "slug": "proyectos/marketing-360",
-      "title": {
-        "es": "Diseño 360°",
-        "en": "360° Design"
-      },
-      "layout": [
-        {
-          "blockType": "sectionHeading",
-          "id": "6a557242aef04e3eb82babfd",
-          "eyebrow": {
-            "es": "Diseño 360°",
-            "en": "360° Design"
-          },
-          "number": "06",
-          "heading": {
-            "es": "Diseño 360°",
-            "en": "360° Design"
-          }
-        },
-        {
-          "blockType": "richText",
-          "id": "6a557242aef04e3eb82babff",
-          "heading": {},
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Estrategias integrales de diseño visual para todos los canales",
-                "en": "Comprehensive visual design strategies for all channels"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a557242aef04e3eb82bac04",
-          "layoutVariant": "masonry-6",
-          "projects": [
-            {
-              "image": "/images/santa-fe-brochure.png",
-              "alt": {
-                "es": "Brochure Corporativo - Grupo Santa Fe",
-                "en": "Brochure Corporativo - Grupo Santa Fe"
-              },
-              "category": {
-                "es": "Material Impreso",
-                "en": "Material Impreso"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "hero"
-            },
-            {
-              "image": "/images/concert-banner.png",
-              "alt": {
-                "es": "Banner de Evento - Concierto",
-                "en": "Banner de Evento - Concierto"
-              },
-              "category": {
-                "es": "Publicidad Digital",
-                "en": "Publicidad Digital"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "tall"
-            },
-            {
-              "image": "/images/basketball-mural.png",
-              "alt": {
-                "es": "Mural Deportivo - PAS Eagles",
-                "en": "Mural Deportivo - PAS Eagles"
-              },
-              "category": {
-                "es": "Publicidad OOH",
-                "en": "Publicidad OOH"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            },
-            {
-              "image": "/images/fisioterapia-cards.png",
-              "alt": {
-                "es": "Tarjetas de Presentación - Fisioterapia",
-                "en": "Tarjetas de Presentación - Fisioterapia"
-              },
-              "category": {
-                "es": "Branding",
-                "en": "Branding"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "proyectos/fotografia-producto",
-      "title": {
-        "es": "Fotografía de Producto y Packaging",
-        "en": "Product Photography & Packaging"
-      },
-      "layout": [
-        {
-          "blockType": "sectionHeading",
-          "id": "6a557241aef04e3eb82babed",
-          "eyebrow": {
-            "es": "Fotografía de Producto y Packaging",
-            "en": "Product Photography & Packaging"
-          },
-          "number": "05",
-          "heading": {
-            "es": "Fotografía de Producto y Packaging",
-            "en": "Product Photography & Packaging"
-          }
-        },
-        {
-          "blockType": "richText",
-          "id": "6a557241aef04e3eb82babef",
-          "heading": {},
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Dirección de arte y fotografía que resalta la esencia de cada producto",
-                "en": "Art direction and photography that highlights the essence of each product"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a557241aef04e3eb82babfc",
-          "layoutVariant": "masonry-6",
-          "projects": [
-            {
-              "image": "/images/crackers.png",
-              "alt": {
-                "es": "Crackers D'Argent - Fotografía de Producto",
-                "en": "Crackers D'Argent - Fotografía de Producto"
-              },
-              "category": {
-                "es": "Fotografía de Producto",
-                "en": "Fotografía de Producto"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "hero"
-            },
-            {
-              "image": "/images/croissant.png",
-              "alt": {
-                "es": "Croissant Artesanal - Fotografía de Producto",
-                "en": "Croissant Artesanal - Fotografía de Producto"
-              },
-              "category": {
-                "es": "Fotografía de Producto",
-                "en": "Fotografía de Producto"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "med"
-            },
-            {
-              "image": "/images/bread-dargent.png",
-              "alt": {
-                "es": "Pan D'Argent - Fotografía de Producto",
-                "en": "Pan D'Argent - Fotografía de Producto"
-              },
-              "category": {
-                "es": "Fotografía de Producto",
-                "en": "Fotografía de Producto"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide-tall"
-            },
-            {
-              "image": "/images/croissant-packaging.png",
-              "alt": {
-                "es": "Croissant Premium - Packaging & Fotografía",
-                "en": "Croissant Premium - Packaging & Fotografía"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            },
-            {
-              "image": "/images/gift-box-1.png",
-              "alt": {
-                "es": "Caja de Regalo Navideña - Packaging & Fotografía",
-                "en": "Caja de Regalo Navideña - Packaging & Fotografía"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide5-tall"
-            },
-            {
-              "image": "/images/gift-box-vinte-1.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 1",
-                "en": "Set Regalo Vinte-Vinte - Vista 1"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide-tall"
-            },
-            {
-              "image": "/images/gift-box-vinte-2.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 2",
-                "en": "Set Regalo Vinte-Vinte - Vista 2"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/gift-box-vinte-3.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 3",
-                "en": "Set Regalo Vinte-Vinte - Vista 3"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col4"
-            },
-            {
-              "image": "/images/gift-box-vinte.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 4",
-                "en": "Set Regalo Vinte-Vinte - Vista 4"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/gift-box-vinte-4.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 5",
-                "en": "Set Regalo Vinte-Vinte - Vista 5"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/gift-box-vinte-5.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 6",
-                "en": "Set Regalo Vinte-Vinte - Vista 6"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/gift-box-vinte-6.png",
-              "alt": {
-                "es": "Set Regalo Vinte-Vinte - Vista 7",
-                "en": "Set Regalo Vinte-Vinte - Vista 7"
-              },
-              "category": {
-                "es": "Packaging",
-                "en": "Packaging"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "proyectos/uxui-producto",
-      "title": {
-        "es": "UX/UI Producto",
-        "en": "UX/UI Product"
-      },
-      "layout": [
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723eaef04e3eb82bab5e",
-          "eyebrow": {
-            "es": "UX/UI Producto",
-            "en": "UX/UI Product"
-          },
-          "number": "04",
-          "heading": {
-            "es": "UX/UI Producto",
-            "en": "UX/UI Product"
-          }
-        },
-        {
-          "blockType": "richText",
-          "id": "6a55723eaef04e3eb82bab5f",
-          "heading": {
-            "es": "Quiero… ¡Encontrar soluciones!",
-            "en": "I want to… Find solutions!"
-          },
-          "paragraphs": []
-        },
-        {
-          "blockType": "image",
-          "id": "6a55723eaef04e3eb82bab60",
-          "image": "/images/uxui-sketch.png",
-          "caption": {
-            "es": "Snaga - UX/UI Case Study",
-            "en": "Snaga - UX/UI Case Study"
-          },
-          "width": "full"
-        },
-        {
-          "blockType": "detailsTable",
-          "id": "6a55723eaef04e3eb82bab64",
-          "title": {
-            "es": "Snaga",
-            "en": "Snaga"
-          },
-          "rows": [
-            {
-              "label": {
-                "es": "Proyecto:",
-                "en": "Proyecto:"
-              },
-              "value": {
-                "es": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico",
-                "en": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico"
-              }
-            },
-            {
-              "label": {
-                "es": "Mi Rol:",
-                "en": "Mi Rol:"
-              },
-              "value": {
-                "es": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator",
-                "en": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator"
-              }
-            },
-            {
-              "label": {
-                "es": "Contribución:",
-                "en": "Contribución:"
-              },
-              "value": {
-                "es": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios.",
-                "en": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios."
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "richText",
-          "id": "6a55723eaef04e3eb82bab68",
-          "heading": {},
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing.",
-                "en": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing."
-              }
-            },
-            {
-              "text": {
-                "es": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable.",
-                "en": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable."
-              }
-            },
-            {
-              "text": {
-                "es": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad.",
-                "en": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad."
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "twoColumn",
-          "id": "6a55723eaef04e3eb82bab69",
-          "left": {
-            "label": {
-              "es": "Problema",
-              "en": "Problema"
-            },
-            "text": {
-              "es": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología.",
-              "en": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología."
-            }
-          },
-          "right": {
-            "label": {
-              "es": "Solución",
-              "en": "Solución"
-            },
-            "text": {
-              "es": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto.",
-              "en": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto."
-            }
-          }
-        },
-        {
-          "blockType": "detailsTable",
-          "id": "6a55723eaef04e3eb82bab6e",
-          "title": {},
-          "rows": [
-            {
-              "label": {
-                "es": "Miro",
-                "en": "Miro"
-              },
-              "value": {
-                "es": "2 UX/UI designers · UX/UI designer",
-                "en": "2 UX/UI designers · UX/UI designer"
-              }
-            },
-            {
-              "label": {
-                "es": "Figma",
-                "en": "Figma"
-              },
-              "value": {
-                "es": "1 developer · Creadora de contenido",
-                "en": "1 developer · Creadora de contenido"
-              }
-            },
-            {
-              "label": {
-                "es": "Adobe",
-                "en": "Adobe"
-              },
-              "value": {
-                "es": "Diseño digital",
-                "en": "Diseño digital"
-              }
-            },
-            {
-              "label": {
-                "es": "",
-                "en": ""
-              },
-              "value": {
-                "es": "Stakeholder facilitador",
-                "en": "Stakeholder facilitador"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "timeline",
-          "id": "6a55723eaef04e3eb82bab74",
-          "title": {
-            "es": "Línea de Tiempo",
-            "en": "Línea de Tiempo"
-          },
-          "durationLabel": {
-            "es": "Duración total:",
-            "en": "Duración total:"
-          },
-          "durationValue": {
-            "es": "2 meses y 15 días",
-            "en": "2 meses y 15 días"
-          },
-          "phases": [
-            {
-              "phase": {
-                "es": "Descubrimiento y búsqueda",
-                "en": "Descubrimiento y búsqueda"
-              },
-              "duration": {
-                "es": "1 semana",
-                "en": "1 semana"
-              }
-            },
-            {
-              "phase": {
-                "es": "Creación de branding",
-                "en": "Creación de branding"
-              },
-              "duration": {
-                "es": "2 semanas",
-                "en": "2 semanas"
-              }
-            },
-            {
-              "phase": {
-                "es": "Desarrollo sitio web",
-                "en": "Desarrollo sitio web"
-              },
-              "duration": {
-                "es": "3 semanas",
-                "en": "3 semanas"
-              }
-            },
-            {
-              "phase": {
-                "es": "Testing",
-                "en": "Testing"
-              },
-              "duration": {
-                "es": "2 semanas",
-                "en": "2 semanas"
-              }
-            },
-            {
-              "phase": {
-                "es": "Creación de contenido digital",
-                "en": "Creación de contenido digital"
-              },
-              "duration": {
-                "es": "2 semanas",
-                "en": "2 semanas"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "journeyMap",
-          "id": "6a55723eaef04e3eb82bab85",
-          "title": {
-            "es": "User Journey Map",
-            "en": "User Journey Map"
-          },
-          "labels": {
-            "action": {
-              "es": "Acción",
-              "en": "Acción"
-            },
-            "thought": {
-              "es": "Pensamiento",
-              "en": "Pensamiento"
-            },
-            "friction": {
-              "es": "Fricción",
-              "en": "Fricción"
-            }
-          },
-          "intro": [
-            {
-              "text": {
-                "es": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing.",
-                "en": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing."
-              }
-            },
-            {
-              "text": {
-                "es": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora.",
-                "en": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora."
-              }
-            },
-            {
-              "text": {
-                "es": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores.",
-                "en": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores."
-              }
-            }
-          ],
-          "stages": [
-            {
-              "number": "1",
-              "name": {
-                "es": "Discovery",
-                "en": "Discovery"
-              },
-              "action": {
-                "es": "Encuentra el sitio web a través de búsqueda o redes sociales",
-                "en": "Encuentra el sitio web a través de búsqueda o redes sociales"
-              },
-              "thought": {
-                "es": "\"¿Este servicio es lo que necesito?\"",
-                "en": "\"¿Este servicio es lo que necesito?\""
-              },
-              "friction": {
-                "es": "Primera impresión poco clara",
-                "en": "Primera impresión poco clara"
-              }
-            },
-            {
-              "number": "2",
-              "name": {
-                "es": "Exploration",
-                "en": "Exploration"
-              },
-              "action": {
-                "es": "Navega el sitio para entender los servicios",
-                "en": "Navega el sitio para entender los servicios"
-              },
-              "thought": {
-                "es": "\"¿Qué ofrecen exactamente?\"",
-                "en": "\"¿Qué ofrecen exactamente?\""
-              },
-              "friction": {
-                "es": "Demasiada información",
-                "en": "Demasiada información"
-              }
-            },
-            {
-              "number": "3",
-              "name": {
-                "es": "Evaluation",
-                "en": "Evaluation"
-              },
-              "action": {
-                "es": "Revisa portafolio, casos y credibilidad",
-                "en": "Revisa portafolio, casos y credibilidad"
-              },
-              "thought": {
-                "es": "\"¿Tienen experiencia en mi industria?\"",
-                "en": "\"¿Tienen experiencia en mi industria?\""
-              },
-              "friction": {
-                "es": "Casos sin suficiente detalle",
-                "en": "Casos sin suficiente detalle"
-              }
-            },
-            {
-              "number": "4",
-              "name": {
-                "es": "Decision",
-                "en": "Decision"
-              },
-              "action": {
-                "es": "Decide si el servicio se ajusta a sus necesidades",
-                "en": "Decide si el servicio se ajusta a sus necesidades"
-              },
-              "thought": {
-                "es": "\"Quiero saber precios y disponibilidad\"",
-                "en": "\"Quiero saber precios y disponibilidad\""
-              },
-              "friction": {
-                "es": "Falta info de tarifas",
-                "en": "Falta info de tarifas"
-              }
-            },
-            {
-              "number": "5",
-              "name": {
-                "es": "Contact",
-                "en": "Contact"
-              },
-              "action": {
-                "es": "Llena un formulario o se contacta",
-                "en": "Llena un formulario o se contacta"
-              },
-              "thought": {
-                "es": "\"Espero una respuesta rápida\"",
-                "en": "\"Espero una respuesta rápida\""
-              },
-              "friction": {
-                "es": "Formulario largo",
-                "en": "Formulario largo"
-              }
-            }
-          ],
-          "qa": [
-            {
-              "question": {
-                "es": "¿Cómo y por qué eligimos qué camino mapear?",
-                "en": "¿Cómo y por qué eligimos qué camino mapear?"
-              },
-              "answer": {
-                "es": "Basándonos en las necesidades e inquietudes del usuario.",
-                "en": "Basándonos en las necesidades e inquietudes del usuario."
-              },
-              "bullets": []
-            },
-            {
-              "question": {
-                "es": "¿Cómo probamos y validamos el mapa?",
-                "en": "¿Cómo probamos y validamos el mapa?"
-              },
-              "answer": {
-                "es": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo.",
-                "en": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo."
-              },
-              "bullets": []
-            },
-            {
-              "question": {
-                "es": "¿Qué nos reveló el mapeo del viaje?",
-                "en": "¿Qué nos reveló el mapeo del viaje?"
-              },
-              "answer": {
-                "es": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio.",
-                "en": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio."
-              },
-              "bullets": []
-            },
-            {
-              "question": {
-                "es": "¿Cuáles fueron los principales puntos débiles del usuario?",
-                "en": "¿Cuáles fueron los principales puntos débiles del usuario?"
-              },
-              "answer": {
-                "es": null,
-                "en": null
-              },
-              "bullets": [
-                {
-                  "text": {
-                    "es": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad.",
-                    "en": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad."
-                  }
-                },
-                {
-                  "text": {
-                    "es": "El usuario no puede inscribirse a través de la web.",
-                    "en": "El usuario no puede inscribirse a través de la web."
-                  }
-                },
-                {
-                  "text": {
-                    "es": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad.",
-                    "en": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?",
-                "en": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?"
-              },
-              "answer": {
-                "es": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto.",
-                "en": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto."
-              },
-              "bullets": []
-            }
-          ]
-        },
-        {
-          "blockType": "personaCards",
-          "id": "6a55723eaef04e3eb82babdb",
-          "title": {
-            "es": "User Personas",
-            "en": "User Personas"
-          },
-          "sectionLabels": {
-            "basicInfo": {
-              "es": "Información básica",
-              "en": "Información básica"
-            },
-            "channels": {
-              "es": "Canales",
-              "en": "Canales"
-            },
-            "motivations": {
-              "es": "Motivaciones",
-              "en": "Motivaciones"
-            },
-            "painPoints": {
-              "es": "Pain points",
-              "en": "Pain points"
-            }
-          },
-          "intro": [
-            {
-              "text": {
-                "es": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios).",
-                "en": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios)."
-              }
-            },
-            {
-              "text": {
-                "es": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas.",
-                "en": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas."
-              }
-            }
-          ],
-          "qa": [
-            {
-              "question": {
-                "es": "¿Por qué necesitábamos user personas?",
-                "en": "¿Por qué necesitábamos user personas?"
-              },
-              "answer": [
-                {
-                  "text": {
-                    "es": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto.",
-                    "en": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Qué datos utilizamos para construir estas personas?",
-                "en": "¿Qué datos utilizamos para construir estas personas?"
-              },
-              "answer": [
-                {
-                  "text": {
-                    "es": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros.",
-                    "en": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Cómo nos influyeron los personajes al proceso de diseño?",
-                "en": "¿Cómo nos influyeron los personajes al proceso de diseño?"
-              },
-              "answer": [
-                {
-                  "text": {
-                    "es": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario.",
-                    "en": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?",
-                "en": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?"
-              },
-              "answer": [
-                {
-                  "text": {
-                    "es": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad.",
-                    "en": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad."
-                  }
-                },
-                {
-                  "text": {
-                    "es": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos.",
-                    "en": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos."
-                  }
-                }
-              ]
-            }
-          ],
-          "cards": [
-            {
-              "name": {
-                "es": "Adolfo Sanchez",
-                "en": "Adolfo Sanchez"
-              },
-              "descriptor": {
-                "es": "No físicamente activo",
-                "en": "No físicamente activo"
-              },
-              "quote": {
-                "es": "\"Te ayudaremos a darle un giro a tu vida\"",
-                "en": "\"Te ayudaremos a darle un giro a tu vida\""
-              },
-              "basicInfo": [
-                {
-                  "text": {
-                    "es": "Hombre",
-                    "en": "Hombre"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "35 años de edad",
-                    "en": "35 años de edad"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Trabaja en P&G",
-                    "en": "Trabaja en P&G"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Locación: Escazú",
-                    "en": "Locación: Escazú"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Estatus económico: Medio, medio-alto",
-                    "en": "Estatus económico: Medio, medio-alto"
-                  }
-                }
-              ],
-              "channels": [
-                {
-                  "text": {
-                    "es": "Instagram",
-                    "en": "Instagram"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Facebook",
-                    "en": "Facebook"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Website",
-                    "en": "Website"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mailchimp",
-                    "en": "Mailchimp"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Whatsapp campaigns",
-                    "en": "Whatsapp campaigns"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Convenios con empresa",
-                    "en": "Convenios con empresa"
-                  }
-                }
-              ],
-              "motivations": [
-                {
-                  "text": {
-                    "es": "Mejorar salud",
-                    "en": "Mejorar salud"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mejor físico",
-                    "en": "Mejor físico"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Conocer personas",
-                    "en": "Conocer personas"
-                  }
-                }
-              ],
-              "painPoints": [
-                {
-                  "text": {
-                    "es": "El gimnasio convencional me aburre",
-                    "en": "El gimnasio convencional me aburre"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Las sesiones de entrenamiento son largas",
-                    "en": "Las sesiones de entrenamiento son largas"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Entrenar solo",
-                    "en": "Entrenar solo"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "No entender los programas de entrenamiento",
-                    "en": "No entender los programas de entrenamiento"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Programas de entrenamiento sin enfoque",
-                    "en": "Programas de entrenamiento sin enfoque"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Pocos horarios",
-                    "en": "Pocos horarios"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Lesiones",
-                    "en": "Lesiones"
-                  }
-                }
-              ]
-            },
-            {
-              "name": {
-                "es": "Eva Rodríguez",
-                "en": "Eva Rodríguez"
-              },
-              "descriptor": {
-                "es": "Físicamente activa",
-                "en": "Físicamente activa"
-              },
-              "quote": {
-                "es": "\"Te ayudaremos a mantener tu estilo de vida saludable\"",
-                "en": "\"Te ayudaremos a mantener tu estilo de vida saludable\""
-              },
-              "basicInfo": [
-                {
-                  "text": {
-                    "es": "Mujer",
-                    "en": "Mujer"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "43 años de edad",
-                    "en": "43 años de edad"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Coach de nutrición",
-                    "en": "Coach de nutrición"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Locación: Santa Ana",
-                    "en": "Locación: Santa Ana"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Estatus económico: Medio, medio-alto",
-                    "en": "Estatus económico: Medio, medio-alto"
-                  }
-                }
-              ],
-              "channels": [
-                {
-                  "text": {
-                    "es": "Instagram",
-                    "en": "Instagram"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Facebook",
-                    "en": "Facebook"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Website",
-                    "en": "Website"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mailchimp",
-                    "en": "Mailchimp"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Whatsapp campaigns",
-                    "en": "Whatsapp campaigns"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Boca en boca",
-                    "en": "Boca en boca"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Convenios con empresa",
-                    "en": "Convenios con empresa"
-                  }
-                }
-              ],
-              "motivations": [
-                {
-                  "text": {
-                    "es": "Continuar con una salud óptima",
-                    "en": "Continuar con una salud óptima"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa",
-                    "en": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Pertenecer a una comunidad",
-                    "en": "Pertenecer a una comunidad"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Conocer nuevos ejercicios",
-                    "en": "Conocer nuevos ejercicios"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Preparación específica para competir en alguna disciplina",
-                    "en": "Preparación específica para competir en alguna disciplina"
-                  }
-                }
-              ],
-              "painPoints": [
-                {
-                  "text": {
-                    "es": "No ver resultados",
-                    "en": "No ver resultados"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "No tener programación específica",
-                    "en": "No tener programación específica"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "El gimnasio convencional me aburre",
-                    "en": "El gimnasio convencional me aburre"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Entrenar solo",
-                    "en": "Entrenar solo"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "No entender los programas de entrenamiento",
-                    "en": "No entender los programas de entrenamiento"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Pocos horarios",
-                    "en": "Pocos horarios"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Lesiones",
-                    "en": "Lesiones"
-                  }
-                }
-              ]
-            },
-            {
-              "name": {
-                "es": "Mario López",
-                "en": "Mario López"
-              },
-              "descriptor": {
-                "es": "Practicante de CrossFit",
-                "en": "Practicante de CrossFit"
-              },
-              "quote": {
-                "es": "\"Somos el mejor centro de entrenamiento, ven y prueba\"",
-                "en": "\"Somos el mejor centro de entrenamiento, ven y prueba\""
-              },
-              "basicInfo": [
-                {
-                  "text": {
-                    "es": "Hombre",
-                    "en": "Hombre"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "23 años de edad",
-                    "en": "23 años de edad"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Estudia fisioterapia",
-                    "en": "Estudia fisioterapia"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Locación: Escazú",
-                    "en": "Locación: Escazú"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Estatus económico: Medio, medio-alto",
-                    "en": "Estatus económico: Medio, medio-alto"
-                  }
-                }
-              ],
-              "channels": [
-                {
-                  "text": {
-                    "es": "Instagram",
-                    "en": "Instagram"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Facebook",
-                    "en": "Facebook"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Website",
-                    "en": "Website"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mailchimp",
-                    "en": "Mailchimp"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Whatsapp campaigns",
-                    "en": "Whatsapp campaigns"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Boca en boca",
-                    "en": "Boca en boca"
-                  }
-                }
-              ],
-              "motivations": [
-                {
-                  "text": {
-                    "es": "Continuar entrenando crossfit",
-                    "en": "Continuar entrenando crossfit"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Continuar con una salud óptima",
-                    "en": "Continuar con una salud óptima"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mantener su estado físico",
-                    "en": "Mantener su estado físico"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Pertenecer a una comunidad",
-                    "en": "Pertenecer a una comunidad"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mejorar algunos ejercicios/movimientos",
-                    "en": "Mejorar algunos ejercicios/movimientos"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Competir en esta disciplina",
-                    "en": "Competir en esta disciplina"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Programación nueva y mejor",
-                    "en": "Programación nueva y mejor"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Diferencia de tarifas",
-                    "en": "Diferencia de tarifas"
-                  }
-                }
-              ],
-              "painPoints": [
-                {
-                  "text": {
-                    "es": "No ver resultados",
-                    "en": "No ver resultados"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Tener programación cambiante",
-                    "en": "Tener programación cambiante"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Coaches no a la altura",
-                    "en": "Coaches no a la altura"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Tarifas altas",
-                    "en": "Tarifas altas"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Rotación de personas",
-                    "en": "Rotación de personas"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "No tener open box",
-                    "en": "No tener open box"
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Mal mantenimiento de las instalaciones y equipo",
-                    "en": "Mal mantenimiento de las instalaciones y equipo"
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "blockType": "richText",
-          "id": "6a55723eaef04e3eb82babdf",
-          "heading": {
-            "es": "Bocetos",
-            "en": "Bocetos"
-          },
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones.",
-                "en": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones."
-              }
-            },
-            {
-              "text": {
-                "es": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\".",
-                "en": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\"."
-              }
-            },
-            {
-              "text": {
-                "es": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales.",
-                "en": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales."
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "qa",
-          "id": "6a55723eaef04e3eb82babe2",
-          "title": {},
-          "items": [
-            {
-              "question": {
-                "es": "¿Cuál fue el objetivo principal de los bocetos?",
-                "en": "¿Cuál fue el objetivo principal de los bocetos?"
-              },
-              "answer": {
-                "es": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar.",
-                "en": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar."
-              },
-              "bullets": []
-            },
-            {
-              "question": {
-                "es": "¿Qué información fue la base para los bocetos?",
-                "en": "¿Qué información fue la base para los bocetos?"
-              },
-              "answer": {
-                "es": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders.",
-                "en": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders."
-              },
-              "bullets": []
-            }
-          ]
-        },
-        {
-          "blockType": "qa",
-          "id": "6a55723eaef04e3eb82babec",
-          "title": {
-            "es": "Aprendizajes",
-            "en": "Aprendizajes"
-          },
-          "items": [
-            {
-              "question": {
-                "es": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?",
-                "en": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?"
-              },
-              "answer": {
-                "es": null,
-                "en": null
-              },
-              "bullets": [
-                {
-                  "text": {
-                    "es": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones.",
-                    "en": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones."
-                  }
-                },
-                {
-                  "text": {
-                    "es": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda.",
-                    "en": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "Prácticas de diseño que utilicé por primera vez",
-                "en": "Prácticas de diseño que utilicé por primera vez"
-              },
-              "answer": {
-                "es": null,
-                "en": null
-              },
-              "bullets": [
-                {
-                  "text": {
-                    "es": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa.",
-                    "en": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?",
-                "en": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?"
-              },
-              "answer": {
-                "es": null,
-                "en": null
-              },
-              "bullets": [
-                {
-                  "text": {
-                    "es": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto.",
-                    "en": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto."
-                  }
-                }
-              ]
-            },
-            {
-              "question": {
-                "es": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?",
-                "en": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?"
-              },
-              "answer": {
-                "es": null,
-                "en": null
-              },
-              "bullets": [
-                {
-                  "text": {
-                    "es": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica.",
-                    "en": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica."
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "proyectos/web-apps",
-      "title": {
-        "es": "Diseño Web y Apps",
-        "en": "Web & App Design"
-      },
-      "layout": [
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723daef04e3eb82bab57",
-          "eyebrow": {
-            "es": "Diseño Web y Apps",
-            "en": "Web & App Design"
-          },
-          "number": "03",
-          "heading": {
-            "es": "Diseño Web y Apps",
-            "en": "Web & App Design"
-          }
-        },
-        {
-          "blockType": "richText",
-          "id": "6a55723daef04e3eb82bab59",
-          "heading": {},
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Experiencias digitales intuitivas y centradas en el usuario",
-                "en": "Intuitive and user-centered digital experiences"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a55723daef04e3eb82bab5d",
-          "layoutVariant": "masonry-6",
-          "projects": [
-            {
-              "image": "/images/offday-trainer.png",
-              "alt": {
-                "es": "OFF DAY Trainer - Diseño Web de Fitness",
-                "en": "OFF DAY Trainer - Diseño Web de Fitness"
-              },
-              "category": {
-                "es": "Diseño Web",
-                "en": "Diseño Web"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "hero"
-            },
-            {
-              "image": "/images/topmed-ecommerce.png",
-              "alt": {
-                "es": "TOPMED E-Commerce - Diseño Responsivo",
-                "en": "TOPMED E-Commerce - Diseño Responsivo"
-              },
-              "category": {
-                "es": "E-Commerce",
-                "en": "E-Commerce"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide-tall"
-            },
-            {
-              "image": "/images/live-betting.png",
-              "alt": {
-                "es": "Live Betting App - UI/UX Mobile",
-                "en": "Live Betting App - UI/UX Mobile"
-              },
-              "category": {
-                "es": "App Mobile",
-                "en": "App Mobile"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "slug": "proyectos/branding",
-      "title": {
-        "es": "Branding Corporativo",
-        "en": "Corporate Branding"
-      },
-      "layout": [
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723caef04e3eb82bab3a",
-          "eyebrow": {
-            "es": "Branding Corporativo",
-            "en": "Corporate Branding"
-          },
-          "number": "02",
-          "heading": {
-            "es": "Branding Corporativo",
-            "en": "Corporate Branding"
-          }
-        },
-        {
-          "blockType": "richText",
-          "id": "6a55723caef04e3eb82bab3c",
-          "heading": {},
-          "paragraphs": [
-            {
-              "text": {
-                "es": "Identidades visuales coherentes y memorables que conectan con tu audiencia",
-                "en": "Coherent and memorable visual identities that connect with your audience"
-              }
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723caef04e3eb82bab3d",
-          "eyebrow": {
-            "es": null,
-            "en": null
-          },
-          "number": "",
-          "heading": {
-            "es": "Deportes & Fitness",
-            "en": "Sports & Fitness"
-          }
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a55723caef04e3eb82bab43",
-          "layoutVariant": "masonry-6",
-          "projects": [
-            {
-              "image": "/images/wodfest-1.png",
-              "alt": {
-                "es": "WodFest Costa Rica - Campaña publicitaria",
-                "en": "WodFest Costa Rica - Campaña publicitaria"
-              },
-              "category": {
-                "es": "Campaña Publicitaria",
-                "en": "Campaña Publicitaria"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "hero"
-            },
-            {
-              "image": "/images/wodfest-2.png",
-              "alt": {
-                "es": "WodFest Costa Rica - Diseño de marca",
-                "en": "WodFest Costa Rica - Diseño de marca"
-              },
-              "category": {
-                "es": "Diseño de Marca",
-                "en": "Diseño de Marca"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "med"
-            },
-            {
-              "image": "/images/fitness-deadlift.png",
-              "alt": {
-                "es": "OFF DAY Trainer - Técnica Deadlift",
-                "en": "OFF DAY Trainer - Técnica Deadlift"
-              },
-              "category": {
-                "es": "Contenido Educativo",
-                "en": "Contenido Educativo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "tall"
-            },
-            {
-              "image": "/images/fitness-pullups.png",
-              "alt": {
-                "es": "OFF DAY Trainer - Técnica Pull-ups",
-                "en": "OFF DAY Trainer - Técnica Pull-ups"
-              },
-              "category": {
-                "es": "Contenido Educativo",
-                "en": "Contenido Educativo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/snaga-relay.png",
-              "alt": {
-                "es": "SNAGA Team Relay 9th Anniversary",
-                "en": "SNAGA Team Relay 9th Anniversary"
-              },
-              "category": {
-                "es": "Evento Fitness",
-                "en": "Evento Fitness"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723caef04e3eb82bab44",
-          "eyebrow": {
-            "es": null,
-            "en": null
-          },
-          "number": "",
-          "heading": {
-            "es": "Belleza & Estética",
-            "en": "Beauty & Aesthetics"
-          }
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a55723caef04e3eb82bab4f",
-          "layoutVariant": "masonry-8",
-          "projects": [
-            {
-              "image": "/images/adriana-munoz.png",
-              "alt": {
-                "es": "Adriana Muñoz - Contenido para redes sociales",
-                "en": "Adriana Muñoz - Contenido para redes sociales"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide5-tall"
-            },
-            {
-              "image": "/images/phicontour-live.png",
-              "alt": {
-                "es": "Live Técnica Phicontour - Adriana Muñoz",
-                "en": "Live Técnica Phicontour - Adriana Muñoz"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "wide-tall"
-            },
-            {
-              "image": "/images/ana-grace.png",
-              "alt": {
-                "es": "Ana Grace Salon & Estética - Branding digital",
-                "en": "Ana Grace Salon & Estética - Branding digital"
-              },
-              "category": {
-                "es": "Branding Digital",
-                "en": "Branding Digital"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/ana-grace-hair.png",
-              "alt": {
-                "es": "Ana Grace - Promoción Tratamiento Capilar",
-                "en": "Ana Grace - Promoción Tratamiento Capilar"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/ana-grace-online.png",
-              "alt": {
-                "es": "Ana Grace - Compra Online",
-                "en": "Ana Grace - Compra Online"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/ana-grace-payment.png",
-              "alt": {
-                "es": "Ana Grace - Información de Pago",
-                "en": "Ana Grace - Información de Pago"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/phibrows-course.png",
-              "alt": {
-                "es": "Curso Phibrows - Material Promocional",
-                "en": "Curso Phibrows - Material Promocional"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            },
-            {
-              "image": "/images/phibrows-before-after.png",
-              "alt": {
-                "es": "Curso Phibrows - Antes y Después",
-                "en": "Curso Phibrows - Antes y Después"
-              },
-              "category": {
-                "es": "Social Media",
-                "en": "Social Media"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/live-microblading.png",
-              "alt": {
-                "es": "Live con Ana Oprea - Técnica Microblading",
-                "en": "Live con Ana Oprea - Técnica Microblading"
-              },
-              "category": {
-                "es": "Evento Online",
-                "en": "Evento Online"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/live-phibrows-shading.png",
-              "alt": {
-                "es": "Live con Stefany Galeano - Phibrows Shading",
-                "en": "Live con Stefany Galeano - Phibrows Shading"
-              },
-              "category": {
-                "es": "Evento Online",
-                "en": "Evento Online"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "col3"
-            }
-          ]
-        },
-        {
-          "blockType": "sectionHeading",
-          "id": "6a55723caef04e3eb82bab50",
-          "eyebrow": {
-            "es": null,
-            "en": null
-          },
-          "number": "",
-          "heading": {
-            "es": "Logos",
-            "en": "Logos"
-          }
-        },
-        {
-          "blockType": "projectGallery",
-          "id": "6a55723caef04e3eb82bab56",
-          "layoutVariant": "masonry-10",
-          "projects": [
-            {
-              "image": "/images/la-dulcereta.png",
-              "alt": {
-                "es": "La Dulcereta Obleas - Diseño de Logo",
-                "en": "La Dulcereta Obleas - Diseño de Logo"
-              },
-              "category": {
-                "es": "Logo",
-                "en": "Logo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "hero"
-            },
-            {
-              "image": "/images/fit-cookie.png",
-              "alt": {
-                "es": "Fit Cookie by Elsa Cubero - Diseño de Logo",
-                "en": "Fit Cookie by Elsa Cubero - Diseño de Logo"
-              },
-              "category": {
-                "es": "Logo",
-                "en": "Logo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/nomads.png",
-              "alt": {
-                "es": "Nomads Eighty-Six - Diseño de Logo",
-                "en": "Nomads Eighty-Six - Diseño de Logo"
-              },
-              "category": {
-                "es": "Logo",
-                "en": "Logo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/la-pedrena.png",
-              "alt": {
-                "es": "Carnicería La Pedreña - Diseño de Logo",
-                "en": "Carnicería La Pedreña - Diseño de Logo"
-              },
-              "category": {
-                "es": "Logo",
-                "en": "Logo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            },
-            {
-              "image": "/images/falecon.png",
-              "alt": {
-                "es": "Falecon Decoraciones - Diseño de Logo",
-                "en": "Falecon Decoraciones - Diseño de Logo"
-              },
-              "category": {
-                "es": "Logo",
-                "en": "Logo"
-              },
-              "title": {
-                "es": null,
-                "en": null
-              },
-              "size": "normal"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "slug": "home",
       "title": {
         "es": "Inicio",
@@ -2057,7 +9,6 @@
       "layout": [
         {
           "blockType": "hero",
-          "id": "6a55723aaef04e3eb82bab00",
           "backgroundImagePath": "/images/hero-background.jpg",
           "title": {
             "es": "Soy diseñadora gráfica 360º",
@@ -2082,19 +33,18 @@
         },
         {
           "blockType": "categoryShowcase",
-          "anchorId": "branding",
           "category": {
             "name": {
-              "es": "Branding",
-              "en": "Branding"
+              "es": "Branding Corporativo",
+              "en": "Corporate Branding"
             },
             "slug": "branding",
             "anchorId": "branding",
-            "order": 1,
             "intro": {
-              "es": "Identidades visuales, campañas y sistemas de marca de principio a fin.",
-              "en": "Visual identities, campaigns and brand systems end to end."
+              "es": "Identidades visuales coherentes y memorables que conectan con tu audiencia",
+              "en": "Coherent and memorable visual identities that connect with your audience"
             },
+            "order": 1,
             "projects": [
               {
                 "type": "image",
@@ -2103,7 +53,7 @@
                   "es": "WodFest Costa Rica - Campaña publicitaria",
                   "en": "WodFest Costa Rica - Campaña publicitaria"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Campaña Publicitaria",
                   "en": "Campaña Publicitaria"
                 },
@@ -2111,7 +61,10 @@
                   "es": "WodFest Costa Rica - Campaña publicitaria",
                   "en": "WodFest Costa Rica - Campaña publicitaria"
                 },
-                "size": "hero"
+                "categoryLabel": {
+                  "es": "Campaña Publicitaria",
+                  "en": "Campaña Publicitaria"
+                }
               },
               {
                 "type": "image",
@@ -2120,7 +73,7 @@
                   "es": "WodFest Costa Rica - Diseño de marca",
                   "en": "WodFest Costa Rica - Diseño de marca"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Diseño de Marca",
                   "en": "Diseño de Marca"
                 },
@@ -2128,7 +81,10 @@
                   "es": "WodFest Costa Rica - Diseño de marca",
                   "en": "WodFest Costa Rica - Diseño de marca"
                 },
-                "size": "med"
+                "categoryLabel": {
+                  "es": "Diseño de Marca",
+                  "en": "Diseño de Marca"
+                }
               },
               {
                 "type": "image",
@@ -2137,7 +93,7 @@
                   "es": "OFF DAY Trainer - Técnica Deadlift",
                   "en": "OFF DAY Trainer - Técnica Deadlift"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Contenido Educativo",
                   "en": "Contenido Educativo"
                 },
@@ -2145,7 +101,10 @@
                   "es": "OFF DAY Trainer - Técnica Deadlift",
                   "en": "OFF DAY Trainer - Técnica Deadlift"
                 },
-                "size": "tall"
+                "categoryLabel": {
+                  "es": "Contenido Educativo",
+                  "en": "Contenido Educativo"
+                }
               },
               {
                 "type": "image",
@@ -2154,7 +113,7 @@
                   "es": "OFF DAY Trainer - Técnica Pull-ups",
                   "en": "OFF DAY Trainer - Técnica Pull-ups"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Contenido Educativo",
                   "en": "Contenido Educativo"
                 },
@@ -2162,7 +121,10 @@
                   "es": "OFF DAY Trainer - Técnica Pull-ups",
                   "en": "OFF DAY Trainer - Técnica Pull-ups"
                 },
-                "size": "normal"
+                "categoryLabel": {
+                  "es": "Contenido Educativo",
+                  "en": "Contenido Educativo"
+                }
               },
               {
                 "type": "image",
@@ -2171,7 +133,7 @@
                   "es": "SNAGA Team Relay 9th Anniversary",
                   "en": "SNAGA Team Relay 9th Anniversary"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Evento Fitness",
                   "en": "Evento Fitness"
                 },
@@ -2179,34 +141,341 @@
                   "es": "SNAGA Team Relay 9th Anniversary",
                   "en": "SNAGA Team Relay 9th Anniversary"
                 },
-                "size": "normal"
+                "categoryLabel": {
+                  "es": "Evento Fitness",
+                  "en": "Evento Fitness"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/adriana-munoz.png",
+                "alt": {
+                  "es": "Adriana Muñoz - Contenido para redes sociales",
+                  "en": "Adriana Muñoz - Contenido para redes sociales"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Adriana Muñoz - Contenido para redes sociales",
+                  "en": "Adriana Muñoz - Contenido para redes sociales"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/phicontour-live.png",
+                "alt": {
+                  "es": "Live Técnica Phicontour - Adriana Muñoz",
+                  "en": "Live Técnica Phicontour - Adriana Muñoz"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Live Técnica Phicontour - Adriana Muñoz",
+                  "en": "Live Técnica Phicontour - Adriana Muñoz"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/phibrows-course.png",
+                "alt": {
+                  "es": "Curso Phibrows - Material Promocional",
+                  "en": "Curso Phibrows - Material Promocional"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Curso Phibrows - Material Promocional",
+                  "en": "Curso Phibrows - Material Promocional"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/phibrows-before-after.png",
+                "alt": {
+                  "es": "Curso Phibrows - Antes y Después",
+                  "en": "Curso Phibrows - Antes y Después"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Curso Phibrows - Antes y Después",
+                  "en": "Curso Phibrows - Antes y Después"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/live-microblading.png",
+                "alt": {
+                  "es": "Live con Ana Oprea - Técnica Microblading",
+                  "en": "Live con Ana Oprea - Técnica Microblading"
+                },
+                "category": {
+                  "es": "Evento Online",
+                  "en": "Evento Online"
+                },
+                "title": {
+                  "es": "Live con Ana Oprea - Técnica Microblading",
+                  "en": "Live con Ana Oprea - Técnica Microblading"
+                },
+                "categoryLabel": {
+                  "es": "Evento Online",
+                  "en": "Evento Online"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/live-phibrows-shading.png",
+                "alt": {
+                  "es": "Live con Stefany Galeano - Phibrows Shading",
+                  "en": "Live con Stefany Galeano - Phibrows Shading"
+                },
+                "category": {
+                  "es": "Evento Online",
+                  "en": "Evento Online"
+                },
+                "title": {
+                  "es": "Live con Stefany Galeano - Phibrows Shading",
+                  "en": "Live con Stefany Galeano - Phibrows Shading"
+                },
+                "categoryLabel": {
+                  "es": "Evento Online",
+                  "en": "Evento Online"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/ana-grace.png",
+                "alt": {
+                  "es": "Ana Grace Salon & Estética - Branding digital",
+                  "en": "Ana Grace Salon & Estética - Branding digital"
+                },
+                "category": {
+                  "es": "Branding Digital",
+                  "en": "Branding Digital"
+                },
+                "title": {
+                  "es": "Ana Grace Salon & Estética - Branding digital",
+                  "en": "Ana Grace Salon & Estética - Branding digital"
+                },
+                "categoryLabel": {
+                  "es": "Branding Digital",
+                  "en": "Branding Digital"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/ana-grace-hair.png",
+                "alt": {
+                  "es": "Ana Grace - Promoción Tratamiento Capilar",
+                  "en": "Ana Grace - Promoción Tratamiento Capilar"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Ana Grace - Promoción Tratamiento Capilar",
+                  "en": "Ana Grace - Promoción Tratamiento Capilar"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/ana-grace-online.png",
+                "alt": {
+                  "es": "Ana Grace - Compra Online",
+                  "en": "Ana Grace - Compra Online"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Ana Grace - Compra Online",
+                  "en": "Ana Grace - Compra Online"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/ana-grace-payment.png",
+                "alt": {
+                  "es": "Ana Grace - Información de Pago",
+                  "en": "Ana Grace - Información de Pago"
+                },
+                "category": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                },
+                "title": {
+                  "es": "Ana Grace - Información de Pago",
+                  "en": "Ana Grace - Información de Pago"
+                },
+                "categoryLabel": {
+                  "es": "Social Media",
+                  "en": "Social Media"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/la-dulcereta.png",
+                "alt": {
+                  "es": "La Dulcereta Obleas - Diseño de Logo",
+                  "en": "La Dulcereta Obleas - Diseño de Logo"
+                },
+                "category": {
+                  "es": "Logo",
+                  "en": "Logo"
+                },
+                "title": {
+                  "es": "La Dulcereta Obleas - Diseño de Logo",
+                  "en": "La Dulcereta Obleas - Diseño de Logo"
+                },
+                "categoryLabel": {
+                  "es": "Logo",
+                  "en": "Logo"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/fit-cookie.png",
+                "alt": {
+                  "es": "Fit Cookie by Elsa Cubero - Diseño de Logo",
+                  "en": "Fit Cookie by Elsa Cubero - Diseño de Logo"
+                },
+                "category": {
+                  "es": "Logo",
+                  "en": "Logo"
+                },
+                "title": {
+                  "es": "Fit Cookie by Elsa Cubero - Diseño de Logo",
+                  "en": "Fit Cookie by Elsa Cubero - Diseño de Logo"
+                },
+                "categoryLabel": {
+                  "es": "Logo",
+                  "en": "Logo"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/nomads.png",
+                "alt": {
+                  "es": "Nomads Eighty-Six - Diseño de Logo",
+                  "en": "Nomads Eighty-Six - Diseño de Logo"
+                },
+                "category": {
+                  "es": "Logo",
+                  "en": "Logo"
+                },
+                "title": {
+                  "es": "Nomads Eighty-Six - Diseño de Logo",
+                  "en": "Nomads Eighty-Six - Diseño de Logo"
+                },
+                "categoryLabel": {
+                  "es": "Logo",
+                  "en": "Logo"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/la-pedrena.png",
+                "alt": {
+                  "es": "Carnicería La Pedreña - Diseño de Logo",
+                  "en": "Carnicería La Pedreña - Diseño de Logo"
+                },
+                "category": {
+                  "es": "Logo",
+                  "en": "Logo"
+                },
+                "title": {
+                  "es": "Carnicería La Pedreña - Diseño de Logo",
+                  "en": "Carnicería La Pedreña - Diseño de Logo"
+                },
+                "categoryLabel": {
+                  "es": "Logo",
+                  "en": "Logo"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/falecon.png",
+                "alt": {
+                  "es": "Falecon Decoraciones - Diseño de Logo",
+                  "en": "Falecon Decoraciones - Diseño de Logo"
+                },
+                "category": {
+                  "es": "Logo",
+                  "en": "Logo"
+                },
+                "title": {
+                  "es": "Falecon Decoraciones - Diseño de Logo",
+                  "en": "Falecon Decoraciones - Diseño de Logo"
+                },
+                "categoryLabel": {
+                  "es": "Logo",
+                  "en": "Logo"
+                }
               }
             ]
           },
+          "headingOverride": {
+            "es": null,
+            "en": null
+          },
           "layoutVariant": "grid-3",
-          "maxItems": 4,
+          "maxItems": 3,
           "showCta": true,
           "ctaLabel": {
-            "es": "Ver todo",
-            "en": "View all"
+            "es": "Ver más proyectos",
+            "en": "View more projects"
           },
-          "ctaHref": "/proyectos/branding"
+          "ctaHref": "/proyectos/branding",
+          "anchorId": "branding"
         },
         {
           "blockType": "categoryShowcase",
-          "anchorId": "web-apps",
           "category": {
             "name": {
-              "es": "Web y Apps",
-              "en": "Web & Apps"
+              "es": "Diseño Web & Apps",
+              "en": "Web & App Design"
             },
             "slug": "web-apps",
             "anchorId": "web-apps",
-            "order": 2,
             "intro": {
-              "es": "Sitios y aplicaciones responsivas centradas en la conversión.",
-              "en": "Responsive websites and apps focused on conversion."
+              "es": "Experiencias digitales intuitivas y atractivas para usuarios modernos",
+              "en": "Intuitive and attractive digital experiences for modern users"
             },
+            "order": 2,
             "projects": [
               {
                 "type": "image",
@@ -2215,7 +484,7 @@
                   "es": "OFF DAY Trainer - Diseño Web de Fitness",
                   "en": "OFF DAY Trainer - Diseño Web de Fitness"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Diseño Web",
                   "en": "Diseño Web"
                 },
@@ -2223,7 +492,10 @@
                   "es": "OFF DAY Trainer - Diseño Web de Fitness",
                   "en": "OFF DAY Trainer - Diseño Web de Fitness"
                 },
-                "size": "hero"
+                "categoryLabel": {
+                  "es": "Diseño Web",
+                  "en": "Diseño Web"
+                }
               },
               {
                 "type": "image",
@@ -2232,7 +504,7 @@
                   "es": "TOPMED E-Commerce - Diseño Responsivo",
                   "en": "TOPMED E-Commerce - Diseño Responsivo"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "E-Commerce",
                   "en": "E-Commerce"
                 },
@@ -2240,7 +512,10 @@
                   "es": "TOPMED E-Commerce - Diseño Responsivo",
                   "en": "TOPMED E-Commerce - Diseño Responsivo"
                 },
-                "size": "wide-tall"
+                "categoryLabel": {
+                  "es": "E-Commerce",
+                  "en": "E-Commerce"
+                }
               },
               {
                 "type": "image",
@@ -2249,7 +524,7 @@
                   "es": "Live Betting App - UI/UX Mobile",
                   "en": "Live Betting App - UI/UX Mobile"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "App Mobile",
                   "en": "App Mobile"
                 },
@@ -2257,22 +532,29 @@
                   "es": "Live Betting App - UI/UX Mobile",
                   "en": "Live Betting App - UI/UX Mobile"
                 },
-                "size": "col3"
+                "categoryLabel": {
+                  "es": "App Mobile",
+                  "en": "App Mobile"
+                }
               }
             ]
           },
+          "headingOverride": {
+            "es": null,
+            "en": null
+          },
           "layoutVariant": "grid-3",
-          "maxItems": 4,
+          "maxItems": 3,
           "showCta": true,
           "ctaLabel": {
-            "es": "Ver todo",
-            "en": "View all"
+            "es": "Ver más proyectos",
+            "en": "View more projects"
           },
-          "ctaHref": "/proyectos/web-apps"
+          "ctaHref": "/proyectos/web-apps",
+          "anchorId": "web-apps"
         },
         {
           "blockType": "categoryShowcase",
-          "anchorId": "uxui-producto",
           "category": {
             "name": {
               "es": "UX/UI Producto",
@@ -2280,102 +562,1203 @@
             },
             "slug": "uxui-producto",
             "anchorId": "uxui-producto",
-            "order": 3,
             "intro": {
-              "es": "Diseño de producto de extremo a extremo: investigación, flujos e interfaz.",
-              "en": "End-to-end product design: research, flows and interface."
+              "es": "Diseño de experiencias digitales centradas en el usuario",
+              "en": "User-centered digital experience design"
             },
+            "order": 3,
             "projects": [
               {
                 "type": "caseStudy",
-                "slug": "snaga",
-                "image": "/images/snaga-relay.png",
+                "image": "/images/uxui-sketch.png",
                 "alt": {
-                  "es": "SNAGA — Caso de estudio UX/UI",
-                  "en": "SNAGA — UX/UI case study"
+                  "es": "Snaga - UX/UI Case Study",
+                  "en": "Snaga - UX/UI Case Study"
+                },
+                "category": {
+                  "es": "Caso de estudio",
+                  "en": "Case study"
+                },
+                "title": {
+                  "es": "Snaga",
+                  "en": "Snaga"
                 },
                 "categoryLabel": {
                   "es": "Caso de estudio",
                   "en": "Case study"
                 },
-                "title": {
-                  "es": "SNAGA",
-                  "en": "SNAGA"
-                },
-                "size": "hero",
+                "slug": "snaga",
                 "caseStudyLayout": [
                   {
                     "blockType": "sectionHeading",
-                    "number": "01",
                     "eyebrow": {
-                      "es": "Caso de estudio",
-                      "en": "Case study"
+                      "es": "UX/UI Producto",
+                      "en": "UX/UI Product"
                     },
+                    "number": "04",
                     "heading": {
-                      "es": "SNAGA — App de comunidad fitness",
-                      "en": "SNAGA — Fitness community app"
+                      "es": "Quiero… ¡Encontrar soluciones!",
+                      "en": "I want to… Find solutions!"
                     }
                   },
                   {
-                    "blockType": "richText",
-                    "heading": {
-                      "es": "Resumen",
-                      "en": "Overview"
+                    "blockType": "image",
+                    "image": "/images/uxui-sketch.png",
+                    "caption": {
+                      "es": "Snaga - UX/UI Case Study",
+                      "en": "Snaga - UX/UI Case Study"
                     },
-                    "paragraphs": [
+                    "width": "full"
+                  },
+                  {
+                    "blockType": "detailsTable",
+                    "title": {
+                      "es": "Snaga",
+                      "en": "Snaga"
+                    },
+                    "rows": [
                       {
-                        "text": {
-                          "es": "SNAGA es una app para organizar y vivir eventos fitness en comunidad. Rediseñamos el flujo de inscripción y la experiencia del día del evento.",
-                          "en": "SNAGA is an app to organize and live community fitness events. We redesigned the sign-up flow and the event-day experience."
+                        "label": {
+                          "es": "Proyecto:",
+                          "en": "Proyecto:"
+                        },
+                        "value": {
+                          "es": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico",
+                          "en": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico"
+                        }
+                      },
+                      {
+                        "label": {
+                          "es": "Mi Rol:",
+                          "en": "Mi Rol:"
+                        },
+                        "value": {
+                          "es": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator",
+                          "en": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator"
+                        }
+                      },
+                      {
+                        "label": {
+                          "es": "Contribución:",
+                          "en": "Contribución:"
+                        },
+                        "value": {
+                          "es": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios.",
+                          "en": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios."
                         }
                       }
                     ]
                   },
                   {
-                    "blockType": "image",
-                    "image": "/images/snaga-relay.png",
-                    "caption": {
-                      "es": "SNAGA Team Relay — 9º aniversario",
-                      "en": "SNAGA Team Relay — 9th anniversary"
+                    "blockType": "richText",
+                    "heading": {},
+                    "paragraphs": [
+                      {
+                        "text": {
+                          "es": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing.",
+                          "en": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable.",
+                          "en": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad.",
+                          "en": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "twoColumn",
+                    "left": {
+                      "label": {
+                        "es": "Problema",
+                        "en": "Problema"
+                      },
+                      "text": {
+                        "es": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología.",
+                        "en": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología."
+                      }
                     },
-                    "width": "contained"
+                    "right": {
+                      "label": {
+                        "es": "Solución",
+                        "en": "Solución"
+                      },
+                      "text": {
+                        "es": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto.",
+                        "en": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto."
+                      }
+                    }
                   },
                   {
                     "blockType": "detailsTable",
-                    "title": {
-                      "es": "Detalles",
-                      "en": "Details"
-                    },
+                    "title": {},
                     "rows": [
                       {
                         "label": {
-                          "es": "Rol",
-                          "en": "Role"
+                          "es": "Miro",
+                          "en": "Miro"
                         },
                         "value": {
-                          "es": "Diseño de producto (UX/UI)",
-                          "en": "Product design (UX/UI)"
+                          "es": "2 UX/UI designers · UX/UI designer",
+                          "en": "2 UX/UI designers · UX/UI designer"
                         }
                       },
                       {
                         "label": {
-                          "es": "Duración",
-                          "en": "Duration"
+                          "es": "Figma",
+                          "en": "Figma"
                         },
                         "value": {
-                          "es": "6 semanas",
-                          "en": "6 weeks"
+                          "es": "1 developer · Creadora de contenido",
+                          "en": "1 developer · Creadora de contenido"
                         }
                       },
                       {
                         "label": {
-                          "es": "Plataforma",
-                          "en": "Platform"
+                          "es": "Adobe",
+                          "en": "Adobe"
                         },
                         "value": {
-                          "es": "iOS / Android",
-                          "en": "iOS / Android"
+                          "es": "Diseño digital",
+                          "en": "Diseño digital"
                         }
+                      },
+                      {
+                        "label": {
+                          "es": "",
+                          "en": ""
+                        },
+                        "value": {
+                          "es": "Stakeholder facilitador",
+                          "en": "Stakeholder facilitador"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "timeline",
+                    "title": {
+                      "es": "Línea de Tiempo",
+                      "en": "Línea de Tiempo"
+                    },
+                    "durationLabel": {
+                      "es": "Duración total:",
+                      "en": "Duración total:"
+                    },
+                    "durationValue": {
+                      "es": "2 meses y 15 días",
+                      "en": "2 meses y 15 días"
+                    },
+                    "phases": [
+                      {
+                        "phase": {
+                          "es": "Descubrimiento y búsqueda",
+                          "en": "Descubrimiento y búsqueda"
+                        },
+                        "duration": {
+                          "es": "1 semana",
+                          "en": "1 semana"
+                        }
+                      },
+                      {
+                        "phase": {
+                          "es": "Creación de branding",
+                          "en": "Creación de branding"
+                        },
+                        "duration": {
+                          "es": "2 semanas",
+                          "en": "2 semanas"
+                        }
+                      },
+                      {
+                        "phase": {
+                          "es": "Desarrollo sitio web",
+                          "en": "Desarrollo sitio web"
+                        },
+                        "duration": {
+                          "es": "3 semanas",
+                          "en": "3 semanas"
+                        }
+                      },
+                      {
+                        "phase": {
+                          "es": "Testing",
+                          "en": "Testing"
+                        },
+                        "duration": {
+                          "es": "2 semanas",
+                          "en": "2 semanas"
+                        }
+                      },
+                      {
+                        "phase": {
+                          "es": "Creación de contenido digital",
+                          "en": "Creación de contenido digital"
+                        },
+                        "duration": {
+                          "es": "2 semanas",
+                          "en": "2 semanas"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "journeyMap",
+                    "title": {
+                      "es": "User Journey Map",
+                      "en": "User Journey Map"
+                    },
+                    "labels": {
+                      "action": {
+                        "es": "Acción",
+                        "en": "Acción"
+                      },
+                      "thought": {
+                        "es": "Pensamiento",
+                        "en": "Pensamiento"
+                      },
+                      "friction": {
+                        "es": "Fricción",
+                        "en": "Fricción"
+                      }
+                    },
+                    "intro": [
+                      {
+                        "text": {
+                          "es": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing.",
+                          "en": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora.",
+                          "en": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores.",
+                          "en": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores."
+                        }
+                      }
+                    ],
+                    "stages": [
+                      {
+                        "number": "1",
+                        "name": {
+                          "es": "Discovery",
+                          "en": "Discovery"
+                        },
+                        "action": {
+                          "es": "Encuentra el sitio web a través de búsqueda o redes sociales",
+                          "en": "Encuentra el sitio web a través de búsqueda o redes sociales"
+                        },
+                        "thought": {
+                          "es": "\"¿Este servicio es lo que necesito?\"",
+                          "en": "\"¿Este servicio es lo que necesito?\""
+                        },
+                        "friction": {
+                          "es": "Primera impresión poco clara",
+                          "en": "Primera impresión poco clara"
+                        }
+                      },
+                      {
+                        "number": "2",
+                        "name": {
+                          "es": "Exploration",
+                          "en": "Exploration"
+                        },
+                        "action": {
+                          "es": "Navega el sitio para entender los servicios",
+                          "en": "Navega el sitio para entender los servicios"
+                        },
+                        "thought": {
+                          "es": "\"¿Qué ofrecen exactamente?\"",
+                          "en": "\"¿Qué ofrecen exactamente?\""
+                        },
+                        "friction": {
+                          "es": "Demasiada información",
+                          "en": "Demasiada información"
+                        }
+                      },
+                      {
+                        "number": "3",
+                        "name": {
+                          "es": "Evaluation",
+                          "en": "Evaluation"
+                        },
+                        "action": {
+                          "es": "Revisa portafolio, casos y credibilidad",
+                          "en": "Revisa portafolio, casos y credibilidad"
+                        },
+                        "thought": {
+                          "es": "\"¿Tienen experiencia en mi industria?\"",
+                          "en": "\"¿Tienen experiencia en mi industria?\""
+                        },
+                        "friction": {
+                          "es": "Casos sin suficiente detalle",
+                          "en": "Casos sin suficiente detalle"
+                        }
+                      },
+                      {
+                        "number": "4",
+                        "name": {
+                          "es": "Decision",
+                          "en": "Decision"
+                        },
+                        "action": {
+                          "es": "Decide si el servicio se ajusta a sus necesidades",
+                          "en": "Decide si el servicio se ajusta a sus necesidades"
+                        },
+                        "thought": {
+                          "es": "\"Quiero saber precios y disponibilidad\"",
+                          "en": "\"Quiero saber precios y disponibilidad\""
+                        },
+                        "friction": {
+                          "es": "Falta info de tarifas",
+                          "en": "Falta info de tarifas"
+                        }
+                      },
+                      {
+                        "number": "5",
+                        "name": {
+                          "es": "Contact",
+                          "en": "Contact"
+                        },
+                        "action": {
+                          "es": "Llena un formulario o se contacta",
+                          "en": "Llena un formulario o se contacta"
+                        },
+                        "thought": {
+                          "es": "\"Espero una respuesta rápida\"",
+                          "en": "\"Espero una respuesta rápida\""
+                        },
+                        "friction": {
+                          "es": "Formulario largo",
+                          "en": "Formulario largo"
+                        }
+                      }
+                    ],
+                    "qa": [
+                      {
+                        "question": {
+                          "es": "¿Cómo y por qué eligimos qué camino mapear?",
+                          "en": "¿Cómo y por qué eligimos qué camino mapear?"
+                        },
+                        "answer": {
+                          "es": "Basándonos en las necesidades e inquietudes del usuario.",
+                          "en": "Basándonos en las necesidades e inquietudes del usuario."
+                        },
+                        "bullets": []
+                      },
+                      {
+                        "question": {
+                          "es": "¿Cómo probamos y validamos el mapa?",
+                          "en": "¿Cómo probamos y validamos el mapa?"
+                        },
+                        "answer": {
+                          "es": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo.",
+                          "en": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo."
+                        },
+                        "bullets": []
+                      },
+                      {
+                        "question": {
+                          "es": "¿Qué nos reveló el mapeo del viaje?",
+                          "en": "¿Qué nos reveló el mapeo del viaje?"
+                        },
+                        "answer": {
+                          "es": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio.",
+                          "en": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio."
+                        },
+                        "bullets": []
+                      },
+                      {
+                        "question": {
+                          "es": "¿Cuáles fueron los principales puntos débiles del usuario?",
+                          "en": "¿Cuáles fueron los principales puntos débiles del usuario?"
+                        },
+                        "answer": {
+                          "es": null,
+                          "en": null
+                        },
+                        "bullets": [
+                          {
+                            "text": {
+                              "es": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad.",
+                              "en": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad."
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "El usuario no puede inscribirse a través de la web.",
+                              "en": "El usuario no puede inscribirse a través de la web."
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad.",
+                              "en": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?",
+                          "en": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?"
+                        },
+                        "answer": {
+                          "es": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto.",
+                          "en": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto."
+                        },
+                        "bullets": []
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "personaCards",
+                    "title": {
+                      "es": "User Personas",
+                      "en": "User Personas"
+                    },
+                    "sectionLabels": {
+                      "basicInfo": {
+                        "es": "Información básica",
+                        "en": "Información básica"
+                      },
+                      "channels": {
+                        "es": "Canales",
+                        "en": "Canales"
+                      },
+                      "motivations": {
+                        "es": "Motivaciones",
+                        "en": "Motivaciones"
+                      },
+                      "painPoints": {
+                        "es": "Pain points",
+                        "en": "Pain points"
+                      }
+                    },
+                    "intro": [
+                      {
+                        "text": {
+                          "es": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios).",
+                          "en": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios)."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas.",
+                          "en": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas."
+                        }
+                      }
+                    ],
+                    "qa": [
+                      {
+                        "question": {
+                          "es": "¿Por qué necesitábamos user personas?",
+                          "en": "¿Por qué necesitábamos user personas?"
+                        },
+                        "answer": [
+                          {
+                            "text": {
+                              "es": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto.",
+                              "en": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Qué datos utilizamos para construir estas personas?",
+                          "en": "¿Qué datos utilizamos para construir estas personas?"
+                        },
+                        "answer": [
+                          {
+                            "text": {
+                              "es": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros.",
+                              "en": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Cómo nos influyeron los personajes al proceso de diseño?",
+                          "en": "¿Cómo nos influyeron los personajes al proceso de diseño?"
+                        },
+                        "answer": [
+                          {
+                            "text": {
+                              "es": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario.",
+                              "en": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?",
+                          "en": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?"
+                        },
+                        "answer": [
+                          {
+                            "text": {
+                              "es": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad.",
+                              "en": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad."
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos.",
+                              "en": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos."
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "cards": [
+                      {
+                        "name": {
+                          "es": "Adolfo Sanchez",
+                          "en": "Adolfo Sanchez"
+                        },
+                        "descriptor": {
+                          "es": "No físicamente activo",
+                          "en": "No físicamente activo"
+                        },
+                        "quote": {
+                          "es": "\"Te ayudaremos a darle un giro a tu vida\"",
+                          "en": "\"Te ayudaremos a darle un giro a tu vida\""
+                        },
+                        "basicInfo": [
+                          {
+                            "text": {
+                              "es": "Hombre",
+                              "en": "Hombre"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "35 años de edad",
+                              "en": "35 años de edad"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Trabaja en P&G",
+                              "en": "Trabaja en P&G"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Locación: Escazú",
+                              "en": "Locación: Escazú"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Estatus económico: Medio, medio-alto",
+                              "en": "Estatus económico: Medio, medio-alto"
+                            }
+                          }
+                        ],
+                        "channels": [
+                          {
+                            "text": {
+                              "es": "Instagram",
+                              "en": "Instagram"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Facebook",
+                              "en": "Facebook"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Website",
+                              "en": "Website"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mailchimp",
+                              "en": "Mailchimp"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Whatsapp campaigns",
+                              "en": "Whatsapp campaigns"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Convenios con empresa",
+                              "en": "Convenios con empresa"
+                            }
+                          }
+                        ],
+                        "motivations": [
+                          {
+                            "text": {
+                              "es": "Mejorar salud",
+                              "en": "Mejorar salud"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mejor físico",
+                              "en": "Mejor físico"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Conocer personas",
+                              "en": "Conocer personas"
+                            }
+                          }
+                        ],
+                        "painPoints": [
+                          {
+                            "text": {
+                              "es": "El gimnasio convencional me aburre",
+                              "en": "El gimnasio convencional me aburre"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Las sesiones de entrenamiento son largas",
+                              "en": "Las sesiones de entrenamiento son largas"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Entrenar solo",
+                              "en": "Entrenar solo"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "No entender los programas de entrenamiento",
+                              "en": "No entender los programas de entrenamiento"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Programas de entrenamiento sin enfoque",
+                              "en": "Programas de entrenamiento sin enfoque"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Pocos horarios",
+                              "en": "Pocos horarios"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Lesiones",
+                              "en": "Lesiones"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": {
+                          "es": "Eva Rodríguez",
+                          "en": "Eva Rodríguez"
+                        },
+                        "descriptor": {
+                          "es": "Físicamente activa",
+                          "en": "Físicamente activa"
+                        },
+                        "quote": {
+                          "es": "\"Te ayudaremos a mantener tu estilo de vida saludable\"",
+                          "en": "\"Te ayudaremos a mantener tu estilo de vida saludable\""
+                        },
+                        "basicInfo": [
+                          {
+                            "text": {
+                              "es": "Mujer",
+                              "en": "Mujer"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "43 años de edad",
+                              "en": "43 años de edad"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Coach de nutrición",
+                              "en": "Coach de nutrición"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Locación: Santa Ana",
+                              "en": "Locación: Santa Ana"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Estatus económico: Medio, medio-alto",
+                              "en": "Estatus económico: Medio, medio-alto"
+                            }
+                          }
+                        ],
+                        "channels": [
+                          {
+                            "text": {
+                              "es": "Instagram",
+                              "en": "Instagram"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Facebook",
+                              "en": "Facebook"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Website",
+                              "en": "Website"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mailchimp",
+                              "en": "Mailchimp"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Whatsapp campaigns",
+                              "en": "Whatsapp campaigns"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Boca en boca",
+                              "en": "Boca en boca"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Convenios con empresa",
+                              "en": "Convenios con empresa"
+                            }
+                          }
+                        ],
+                        "motivations": [
+                          {
+                            "text": {
+                              "es": "Continuar con una salud óptima",
+                              "en": "Continuar con una salud óptima"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa",
+                              "en": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Pertenecer a una comunidad",
+                              "en": "Pertenecer a una comunidad"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Conocer nuevos ejercicios",
+                              "en": "Conocer nuevos ejercicios"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Preparación específica para competir en alguna disciplina",
+                              "en": "Preparación específica para competir en alguna disciplina"
+                            }
+                          }
+                        ],
+                        "painPoints": [
+                          {
+                            "text": {
+                              "es": "No ver resultados",
+                              "en": "No ver resultados"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "No tener programación específica",
+                              "en": "No tener programación específica"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "El gimnasio convencional me aburre",
+                              "en": "El gimnasio convencional me aburre"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Entrenar solo",
+                              "en": "Entrenar solo"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "No entender los programas de entrenamiento",
+                              "en": "No entender los programas de entrenamiento"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Pocos horarios",
+                              "en": "Pocos horarios"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Lesiones",
+                              "en": "Lesiones"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": {
+                          "es": "Mario López",
+                          "en": "Mario López"
+                        },
+                        "descriptor": {
+                          "es": "Practicante de CrossFit",
+                          "en": "Practicante de CrossFit"
+                        },
+                        "quote": {
+                          "es": "\"Somos el mejor centro de entrenamiento, ven y prueba\"",
+                          "en": "\"Somos el mejor centro de entrenamiento, ven y prueba\""
+                        },
+                        "basicInfo": [
+                          {
+                            "text": {
+                              "es": "Hombre",
+                              "en": "Hombre"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "23 años de edad",
+                              "en": "23 años de edad"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Estudia fisioterapia",
+                              "en": "Estudia fisioterapia"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Locación: Escazú",
+                              "en": "Locación: Escazú"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Estatus económico: Medio, medio-alto",
+                              "en": "Estatus económico: Medio, medio-alto"
+                            }
+                          }
+                        ],
+                        "channels": [
+                          {
+                            "text": {
+                              "es": "Instagram",
+                              "en": "Instagram"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Facebook",
+                              "en": "Facebook"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Website",
+                              "en": "Website"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mailchimp",
+                              "en": "Mailchimp"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Whatsapp campaigns",
+                              "en": "Whatsapp campaigns"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Boca en boca",
+                              "en": "Boca en boca"
+                            }
+                          }
+                        ],
+                        "motivations": [
+                          {
+                            "text": {
+                              "es": "Continuar entrenando crossfit",
+                              "en": "Continuar entrenando crossfit"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Continuar con una salud óptima",
+                              "en": "Continuar con una salud óptima"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mantener su estado físico",
+                              "en": "Mantener su estado físico"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Pertenecer a una comunidad",
+                              "en": "Pertenecer a una comunidad"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mejorar algunos ejercicios/movimientos",
+                              "en": "Mejorar algunos ejercicios/movimientos"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Competir en esta disciplina",
+                              "en": "Competir en esta disciplina"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Programación nueva y mejor",
+                              "en": "Programación nueva y mejor"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Diferencia de tarifas",
+                              "en": "Diferencia de tarifas"
+                            }
+                          }
+                        ],
+                        "painPoints": [
+                          {
+                            "text": {
+                              "es": "No ver resultados",
+                              "en": "No ver resultados"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Tener programación cambiante",
+                              "en": "Tener programación cambiante"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Coaches no a la altura",
+                              "en": "Coaches no a la altura"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Tarifas altas",
+                              "en": "Tarifas altas"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Rotación de personas",
+                              "en": "Rotación de personas"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "No tener open box",
+                              "en": "No tener open box"
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Mal mantenimiento de las instalaciones y equipo",
+                              "en": "Mal mantenimiento de las instalaciones y equipo"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "richText",
+                    "heading": {
+                      "es": "Bocetos",
+                      "en": "Bocetos"
+                    },
+                    "paragraphs": [
+                      {
+                        "text": {
+                          "es": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones.",
+                          "en": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\".",
+                          "en": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\"."
+                        }
+                      },
+                      {
+                        "text": {
+                          "es": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales.",
+                          "en": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "qa",
+                    "title": {},
+                    "items": [
+                      {
+                        "question": {
+                          "es": "¿Cuál fue el objetivo principal de los bocetos?",
+                          "en": "¿Cuál fue el objetivo principal de los bocetos?"
+                        },
+                        "answer": {
+                          "es": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar.",
+                          "en": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar."
+                        },
+                        "bullets": []
+                      },
+                      {
+                        "question": {
+                          "es": "¿Qué información fue la base para los bocetos?",
+                          "en": "¿Qué información fue la base para los bocetos?"
+                        },
+                        "answer": {
+                          "es": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders.",
+                          "en": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders."
+                        },
+                        "bullets": []
+                      }
+                    ]
+                  },
+                  {
+                    "blockType": "qa",
+                    "title": {
+                      "es": "Aprendizajes",
+                      "en": "Aprendizajes"
+                    },
+                    "items": [
+                      {
+                        "question": {
+                          "es": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?",
+                          "en": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?"
+                        },
+                        "answer": {
+                          "es": null,
+                          "en": null
+                        },
+                        "bullets": [
+                          {
+                            "text": {
+                              "es": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones.",
+                              "en": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones."
+                            }
+                          },
+                          {
+                            "text": {
+                              "es": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda.",
+                              "en": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "Prácticas de diseño que utilicé por primera vez",
+                          "en": "Prácticas de diseño que utilicé por primera vez"
+                        },
+                        "answer": {
+                          "es": null,
+                          "en": null
+                        },
+                        "bullets": [
+                          {
+                            "text": {
+                              "es": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa.",
+                              "en": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?",
+                          "en": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?"
+                        },
+                        "answer": {
+                          "es": null,
+                          "en": null
+                        },
+                        "bullets": [
+                          {
+                            "text": {
+                              "es": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto.",
+                              "en": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto."
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "question": {
+                          "es": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?",
+                          "en": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?"
+                        },
+                        "answer": {
+                          "es": null,
+                          "en": null
+                        },
+                        "bullets": [
+                          {
+                            "text": {
+                              "es": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica.",
+                              "en": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica."
+                            }
+                          }
+                        ]
                       }
                     ]
                   },
@@ -2397,59 +1780,69 @@
                   "es": "Live Betting App - UI/UX Mobile",
                   "en": "Live Betting App - UI/UX Mobile"
                 },
-                "categoryLabel": {
-                  "es": "App Mobile",
-                  "en": "App Mobile"
+                "category": {
+                  "es": "UI/UX Design",
+                  "en": "UI/UX Design"
                 },
                 "title": {
                   "es": "Live Betting App - UI/UX Mobile",
                   "en": "Live Betting App - UI/UX Mobile"
                 },
-                "size": "wide-tall"
+                "categoryLabel": {
+                  "es": "UI/UX Design",
+                  "en": "UI/UX Design"
+                }
               },
               {
                 "type": "image",
                 "image": "/images/uxui-sketch.png",
                 "alt": {
-                  "es": "Bocetos de wireframes",
-                  "en": "Wireframe sketches"
+                  "es": "UX/UI Wireframes & Sketches",
+                  "en": "UX/UI Wireframes & Sketches"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Wireframes",
                   "en": "Wireframes"
                 },
                 "title": {
-                  "es": "Bocetos de wireframes",
-                  "en": "Wireframe sketches"
+                  "es": "UX/UI Wireframes & Sketches",
+                  "en": "UX/UI Wireframes & Sketches"
                 },
-                "size": "col3"
+                "categoryLabel": {
+                  "es": "Wireframes",
+                  "en": "Wireframes"
+                }
               }
             ]
           },
-          "layoutVariant": "masonry-6",
-          "maxItems": 4,
+          "headingOverride": {
+            "es": null,
+            "en": null
+          },
+          "layoutVariant": "single",
+          "maxItems": 1,
           "showCta": true,
           "ctaLabel": {
-            "es": "Ver todo",
-            "en": "View all"
+            "es": "Ver más proyectos",
+            "en": "View more projects"
           },
-          "ctaHref": "/proyectos/uxui-producto"
+          "ctaHref": "/proyectos/uxui-producto",
+          "anchorId": "uxui-producto"
         },
         {
           "blockType": "categoryShowcase",
-          "anchorId": "fotografia",
           "category": {
             "name": {
-              "es": "Fotografía",
-              "en": "Photography"
+              "es": "Fotografía de Producto y Packaging",
+              "en": "Product Photography & Packaging"
             },
             "slug": "fotografia-producto",
             "anchorId": "fotografia",
-            "order": 4,
             "intro": {
-              "es": "Fotografía de producto y packaging para marcas de alimentación.",
-              "en": "Product and packaging photography for food brands."
+              "es": "Dirección de arte y fotografía que resalta la esencia de cada producto",
+              "en": "Art direction and photography that highlights the essence of each product"
             },
+            "order": 4,
             "projects": [
               {
                 "type": "image",
@@ -2458,7 +1851,7 @@
                   "es": "Crackers D'Argent - Fotografía de Producto",
                   "en": "Crackers D'Argent - Fotografía de Producto"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Fotografía de Producto",
                   "en": "Fotografía de Producto"
                 },
@@ -2466,7 +1859,10 @@
                   "es": "Crackers D'Argent - Fotografía de Producto",
                   "en": "Crackers D'Argent - Fotografía de Producto"
                 },
-                "size": "hero"
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                }
               },
               {
                 "type": "image",
@@ -2475,7 +1871,7 @@
                   "es": "Croissant Artesanal - Fotografía de Producto",
                   "en": "Croissant Artesanal - Fotografía de Producto"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Fotografía de Producto",
                   "en": "Fotografía de Producto"
                 },
@@ -2483,7 +1879,10 @@
                   "es": "Croissant Artesanal - Fotografía de Producto",
                   "en": "Croissant Artesanal - Fotografía de Producto"
                 },
-                "size": "med"
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                }
               },
               {
                 "type": "image",
@@ -2492,7 +1891,7 @@
                   "es": "Pan D'Argent - Fotografía de Producto",
                   "en": "Pan D'Argent - Fotografía de Producto"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Fotografía de Producto",
                   "en": "Fotografía de Producto"
                 },
@@ -2500,7 +1899,10 @@
                   "es": "Pan D'Argent - Fotografía de Producto",
                   "en": "Pan D'Argent - Fotografía de Producto"
                 },
-                "size": "wide-tall"
+                "categoryLabel": {
+                  "es": "Fotografía de Producto",
+                  "en": "Fotografía de Producto"
+                }
               },
               {
                 "type": "image",
@@ -2509,7 +1911,7 @@
                   "es": "Croissant Premium - Packaging & Fotografía",
                   "en": "Croissant Premium - Packaging & Fotografía"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Packaging",
                   "en": "Packaging"
                 },
@@ -2517,34 +1919,201 @@
                   "es": "Croissant Premium - Packaging & Fotografía",
                   "en": "Croissant Premium - Packaging & Fotografía"
                 },
-                "size": "col3"
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-1.png",
+                "alt": {
+                  "es": "Caja de Regalo Navideña - Packaging & Fotografía",
+                  "en": "Caja de Regalo Navideña - Packaging & Fotografía"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Caja de Regalo Navideña - Packaging & Fotografía",
+                  "en": "Caja de Regalo Navideña - Packaging & Fotografía"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-1.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 1",
+                  "en": "Set Regalo Vinte-Vinte - Vista 1"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 1",
+                  "en": "Set Regalo Vinte-Vinte - Vista 1"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-2.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 2",
+                  "en": "Set Regalo Vinte-Vinte - Vista 2"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 2",
+                  "en": "Set Regalo Vinte-Vinte - Vista 2"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-3.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 3",
+                  "en": "Set Regalo Vinte-Vinte - Vista 3"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 3",
+                  "en": "Set Regalo Vinte-Vinte - Vista 3"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 4",
+                  "en": "Set Regalo Vinte-Vinte - Vista 4"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 4",
+                  "en": "Set Regalo Vinte-Vinte - Vista 4"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-4.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 5",
+                  "en": "Set Regalo Vinte-Vinte - Vista 5"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 5",
+                  "en": "Set Regalo Vinte-Vinte - Vista 5"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-5.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 6",
+                  "en": "Set Regalo Vinte-Vinte - Vista 6"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 6",
+                  "en": "Set Regalo Vinte-Vinte - Vista 6"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
+              },
+              {
+                "type": "image",
+                "image": "/images/gift-box-vinte-6.png",
+                "alt": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 7",
+                  "en": "Set Regalo Vinte-Vinte - Vista 7"
+                },
+                "category": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                },
+                "title": {
+                  "es": "Set Regalo Vinte-Vinte - Vista 7",
+                  "en": "Set Regalo Vinte-Vinte - Vista 7"
+                },
+                "categoryLabel": {
+                  "es": "Packaging",
+                  "en": "Packaging"
+                }
               }
             ]
           },
+          "headingOverride": {
+            "es": null,
+            "en": null
+          },
           "layoutVariant": "masonry-photo",
-          "maxItems": 4,
+          "maxItems": 5,
           "showCta": true,
           "ctaLabel": {
-            "es": "Ver todo",
-            "en": "View all"
+            "es": "Ver más proyectos",
+            "en": "View more projects"
           },
-          "ctaHref": "/proyectos/fotografia-producto"
+          "ctaHref": "/proyectos/fotografia-producto",
+          "anchorId": "fotografia"
         },
         {
           "blockType": "categoryShowcase",
-          "anchorId": "marketing",
           "category": {
             "name": {
-              "es": "Marketing 360",
-              "en": "Marketing 360"
+              "es": "Diseño 360°",
+              "en": "360° Design"
             },
             "slug": "marketing-360",
             "anchorId": "marketing",
-            "order": 5,
             "intro": {
-              "es": "Campañas integrales: impreso, digital y publicidad exterior.",
-              "en": "Integrated campaigns: print, digital and out-of-home."
+              "es": "Estrategias visuales completas desde social media hasta publicidad exterior",
+              "en": "Complete visual strategies from social media to outdoor advertising"
             },
+            "order": 5,
             "projects": [
               {
                 "type": "image",
@@ -2553,7 +2122,7 @@
                   "es": "Brochure Corporativo - Grupo Santa Fe",
                   "en": "Brochure Corporativo - Grupo Santa Fe"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Material Impreso",
                   "en": "Material Impreso"
                 },
@@ -2561,7 +2130,10 @@
                   "es": "Brochure Corporativo - Grupo Santa Fe",
                   "en": "Brochure Corporativo - Grupo Santa Fe"
                 },
-                "size": "hero"
+                "categoryLabel": {
+                  "es": "Material Impreso",
+                  "en": "Material Impreso"
+                }
               },
               {
                 "type": "image",
@@ -2570,7 +2142,7 @@
                   "es": "Banner de Evento - Concierto",
                   "en": "Banner de Evento - Concierto"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Publicidad Digital",
                   "en": "Publicidad Digital"
                 },
@@ -2578,7 +2150,10 @@
                   "es": "Banner de Evento - Concierto",
                   "en": "Banner de Evento - Concierto"
                 },
-                "size": "tall"
+                "categoryLabel": {
+                  "es": "Publicidad Digital",
+                  "en": "Publicidad Digital"
+                }
               },
               {
                 "type": "image",
@@ -2587,7 +2162,7 @@
                   "es": "Mural Deportivo - PAS Eagles",
                   "en": "Mural Deportivo - PAS Eagles"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Publicidad OOH",
                   "en": "Publicidad OOH"
                 },
@@ -2595,7 +2170,10 @@
                   "es": "Mural Deportivo - PAS Eagles",
                   "en": "Mural Deportivo - PAS Eagles"
                 },
-                "size": "col3"
+                "categoryLabel": {
+                  "es": "Publicidad OOH",
+                  "en": "Publicidad OOH"
+                }
               },
               {
                 "type": "image",
@@ -2604,7 +2182,7 @@
                   "es": "Tarjetas de Presentación - Fisioterapia",
                   "en": "Tarjetas de Presentación - Fisioterapia"
                 },
-                "categoryLabel": {
+                "category": {
                   "es": "Branding",
                   "en": "Branding"
                 },
@@ -2612,22 +2190,280 @@
                   "es": "Tarjetas de Presentación - Fisioterapia",
                   "en": "Tarjetas de Presentación - Fisioterapia"
                 },
-                "size": "col3"
+                "categoryLabel": {
+                  "es": "Branding",
+                  "en": "Branding"
+                }
               }
             ]
+          },
+          "headingOverride": {
+            "es": null,
+            "en": null
           },
           "layoutVariant": "grid-4",
           "maxItems": 4,
           "showCta": true,
           "ctaLabel": {
-            "es": "Ver todo",
-            "en": "View all"
+            "es": "Ver más proyectos",
+            "en": "View more projects"
           },
-          "ctaHref": "/proyectos/marketing-360"
+          "ctaHref": "/proyectos/marketing-360",
+          "anchorId": "marketing"
+        },
+        {
+          "blockType": "experienceAccordion",
+          "headings": {
+            "careerPath": {
+              "es": "Trayectoria",
+              "en": "Career Path"
+            },
+            "professionalExperience": {
+              "es": "Experiencia profesional",
+              "en": "Professional Experience"
+            }
+          },
+          "experience": [
+            {
+              "role": {
+                "es": "Fundadora | Click & Print",
+                "en": "Founder | Click & Print"
+              },
+              "period": {
+                "es": "2023 – 2025",
+                "en": "2023 – 2025"
+              },
+              "responsibilities": [
+                {
+                  "item": {
+                    "es": "Desarrollo integral de identidad de marca y sistema visual 360°",
+                    "en": "Comprehensive development of brand identity and 360° visual system"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Diseño de packaging, mockups y preparación de artes finales para imprenta",
+                    "en": "Packaging design, mockups and preparation of final artwork for printing"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Creación de materiales promocionales offline y online",
+                    "en": "Creation of offline and online promotional materials"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Fotografía de producto y dirección de arte para sesiones de foto y video",
+                    "en": "Product photography and art direction for photo and video sessions"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Desarrollo de estrategias de branding y conceptualización visual de proyectos",
+                    "en": "Development of branding strategies and visual conceptualization of projects"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Diseño de newsletters y contenido para RRSS",
+                    "en": "Design of newsletters and social media content"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Coordinación con proveedores y supervisión de producción gráfica",
+                    "en": "Coordination with suppliers and supervision of graphic production"
+                  }
+                }
+              ]
+            },
+            {
+              "role": {
+                "es": "Diseñadora de producto / diseñadora gráfica | Barbas.Studio",
+                "en": "Product Designer / Graphic Designer | Barbas.Studio"
+              },
+              "period": {
+                "es": "2015 – 2023",
+                "en": "2015 – 2023"
+              },
+              "responsibilities": [
+                {
+                  "item": {
+                    "es": "Desarrollo de materiales gráficos para campañas de marketing y comunicación",
+                    "en": "Development of graphic materials for marketing and communication campaigns"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Diseño de identidad visual y adaptación a múltiples canales",
+                    "en": "Visual identity design and adaptation to multiple channels"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Creación de presentaciones comerciales en PowerPoint",
+                    "en": "Creation of commercial presentations in PowerPoint"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Motion graphics para piezas digitales",
+                    "en": "Motion graphics for digital pieces"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Dirección de arte en proyectos visuales y colaboración en shootings",
+                    "en": "Art direction in visual projects and collaboration in shootings"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Retoque fotográfico avanzado y optimización de imágenes para impresión y digital",
+                    "en": "Advanced photo retouching and image optimization for print and digital"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Coordinación con stakeholders y equipos multidisciplinares",
+                    "en": "Coordination with stakeholders and multidisciplinary teams"
+                  }
+                }
+              ]
+            },
+            {
+              "role": {
+                "es": "IDSca – Diseñadora UX/UI – Web",
+                "en": "IDSca – UX/UI Designer – Web"
+              },
+              "period": {
+                "es": "2012 – 2015",
+                "en": "2012 – 2015"
+              },
+              "responsibilities": [
+                {
+                  "item": {
+                    "es": "Diseño visual de interfaces digitales y adaptación gráfica a entornos online",
+                    "en": "Visual design of digital interfaces and graphic adaptation to online environments"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Optimización de arquitectura visual y experiencia de usuario",
+                    "en": "Optimization of visual architecture and user experience"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Trabajo colaborativo con equipos técnicos en desarrollo de productos digitales",
+                    "en": "Collaborative work with technical teams in digital product development"
+                  }
+                }
+              ]
+            },
+            {
+              "role": {
+                "es": "Arweb – Diseñadora gráfica y web",
+                "en": "Arweb – Graphic and Web Designer"
+              },
+              "period": {
+                "es": "2009 – 2012",
+                "en": "2009 – 2012"
+              },
+              "responsibilities": [
+                {
+                  "item": {
+                    "es": "Diseño de materiales gráficos corporativos y piezas promocionales",
+                    "en": "Design of corporate graphic materials and promotional pieces"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Desarrollo y mantenimiento de sitios web",
+                    "en": "Development and maintenance of websites"
+                  }
+                },
+                {
+                  "item": {
+                    "es": "Creación y adaptación de recursos visuales para distintos formatos digitales e impresos",
+                    "en": "Creation and adaptation of visual resources for different digital and print formats"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "blockType": "infoColumns",
+          "headings": {
+            "education": {
+              "es": "Formación",
+              "en": "Education"
+            },
+            "tools": {
+              "es": "Herramientas",
+              "en": "Tools"
+            },
+            "languages": {
+              "es": "Idiomas",
+              "en": "Languages"
+            }
+          },
+          "education": [
+            {
+              "item": {
+                "es": "The Hero Camp – Diseño de producto digital (2023)",
+                "en": "The Hero Camp – Digital Product Design (2023)"
+              }
+            },
+            {
+              "item": {
+                "es": "Universidad Creativa de Costa Rica – Licenciatura en diseño gráfico (2007 – 2009)",
+                "en": "Universidad Creativa de Costa Rica – Bachelor's Degree in Graphic Design (2007 – 2009)"
+              }
+            }
+          ],
+          "tools": [
+            {
+              "value": "Adobe Illustrator"
+            },
+            {
+              "value": "Adobe Photoshop"
+            },
+            {
+              "value": "Adobe InDesign"
+            },
+            {
+              "value": "Lightroom"
+            },
+            {
+              "value": "Figma"
+            },
+            {
+              "value": "PowerPoint"
+            },
+            {
+              "value": "Excel"
+            },
+            {
+              "value": "Word"
+            }
+          ],
+          "languages": [
+            {
+              "value": "Español – Nativo"
+            },
+            {
+              "value": "Inglés – B2 (Profesional)"
+            },
+            {
+              "value": "Catalán – A2"
+            }
+          ]
         },
         {
           "blockType": "contact",
-          "id": "6a55723aaef04e3eb82bab39",
           "heading": {
             "es": "Gracias por tu tiempo.",
             "en": "Thank you for your time."
@@ -2653,6 +2489,7 @@
               "en": "Terms"
             }
           },
+          "anchorId": "contact",
           "socialLinks": [
             {
               "name": "LinkedIn",
