@@ -32,6 +32,9 @@ export const Career: GlobalConfig = {
   slug: 'career',
   label: 'Experiencia Laboral',
   admin: {
+    // Superseded by the inline Experiencia block on the home Página.
+    // Hidden from the admin; kept in schema to avoid a destructive table drop.
+    hidden: true,
     group: 'Páginas y Contenido',
     description: 'Tu trayectoria profesional (el acordeón de experiencia).',
   },

@@ -30,6 +30,9 @@ export const About: GlobalConfig = {
   slug: 'about',
   label: 'Sobre Mí y Contacto',
   admin: {
+    // Superseded by the inline About/Contact blocks on the home Página.
+    // Hidden from the admin; kept in schema to avoid a destructive table drop.
+    hidden: true,
     group: 'Páginas y Contenido',
     description:
       'Formación, herramientas, idiomas, datos de contacto y pie de página.',

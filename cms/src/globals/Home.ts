@@ -22,6 +22,9 @@ export const Home: GlobalConfig = {
   slug: 'home',
   label: 'Página de Inicio — Portada',
   admin: {
+    // Superseded by the inline Hero block on the home Página (edit in place).
+    // Hidden from the admin; kept in schema to avoid a destructive table drop.
+    hidden: true,
     group: 'Páginas y Contenido',
     description:
       'El texto de la portada (la parte de arriba de la página de inicio).',
