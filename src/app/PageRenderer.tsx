@@ -41,7 +41,7 @@ import pagesData from "../../content/pages.json";
  * as blocks, each extracted verbatim from the original page component, so the
  * design stays pixel-identical while the CMS controls composition.
  */
-const blockRegistry: Record<string, ComponentType> = {
+const blockRegistry: Record<string, ComponentType<{ content?: unknown }>> = {
   // Home
   hero: HeroSection,
   brandingPreview: CorporateBranding,
@@ -89,6 +89,13 @@ type LocalizedText = { es: string; en: string };
 type Block = {
   blockType: string;
   anchorId?: string | null;
+  // Inline content for CONTENT blocks (hero, page headers, UX/UI case-study
+  // sub-blocks, career, about/contact). Emitted by the CMS into
+  // content/pages.json and passed straight to the block renderer as its
+  // `content` prop, so a block carries and edits its own content in place.
+  // Its shape is per-blockType (validated by each renderer's own prop type);
+  // here it is opaque and passed through verbatim.
+  content?: unknown;
   // Informational metadata emitted by the CMS for gallery blocks. The block
   // renderers self-source their images from content/sections/*.json (the source
   // of truth), so these fields are not consumed at render time — they document
@@ -192,18 +199,21 @@ export function PageRenderer({ slug }: { slug: string }) {
       return null;
     }
 
+    // Inline content (if any) flows to the renderer via its `content` prop.
+    const content = block.content;
+
     const anchorId = block.anchorId?.trim();
     if (anchorId) {
       return (
         <div id={anchorId} key={`${block.blockType}-${index}`}>
-          <Component />
+          <Component content={content} />
         </div>
       );
     }
 
     // No anchor: render the component directly with no wrapper so the
     // layout is byte-identical to the original.
-    return <Component key={`${block.blockType}-${index}`} />;
+    return <Component key={`${block.blockType}-${index}`} content={content} />;
   });
 
   const shell = PAGE_SHELLS[slug];

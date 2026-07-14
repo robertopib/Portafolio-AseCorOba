@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { inlineContentFields } from '../blocks/contentFields'
 
 /**
  * Páginas — data-driven page composition.
@@ -188,6 +189,10 @@ export const Pages: CollectionConfig = {
             },
           ],
         },
+        // Inline CONTENT groups (one per CONTENT block family). Each is shown +
+        // populated only for its matching blockType; the front-end reads it via
+        // the block's `content` prop. See blocks/contentFields.ts.
+        ...inlineContentFields(),
       ],
     },
   ],

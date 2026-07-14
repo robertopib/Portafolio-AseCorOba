@@ -139,6 +139,150 @@ async function main() {
   // what the front-end block renderers need.
   const readSection = (file: string) => readJson(path.join(SECTIONS_DIR, file))
   const brandingJson = readSection('branding.json')
+  const webAppsJson = readSection('web-apps.json')
+  const photographyJson = readSection('photography.json')
+  const marketingJson = readSection('marketing-360.json')
+  const caseStudyJson = readSection(CASE_STUDY_FILE)
+
+  // ---- Inline CONTENT builders (JSON shape -> Payload block content shape) ----
+  const uiJson = readJson(path.join(CONTENT_DIR, 'ui.json'))
+  const navBack: Loc = { es: uiJson.es['nav.back'], en: uiJson.en['nav.back'] }
+
+  // Localized {es,en} string array -> [{ text:{es,en} }]
+  const textRows = (arr: Loc[]) => arr.map((v) => ({ text: v }))
+
+  const heroContentFrom = (h: any) => ({
+    backgroundImage: h.backgroundImage,
+    title: h.title,
+    subtitle: h.subtitle,
+    body: h.body,
+    cta1: h.cta1,
+    cta2: h.cta2,
+  })
+
+  const headerContentFrom = (sectionJson: any, sectionNumber: string) => ({
+    backLabel: navBack,
+    sectionNumber,
+    title: sectionJson.page.title,
+    description: sectionJson.page.description,
+  })
+
+  const careerJson = readJson(path.join(CONTENT_DIR, 'career.json'))
+  const careerContentValue = (() => {
+    const c = careerJson
+    const len = c.experience.es.length
+    return {
+      headings: c.headings,
+      experience: Array.from({ length: len }, (_, i) => {
+        const es = c.experience.es[i]
+        const en = c.experience.en[i]
+        return {
+          role: { es: es.role, en: en.role },
+          period: { es: es.period, en: en.period },
+          responsibilities: es.responsibilities.map((_: string, j: number) => ({
+            item: { es: es.responsibilities[j], en: en.responsibilities[j] },
+          })),
+        }
+      }),
+    }
+  })()
+
+  const aboutJson = readJson(path.join(CONTENT_DIR, 'about.json'))
+  const aboutContentValue = (() => {
+    const a = aboutJson
+    const eduLen = a.education.es.length
+    return {
+      headings: a.headings,
+      education: Array.from({ length: eduLen }, (_, i) => ({
+        item: { es: a.education.es[i], en: a.education.en[i] },
+      })),
+      tools: a.tools.map((v: string) => ({ value: v })),
+      languages: a.languages.map((v: string) => ({ value: v })),
+      contact: {
+        heading: a.contact.heading,
+        body: a.contact.body,
+        email: a.contact.email,
+        phone: a.contact.phone,
+      },
+      socialLinks: a.socialLinks.map((s: any) => ({ name: s.name, url: s.url })),
+      footer: {
+        copyrightPrefix: a.footer.copyrightPrefix,
+        rights: a.footer.rights,
+        privacy: a.footer.privacy,
+        terms: a.footer.terms,
+      },
+    }
+  })()
+
+  // Full case study -> Payload uxuiContent shape (mirrors Projects.caseStudy).
+  const uxuiContentValue = (() => {
+    const cs = caseStudyJson
+    return {
+      header: { title: cs.header.title, tagline: cs.header.tagline },
+      hero: { image: cs.hero.image, alt: cs.hero.alt },
+      project: {
+        name: cs.project.name,
+        subtitle: cs.project.subtitle,
+        overview: cs.project.overview.map((o: any) => ({ label: o.label, text: o.text })),
+      },
+      intro: textRows(cs.intro),
+      problemSolution: {
+        problem: { label: cs.problemSolution.problem.label, text: cs.problemSolution.problem.text },
+        solution: { label: cs.problemSolution.solution.label, text: cs.problemSolution.solution.text },
+      },
+      details: {
+        headers: cs.details.headers,
+        rows: cs.details.rows.map((r: any) => ({ tools: r.tools, team: r.team, role: r.role })),
+      },
+      timeline: {
+        title: cs.timeline.title,
+        durationLabel: cs.timeline.durationLabel,
+        durationValue: cs.timeline.durationValue,
+        phases: cs.timeline.phases.map((p: any) => ({ phase: p.phase, duration: p.duration })),
+      },
+      journey: {
+        title: cs.journey.title,
+        intro: textRows(cs.journey.intro),
+        labels: cs.journey.labels,
+        stages: cs.journey.stages.map((s: any) => ({
+          number: s.number,
+          name: s.name,
+          action: s.action,
+          thought: s.thought,
+          friction: s.friction,
+        })),
+        qa: cs.journey.qa.map((q: any) => ({
+          question: q.question,
+          answer: q.answer ? q.answer : undefined,
+          bullets: q.bullets ? textRows(q.bullets) : undefined,
+        })),
+      },
+      personas: {
+        title: cs.personas.title,
+        intro: textRows(cs.personas.intro),
+        qa: cs.personas.qa.map((q: any) => ({ question: q.question, answer: textRows(q.answer) })),
+        sectionLabels: cs.personas.sectionLabels,
+        cards: cs.personas.cards.map((c: any) => ({
+          name: c.name,
+          descriptor: c.descriptor,
+          quote: c.quote,
+          basicInfo: textRows(c.basicInfo),
+          channels: textRows(c.channels),
+          motivations: textRows(c.motivations),
+          painPoints: textRows(c.painPoints),
+        })),
+      },
+      sketches: {
+        title: cs.sketches.title,
+        intro: textRows(cs.sketches.intro),
+        qa: cs.sketches.qa.map((q: any) => ({ question: q.question, answer: q.answer })),
+      },
+      learnings: {
+        title: cs.learnings.title,
+        qa: cs.learnings.qa.map((q: any) => ({ question: q.question, answer: textRows(q.answer) })),
+      },
+    }
+  })()
 
   const PAGE_DEFS: {
     slug: string
@@ -149,21 +293,21 @@ async function main() {
       slug: 'home',
       title: { es: 'Inicio', en: 'Home' },
       blocks: [
-        { blockType: 'hero' },
+        { blockType: 'hero', heroContent: heroContentFrom(home.hero) },
         { blockType: 'brandingPreview' },
         { blockType: 'webAppsPreview' },
         { blockType: 'uxuiPreview' },
         { blockType: 'fotografiaPreview' },
         { blockType: 'marketingPreview' },
-        { blockType: 'experiencia' },
-        { blockType: 'contacto' },
+        { blockType: 'experiencia', careerContent: careerContentValue },
+        { blockType: 'contacto', aboutContent: aboutContentValue },
       ],
     },
     {
       slug: 'branding',
       title: { es: 'Branding Corporativo', en: 'Corporate Branding' },
       blocks: [
-        { blockType: 'brandingHeader' },
+        { blockType: 'brandingHeader', headerContent: headerContentFrom(brandingJson, '02') },
         {
           blockType: 'gallery:deportes',
           subheading: brandingJson.page.subtitleSports,
@@ -185,7 +329,7 @@ async function main() {
       slug: 'web-apps',
       title: { es: 'Diseño Web y Apps', en: 'Web & App Design' },
       blocks: [
-        { blockType: 'webAppsHeader' },
+        { blockType: 'webAppsHeader', headerContent: headerContentFrom(webAppsJson, '03') },
         {
           blockType: 'webAppsGallery',
           source: { category: 'web-apps', placement: 'page' },
@@ -196,24 +340,24 @@ async function main() {
       slug: 'uxui-producto',
       title: { es: 'UX/UI Producto', en: 'UX/UI Product' },
       blocks: [
-        { blockType: 'uxuiHeader' },
-        { blockType: 'uxuiHero' },
-        { blockType: 'uxuiOverview' },
-        { blockType: 'uxuiIntro' },
-        { blockType: 'uxuiProblemSolution' },
-        { blockType: 'uxuiDetails' },
-        { blockType: 'uxuiTimeline' },
-        { blockType: 'uxuiJourney' },
-        { blockType: 'uxuiPersonas' },
-        { blockType: 'uxuiSketches' },
-        { blockType: 'uxuiLearnings' },
+        { blockType: 'uxuiHeader', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiHero', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiOverview', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiIntro', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiProblemSolution', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiDetails', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiTimeline', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiJourney', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiPersonas', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiSketches', uxuiContent: uxuiContentValue },
+        { blockType: 'uxuiLearnings', uxuiContent: uxuiContentValue },
       ],
     },
     {
       slug: 'fotografia-producto',
       title: { es: 'Fotografía de Producto y Packaging', en: 'Product Photography & Packaging' },
       blocks: [
-        { blockType: 'fotografiaHeader' },
+        { blockType: 'fotografiaHeader', headerContent: headerContentFrom(photographyJson, '05') },
         {
           blockType: 'fotografiaGallery',
           source: { category: 'fotografia-producto', placement: 'page' },
@@ -224,7 +368,7 @@ async function main() {
       slug: 'marketing-360',
       title: { es: 'Diseño 360°', en: '360° Design' },
       blocks: [
-        { blockType: 'marketingHeader' },
+        { blockType: 'marketingHeader', headerContent: headerContentFrom(marketingJson, '06') },
         {
           blockType: 'marketingGallery',
           source: { category: 'marketing-360', placement: 'page' },

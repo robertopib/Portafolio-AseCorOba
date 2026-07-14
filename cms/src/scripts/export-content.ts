@@ -204,6 +204,164 @@ async function main() {
       'fotografiaGallery',
       'marketingGallery',
     ])
+    const HEADER_BLOCK_TYPES = new Set([
+      'brandingHeader',
+      'webAppsHeader',
+      'fotografiaHeader',
+      'marketingHeader',
+    ])
+    const UXUI_BLOCK_TYPES = new Set([
+      'uxuiHeader',
+      'uxuiHero',
+      'uxuiOverview',
+      'uxuiIntro',
+      'uxuiProblemSolution',
+      'uxuiDetails',
+      'uxuiTimeline',
+      'uxuiJourney',
+      'uxuiPersonas',
+      'uxuiSketches',
+      'uxuiLearnings',
+    ])
+
+    // ---- inline-content reconstructors (block group -> flat JSON shape) ----
+    const rowsText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
+
+    const heroFrom = (c: any) => ({
+      backgroundImage: c.backgroundImage,
+      title: loc(c.title),
+      subtitle: loc(c.subtitle),
+      body: loc(c.body),
+      cta1: loc(c.cta1),
+      cta2: loc(c.cta2),
+    })
+    const headerFrom = (c: any) => ({
+      backLabel: loc(c.backLabel),
+      sectionNumber: c.sectionNumber,
+      title: loc(c.title),
+      description: loc(c.description),
+    })
+    const careerFrom = (c: any) => {
+      const buildExp = (l: 'es' | 'en') =>
+        (c.experience || []).map((row: any) => ({
+          role: row.role?.[l] ?? '',
+          period: row.period?.[l] ?? '',
+          responsibilities: (row.responsibilities || []).map((r: any) => r.item?.[l] ?? ''),
+        }))
+      return {
+        headings: {
+          careerPath: loc(c.headings.careerPath),
+          professionalExperience: loc(c.headings.professionalExperience),
+        },
+        experience: { es: buildExp('es'), en: buildExp('en') },
+      }
+    }
+    const aboutFrom = (c: any) => ({
+      headings: {
+        education: loc(c.headings.education),
+        tools: loc(c.headings.tools),
+        languages: loc(c.headings.languages),
+      },
+      education: {
+        es: (c.education || []).map((r: any) => r.item?.es ?? ''),
+        en: (c.education || []).map((r: any) => r.item?.en ?? ''),
+      },
+      tools: (c.tools || []).map((r: any) => r.value),
+      languages: (c.languages || []).map((r: any) => r.value),
+      contact: {
+        heading: loc(c.contact.heading),
+        body: loc(c.contact.body),
+        email: c.contact.email,
+        phone: c.contact.phone,
+      },
+      socialLinks: (c.socialLinks || []).map((s: any) => ({ name: s.name, url: s.url })),
+      footer: {
+        copyrightPrefix: c.footer.copyrightPrefix,
+        rights: loc(c.footer.rights),
+        privacy: loc(c.footer.privacy),
+        terms: loc(c.footer.terms),
+      },
+    })
+    const uxuiFrom = (cs: any) => ({
+      header: { title: loc(cs.header.title), tagline: loc(cs.header.tagline) },
+      hero: { image: cs.hero.image, alt: loc(cs.hero.alt) },
+      project: {
+        name: loc(cs.project.name),
+        subtitle: loc(cs.project.subtitle),
+        overview: cs.project.overview.map((o: any) => ({ label: loc(o.label), text: loc(o.text) })),
+      },
+      intro: rowsText(cs.intro),
+      problemSolution: {
+        problem: { label: loc(cs.problemSolution.problem.label), text: loc(cs.problemSolution.problem.text) },
+        solution: { label: loc(cs.problemSolution.solution.label), text: loc(cs.problemSolution.solution.text) },
+      },
+      details: {
+        headers: {
+          tools: loc(cs.details.headers.tools),
+          team: loc(cs.details.headers.team),
+          role: loc(cs.details.headers.role),
+        },
+        rows: cs.details.rows.map((r: any) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+      },
+      timeline: {
+        title: loc(cs.timeline.title),
+        durationLabel: loc(cs.timeline.durationLabel),
+        durationValue: loc(cs.timeline.durationValue),
+        phases: cs.timeline.phases.map((p: any) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+      },
+      journey: {
+        title: loc(cs.journey.title),
+        intro: rowsText(cs.journey.intro),
+        labels: {
+          action: loc(cs.journey.labels.action),
+          thought: loc(cs.journey.labels.thought),
+          friction: loc(cs.journey.labels.friction),
+        },
+        stages: cs.journey.stages.map((s: any) => ({
+          number: s.number,
+          name: loc(s.name),
+          action: loc(s.action),
+          thought: loc(s.thought),
+          friction: loc(s.friction),
+        })),
+        qa: cs.journey.qa.map((q: any) => {
+          const out: any = { question: loc(q.question) }
+          if (q.bullets && q.bullets.length > 0) out.bullets = rowsText(q.bullets)
+          else out.answer = loc(q.answer)
+          return out
+        }),
+      },
+      personas: {
+        title: loc(cs.personas.title),
+        intro: rowsText(cs.personas.intro),
+        qa: cs.personas.qa.map((q: any) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+        sectionLabels: {
+          basicInfo: loc(cs.personas.sectionLabels.basicInfo),
+          channels: loc(cs.personas.sectionLabels.channels),
+          motivations: loc(cs.personas.sectionLabels.motivations),
+          painPoints: loc(cs.personas.sectionLabels.painPoints),
+        },
+        cards: cs.personas.cards.map((c: any) => ({
+          name: loc(c.name),
+          descriptor: loc(c.descriptor),
+          quote: loc(c.quote),
+          basicInfo: rowsText(c.basicInfo),
+          channels: rowsText(c.channels),
+          motivations: rowsText(c.motivations),
+          painPoints: rowsText(c.painPoints),
+        })),
+      },
+      sketches: {
+        title: loc(cs.sketches.title),
+        intro: rowsText(cs.sketches.intro),
+        qa: cs.sketches.qa.map((q: any) => ({ question: loc(q.question), answer: loc(q.answer) })),
+      },
+      learnings: {
+        title: loc(cs.learnings.title),
+        qa: cs.learnings.qa.map((q: any) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+      },
+    })
+
     const recon = {
       pages: (pagesRes.docs as any[]).map((p) => ({
         slug: p.slug,
@@ -224,6 +382,19 @@ async function main() {
               if (s.group) src.group = s.group
               block.source = src
             }
+          }
+          // CONTENT blocks carry inline content, emitted as a flat `content`
+          // object matching the front-end renderer's `content` prop shape.
+          if (b.blockType === 'hero' && b.heroContent) {
+            block.content = heroFrom(b.heroContent)
+          } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
+            block.content = headerFrom(b.headerContent)
+          } else if (b.blockType === 'experiencia' && b.careerContent) {
+            block.content = careerFrom(b.careerContent)
+          } else if (b.blockType === 'contacto' && b.aboutContent) {
+            block.content = aboutFrom(b.aboutContent)
+          } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
+            block.content = uxuiFrom(b.uxuiContent)
           }
           return block
         }),

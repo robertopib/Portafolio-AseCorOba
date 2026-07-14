@@ -1,9 +1,20 @@
 import { ArrowDown } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-import home from "../../../content/home.json";
+import homeJson from "../../../content/home.json";
 
-export function HeroSection() {
+type LocalizedText = { es: string; en: string };
+type HeroContent = {
+  backgroundImage: string;
+  title: LocalizedText;
+  subtitle: LocalizedText;
+  body: LocalizedText;
+  cta1: LocalizedText;
+  cta2: LocalizedText;
+};
+
+export function HeroSection({ content }: { content?: HeroContent }) {
   const { language } = useLanguage();
+  const home = { hero: content ?? homeJson.hero };
 
   const scrollToWork = () => {
     const workSection = document.querySelector('#work');

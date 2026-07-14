@@ -1,24 +1,41 @@
 import { Mail, Phone, Linkedin, Instagram, GraduationCap, Code, Globe } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-import about from "../../../content/about.json";
+import aboutJson from "../../../content/about.json";
 
 const socialIcons: Record<string, typeof Linkedin> = {
   LinkedIn: Linkedin,
   Instagram: Instagram,
 };
 
-const socialLinks = about.socialLinks.map((s) => ({
-  name: s.name,
-  icon: socialIcons[s.name],
-  url: s.url,
-}));
+type LocalizedText = { es: string; en: string };
+type AboutContent = {
+  headings: { education: LocalizedText; tools: LocalizedText; languages: LocalizedText };
+  education: { es: string[]; en: string[] };
+  tools: string[];
+  languages: string[];
+  contact: { heading: LocalizedText; body: LocalizedText; email: string; phone: string };
+  socialLinks: { name: string; url: string }[];
+  footer: {
+    copyrightPrefix: string;
+    rights: LocalizedText;
+    privacy: LocalizedText;
+    terms: LocalizedText;
+  };
+};
 
-const tools = about.tools;
-
-const languages = about.languages;
-
-export function AboutContact() {
+export function AboutContact({ content }: { content?: AboutContent }) {
   const { language } = useLanguage();
+  const about = content ?? aboutJson;
+
+  const socialLinks = about.socialLinks.map((s) => ({
+    name: s.name,
+    icon: socialIcons[s.name],
+    url: s.url,
+  }));
+
+  const tools = about.tools;
+  const languages = about.languages;
+
   const education = about.education[language];
   const languagesList = languages;
 

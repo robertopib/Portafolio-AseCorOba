@@ -1,10 +1,21 @@
 import { Briefcase } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useLanguage } from "../context/LanguageContext";
-import career from "../../../content/career.json";
+import careerJson from "../../../content/career.json";
 
-export function AboutSection() {
+type LocalizedText = { es: string; en: string };
+type ExperienceRow = { role: string; period: string; responsibilities: string[] };
+type CareerContent = {
+  headings: {
+    careerPath: LocalizedText;
+    professionalExperience: LocalizedText;
+  };
+  experience: { es: ExperienceRow[]; en: ExperienceRow[] };
+};
+
+export function AboutSection({ content }: { content?: CareerContent }) {
   const { language } = useLanguage();
+  const career = content ?? careerJson;
   const experience = career.experience[language];
 
   return (

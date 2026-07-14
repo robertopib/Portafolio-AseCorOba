@@ -9,8 +9,20 @@ import { GalleryLightbox, useGalleryLightbox } from "./galleryShared";
  * src/app/pages/WebAppProjects.tsx. Data from content/sections/web-apps.json.
  */
 
-export function WebAppHeader() {
+type LocalizedText = { es: string; en: string };
+export type HeaderContent = {
+  backLabel?: LocalizedText;
+  sectionNumber: string;
+  title: LocalizedText;
+  description: LocalizedText;
+};
+
+export function WebAppHeader({ content }: { content?: HeaderContent }) {
   const { language, t } = useLanguage();
+  const sectionNumber = content?.sectionNumber ?? "03";
+  const title = content?.title ?? webApps.page.title;
+  const description = content?.description ?? webApps.page.description;
+  const backLabel = content?.backLabel ? content.backLabel[language] : t('nav.back');
   return (
     <div className="mb-12">
       <Link
@@ -19,20 +31,20 @@ export function WebAppHeader() {
       >
         <ArrowLeft className="w-5 h-5" />
         <span className="text-sm tracking-wider uppercase font-semibold">
-          {t('nav.back')}
+          {backLabel}
         </span>
       </Link>
 
       <div className="flex items-center gap-4 mb-6">
-        <span className="text-base tracking-widest uppercase text-neutral-500">03</span>
+        <span className="text-base tracking-widest uppercase text-neutral-500">{sectionNumber}</span>
         <div className="h-px flex-1 bg-neutral-800"></div>
       </div>
 
       <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-        {webApps.page.title[language]}
+        {title[language]}
       </h1>
       <p className="text-base text-neutral-300 max-w-3xl">
-        {webApps.page.description[language]}
+        {description[language]}
       </p>
     </div>
   );

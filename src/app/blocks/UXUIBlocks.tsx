@@ -2,18 +2,22 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useLanguage } from "../context/LanguageContext";
-import caseStudy from "../../../content/sections/uxui-casestudy.json";
+import caseStudyJson from "../../../content/sections/uxui-casestudy.json";
 
 /**
  * UX/UI Product case study, decomposed into page-composed blocks. Each block
  * reproduces its sub-section's ORIGINAL markup VERBATIM from
- * src/app/pages/UXUIProductProjects.tsx. Data from
- * content/sections/uxui-casestudy.json.
+ * src/app/pages/UXUIProductProjects.tsx. Content flows in via the block's
+ * `content` prop (from content/pages.json); the committed
+ * content/sections/uxui-casestudy.json is kept only as a fallback default so
+ * the render stays identical if a block instance has no inline content.
  */
+export type CaseStudyContent = typeof caseStudyJson;
 
 /** Header: back link + title + tagline. */
-export function UXUIHeader() {
+export function UXUIHeader({ content }: { content?: CaseStudyContent }) {
   const { language, t } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <div className="mb-16">
       <Link
@@ -35,8 +39,9 @@ export function UXUIHeader() {
 }
 
 /** Hero image. */
-export function UXUIHero() {
+export function UXUIHero({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <div className="mb-16">
       <div className="relative bg-neutral-800 rounded-[3px] overflow-hidden shadow-sm">
@@ -53,8 +58,9 @@ export function UXUIHero() {
 }
 
 /** Project title + subtitle + overview list. */
-export function UXUIOverview() {
+export function UXUIOverview({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <div className="mb-16">
       <h2 className="text-2xl md:text-4xl tracking-tight text-neutral-100 mb-4">
@@ -77,8 +83,9 @@ export function UXUIOverview() {
 }
 
 /** Introduction paragraphs. */
-export function UXUIIntro() {
+export function UXUIIntro({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       {caseStudy.intro.map((paragraph, index) => (
@@ -91,8 +98,9 @@ export function UXUIIntro() {
 }
 
 /** Problem & Solution two-column. */
-export function UXUIProblemSolution() {
+export function UXUIProblemSolution({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <div className="grid md:grid-cols-2 gap-12">
@@ -125,8 +133,9 @@ export function UXUIProblemSolution() {
 }
 
 /** Project details table. */
-export function UXUIDetails() {
+export function UXUIDetails({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <div className="bg-neutral-900 rounded-[3px] overflow-hidden border border-neutral-800">
@@ -160,8 +169,9 @@ export function UXUIDetails() {
 }
 
 /** Timeline. */
-export function UXUITimeline() {
+export function UXUITimeline({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
@@ -185,8 +195,9 @@ export function UXUITimeline() {
 }
 
 /** User Journey Map + Q&A. */
-export function UXUIJourney() {
+export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
@@ -379,8 +390,9 @@ export function UXUIJourney() {
 }
 
 /** User Personas. */
-export function UXUIPersonas() {
+export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
@@ -469,8 +481,9 @@ export function UXUIPersonas() {
 }
 
 /** Bocetos (sketches). */
-export function UXUISketches() {
+export function UXUISketches({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
       <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
@@ -503,8 +516,9 @@ export function UXUISketches() {
 }
 
 /** Aprendizajes (learnings) + back-to-home button. */
-export function UXUILearnings() {
+export function UXUILearnings({ content }: { content?: CaseStudyContent }) {
   const { language, t } = useLanguage();
+  const caseStudy = content ?? caseStudyJson;
   return (
     <>
       <section className="mb-16">

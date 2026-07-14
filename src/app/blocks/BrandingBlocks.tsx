@@ -100,8 +100,20 @@ function LightboxView({
 }
 
 /** Header block: back link + section index + title + description. */
-export function BrandingHeader() {
+type LocalizedText = { es: string; en: string };
+type HeaderContent = {
+  backLabel?: LocalizedText;
+  sectionNumber: string;
+  title: LocalizedText;
+  description: LocalizedText;
+};
+
+export function BrandingHeader({ content }: { content?: HeaderContent }) {
   const { language, t } = useLanguage();
+  const sectionNumber = content?.sectionNumber ?? "02";
+  const title = content?.title ?? branding.page.title;
+  const description = content?.description ?? branding.page.description;
+  const backLabel = content?.backLabel ? content.backLabel[language] : t('nav.back');
   return (
     <div className="mb-12">
       <Link
@@ -110,20 +122,20 @@ export function BrandingHeader() {
       >
         <ArrowLeft className="w-5 h-5" />
         <span className="text-sm tracking-wider uppercase font-semibold">
-          {t('nav.back')}
+          {backLabel}
         </span>
       </Link>
 
       <div className="flex items-center gap-4 mb-6">
-        <span className="text-base tracking-widest uppercase text-neutral-500">02</span>
+        <span className="text-base tracking-widest uppercase text-neutral-500">{sectionNumber}</span>
         <div className="h-px flex-1 bg-neutral-800"></div>
       </div>
 
       <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-        {branding.page.title[language]}
+        {title[language]}
       </h1>
       <p className="text-base text-neutral-300 max-w-3xl">
-        {branding.page.description[language]}
+        {description[language]}
       </p>
     </div>
   );
