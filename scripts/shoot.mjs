@@ -44,7 +44,25 @@ const settle = async (page) => {
   try {
     await page.evaluate(() => document.fonts && document.fonts.ready)
   } catch {}
-  await sleep(900)
+  // Wait for every <img> to finish loading/decoding (production images come from
+  // the CDN and load slower than local disk — without this, screenshots can fire
+  // mid-decode and produce spurious diffs).
+  try {
+    await page.evaluate(async () => {
+      const imgs = Array.from(document.images)
+      await Promise.all(
+        imgs.map((img) =>
+          img.complete && img.naturalWidth > 0
+            ? Promise.resolve()
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true })
+                img.addEventListener('error', res, { once: true })
+              }),
+        ),
+      )
+    })
+  } catch {}
+  await sleep(1200)
 }
 
 // Click the ES/EN language toggle (the nav button whose text is 'EN' or 'ES').
