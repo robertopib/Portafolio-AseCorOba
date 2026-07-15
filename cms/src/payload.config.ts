@@ -51,7 +51,16 @@ export default buildConfig({
   plugins: [
     s3Storage({
       collections: {
-        media: true,
+        // When R2_PUBLIC_URL is set, serve media DIRECTLY from R2's public URL
+        // (no proxy through the serverless function — avoids the ~4.5MB Vercel
+        // function response limit and 500s). Falls back to Payload proxy locally.
+        media: process.env.R2_PUBLIC_URL
+          ? {
+              disablePayloadAccessControl: true,
+              generateFileURL: ({ filename }: { filename: string }) =>
+                `${(process.env.R2_PUBLIC_URL as string).replace(/\/+$/, '')}/${filename}`,
+            }
+          : true,
       },
       bucket: process.env.S3_BUCKET || '',
       config: {
