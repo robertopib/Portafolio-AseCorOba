@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/career.json.
@@ -36,9 +35,6 @@ export const Career: GlobalConfig = {
   // auth. Update stays auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployGlobalAfterChange],
   },
   admin: {
     // Superseded by the inline Experiencia block on the home Página.

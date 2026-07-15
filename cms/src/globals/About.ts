@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/about.json.
@@ -34,9 +33,6 @@ export const About: GlobalConfig = {
   // auth. Update stays auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployGlobalAfterChange],
   },
   admin: {
     // Superseded by the inline About/Contact blocks on the home Página.

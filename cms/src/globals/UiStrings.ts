@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Mirrors content/ui.json.
@@ -24,9 +23,6 @@ export const UiStrings: GlobalConfig = {
   // auth. Update stays auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployGlobalAfterChange],
   },
   admin: {
     group: 'Ajustes',

@@ -1,53 +1,40 @@
 /**
- * Publish trigger — fire the front-end rebuild when content changes.
+ * Deploy trigger — fire the front-end rebuild ON DEMAND.
  *
  * The front-end is a separate Vercel project whose build re-fetches all content
- * from this CMS (see scripts/fetch-content.mjs). To make "Publish" in the admin
- * cause the public site to update, we POST the front-end's Vercel Deploy Hook
- * URL whenever a content collection or global changes (create/update/delete).
- *
- * Wired into the content collections (Pages, Projects, Categories, Media) and
- * globals (Site, UiStrings, and the hidden Home/About/Career).
+ * from this CMS (see scripts/fetch-content.mjs). Rebuilds are NO LONGER fired
+ * automatically on every content save. Instead the admin exposes a manual
+ * "Publicar cambios" button that calls the `/api/publish` endpoint, which uses
+ * the helper below.
  *
  * Behavior:
- *  - Reads process.env.VERCEL_DEPLOY_HOOK_URL. If unset/empty, does NOTHING
- *    (local dev, or before the hook is configured).
- *  - Fire-and-forget: never awaited, never blocks the save, swallows all errors.
+ *  - Reads process.env.VERCEL_DEPLOY_HOOK_URL.
+ *  - If unset/empty, returns { ok: false, reason: 'no-hook' } (local dev, or
+ *    before the hook is configured).
+ *  - Otherwise awaits a POST to the deploy hook and reports success/failure.
  */
-import type {
-  CollectionAfterChangeHook,
-  CollectionAfterDeleteHook,
-  GlobalAfterChangeHook,
-} from 'payload'
 
-/** POST the deploy hook, if configured. Never throws. */
-function pingDeployHook(label: string): void {
+export type PingDeployResult =
+  | { ok: true }
+  | { ok: false; reason: 'no-hook' }
+  | { ok: false; reason: 'error'; status?: number; message?: string }
+
+/** POST the deploy hook, if configured. Awaited; never throws. */
+export async function pingDeployHook(label = 'manual'): Promise<PingDeployResult> {
   const url = process.env.VERCEL_DEPLOY_HOOK_URL
-  if (!url) return // not configured (local dev) -> skip silently
+  if (!url) return { ok: false, reason: 'no-hook' }
 
-  // Fire-and-forget: do not await, do not block the save.
-  void fetch(url, { method: 'POST' })
-    .then((res) => {
-      if (!res.ok) {
-        console.warn(`[deploy-hook] ${label}: hook responded ${res.status}`)
-      } else {
-        console.log(`[deploy-hook] ${label}: front-end rebuild triggered`)
-      }
-    })
-    .catch((err) => {
-      // Swallow — a failed rebuild ping must never break a content save.
-      console.warn(`[deploy-hook] ${label}: ping failed:`, err?.message ?? err)
-    })
-}
-
-export const triggerDeployAfterChange: CollectionAfterChangeHook = ({ collection }) => {
-  pingDeployHook(`collection:${collection.slug}`)
-}
-
-export const triggerDeployAfterDelete: CollectionAfterDeleteHook = ({ collection }) => {
-  pingDeployHook(`collection:${collection.slug}:delete`)
-}
-
-export const triggerDeployGlobalAfterChange: GlobalAfterChangeHook = ({ global }) => {
-  pingDeployHook(`global:${global.slug}`)
+  try {
+    const res = await fetch(url, { method: 'POST' })
+    if (!res.ok) {
+      console.warn(`[deploy-hook] ${label}: hook responded ${res.status}`)
+      return { ok: false, reason: 'error', status: res.status }
+    }
+    console.log(`[deploy-hook] ${label}: front-end rebuild triggered`)
+    return { ok: true }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.warn(`[deploy-hook] ${label}: ping failed:`, message)
+    return { ok: false, reason: 'error', message }
+  }
 }

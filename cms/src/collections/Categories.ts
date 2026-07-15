@@ -1,5 +1,4 @@
 import type { CollectionConfig } from 'payload'
-import { triggerDeployAfterChange, triggerDeployAfterDelete } from '../hooks/triggerDeploy'
 
 /**
  * Categorías — the top level of the intuitive "Categorías → Proyectos" model.
@@ -36,10 +35,6 @@ export const Categories: CollectionConfig = {
   // auth. Create/update/delete stay auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployAfterChange],
-    afterDelete: [triggerDeployAfterDelete],
   },
   admin: {
     useAsTitle: 'name',

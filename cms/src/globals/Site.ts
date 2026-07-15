@@ -1,5 +1,4 @@
 import type { GlobalConfig } from 'payload'
-import { triggerDeployGlobalAfterChange } from '../hooks/triggerDeploy'
 
 /**
  * Sitio y Navegación — the website title (browser tab), the brand name shown
@@ -15,9 +14,6 @@ export const Site: GlobalConfig = {
   // auth. Update stays auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployGlobalAfterChange],
   },
   admin: {
     group: 'Ajustes',

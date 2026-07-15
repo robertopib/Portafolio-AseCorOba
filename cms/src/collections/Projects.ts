@@ -1,6 +1,5 @@
 import type { CollectionConfig } from 'payload'
 import { caseStudyBodyField } from '../blocks/caseStudyBody'
-import { triggerDeployAfterChange, triggerDeployAfterDelete } from '../hooks/triggerDeploy'
 
 /**
  * Proyectos — the leaf level of the "Categorías → Proyectos" model.
@@ -30,10 +29,6 @@ export const Projects: CollectionConfig = {
   // auth. Create/update/delete stay auth'd (Payload's default when unset).
   access: {
     read: () => true,
-  },
-  hooks: {
-    afterChange: [triggerDeployAfterChange],
-    afterDelete: [triggerDeployAfterDelete],
   },
   admin: {
     useAsTitle: 'internalTitle',
