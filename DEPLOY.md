@@ -7,9 +7,15 @@ Two Vercel projects from **one** GitHub repo:
 2. **CMS** (`cms/` subdirectory) — Payload CMS (Next.js) backed by Neon (Postgres)
    + Cloudflare R2 (images).
 
-**Publish flow:** editing content in the CMS admin → a Payload `afterChange`/
-`afterDelete` hook POSTs the front-end's Vercel **Deploy Hook** → Vercel rebuilds
-the front-end → its build re-fetches the fresh content and images.
+**Publish flow (manual):** editing content in the CMS admin → editor clicks the
+**"Publicar cambios"** button (→ `POST /api/publish`) → it POSTs the front-end's
+Vercel **Deploy Hook** (`VERCEL_DEPLOY_HOOK_URL`) → Vercel rebuilds the front-end →
+its build re-fetches the fresh content and images. (Auto-deploy-on-save hooks were
+removed — publishing is deliberate, one rebuild per click.)
+
+> **Live infrastructure, domains, preview environment, env-var matrix, and the
+> gotchas learned during deploy are documented in [`INFRASTRUCTURE.md`](./INFRASTRUCTURE.md).**
+> This file (DEPLOY.md) covers first-time project creation.
 
 > **Secrets are NEVER committed.** Everything below is entered in the Vercel
 > dashboard (Project → Settings → Environment Variables) or Neon/Cloudflare.
