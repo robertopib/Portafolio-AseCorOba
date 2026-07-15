@@ -1,0 +1,571 @@
+{
+  "categories": [
+    {
+      "slug": "branding",
+      "name": {
+        "es": "Branding Corporativo",
+        "en": "Corporate Branding"
+      },
+      "anchorId": "branding",
+      "page": {
+        "title": {
+          "es": "Branding Corporativo",
+          "en": "Corporate Branding"
+        },
+        "description": {
+          "es": "Identidades visuales coherentes y memorables que conectan con tu audiencia",
+          "en": "Coherent and memorable visual identities that connect with your audience"
+        }
+      },
+      "projects": [
+        {
+          "image": "/images/wodfest-1.png",
+          "alt": {
+            "es": "WodFest Costa Rica - Campaña publicitaria",
+            "en": "WodFest Costa Rica - Campaña publicitaria"
+          },
+          "category": {
+            "es": "Campaña Publicitaria",
+            "en": "Campaña Publicitaria"
+          },
+          "group": "sports"
+        },
+        {
+          "image": "/images/wodfest-2.png",
+          "alt": {
+            "es": "WodFest Costa Rica - Diseño de marca",
+            "en": "WodFest Costa Rica - Diseño de marca"
+          },
+          "category": {
+            "es": "Diseño de Marca",
+            "en": "Diseño de Marca"
+          },
+          "group": "sports"
+        },
+        {
+          "image": "/images/adriana-munoz.png",
+          "alt": {
+            "es": "Adriana Muñoz - Contenido para redes sociales",
+            "en": "Adriana Muñoz - Contenido para redes sociales"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/ana-grace.png",
+          "alt": {
+            "es": "Ana Grace Salon & Estética - Branding digital",
+            "en": "Ana Grace Salon & Estética - Branding digital"
+          },
+          "category": {
+            "es": "Branding Digital",
+            "en": "Branding Digital"
+          },
+          "group": "anaGrace"
+        },
+        {
+          "image": "/images/phicontour-live.png",
+          "alt": {
+            "es": "Live Técnica Phicontour - Adriana Muñoz",
+            "en": "Live Técnica Phicontour - Adriana Muñoz"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/ana-grace-hair.png",
+          "alt": {
+            "es": "Ana Grace - Promoción Tratamiento Capilar",
+            "en": "Ana Grace - Promoción Tratamiento Capilar"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "anaGrace"
+        },
+        {
+          "image": "/images/ana-grace-online.png",
+          "alt": {
+            "es": "Ana Grace - Compra Online",
+            "en": "Ana Grace - Compra Online"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "anaGrace"
+        },
+        {
+          "image": "/images/phibrows-course.png",
+          "alt": {
+            "es": "Curso Phibrows - Material Promocional",
+            "en": "Curso Phibrows - Material Promocional"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/fitness-deadlift.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Técnica Deadlift",
+            "en": "OFF DAY Trainer - Técnica Deadlift"
+          },
+          "category": {
+            "es": "Contenido Educativo",
+            "en": "Contenido Educativo"
+          },
+          "group": "sports"
+        },
+        {
+          "image": "/images/fitness-pullups.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Técnica Pull-ups",
+            "en": "OFF DAY Trainer - Técnica Pull-ups"
+          },
+          "category": {
+            "es": "Contenido Educativo",
+            "en": "Contenido Educativo"
+          },
+          "group": "sports"
+        },
+        {
+          "image": "/images/phibrows-before-after.png",
+          "alt": {
+            "es": "Curso Phibrows - Antes y Después",
+            "en": "Curso Phibrows - Antes y Después"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/ana-grace-payment.png",
+          "alt": {
+            "es": "Ana Grace - Información de Pago",
+            "en": "Ana Grace - Información de Pago"
+          },
+          "category": {
+            "es": "Social Media",
+            "en": "Social Media"
+          },
+          "group": "anaGrace"
+        },
+        {
+          "image": "/images/live-microblading.png",
+          "alt": {
+            "es": "Live con Ana Oprea - Técnica Microblading",
+            "en": "Live con Ana Oprea - Técnica Microblading"
+          },
+          "category": {
+            "es": "Evento Online",
+            "en": "Evento Online"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/live-phibrows-shading.png",
+          "alt": {
+            "es": "Live con Stefany Galeano - Phibrows Shading",
+            "en": "Live con Stefany Galeano - Phibrows Shading"
+          },
+          "category": {
+            "es": "Evento Online",
+            "en": "Evento Online"
+          },
+          "group": "adrianaMunoz"
+        },
+        {
+          "image": "/images/snaga-relay.png",
+          "alt": {
+            "es": "SNAGA Team Relay 9th Anniversary",
+            "en": "SNAGA Team Relay 9th Anniversary"
+          },
+          "category": {
+            "es": "Evento Fitness",
+            "en": "Evento Fitness"
+          },
+          "group": "sports"
+        },
+        {
+          "image": "/images/la-dulcereta.png",
+          "alt": {
+            "es": "La Dulcereta Obleas - Diseño de Logo",
+            "en": "La Dulcereta Obleas - Diseño de Logo"
+          },
+          "category": {
+            "es": "Logo",
+            "en": "Logo"
+          },
+          "group": "logos"
+        },
+        {
+          "image": "/images/fit-cookie.png",
+          "alt": {
+            "es": "Fit Cookie by Elsa Cubero - Diseño de Logo",
+            "en": "Fit Cookie by Elsa Cubero - Diseño de Logo"
+          },
+          "category": {
+            "es": "Logo",
+            "en": "Logo"
+          },
+          "group": "logos"
+        },
+        {
+          "image": "/images/nomads.png",
+          "alt": {
+            "es": "Nomads Eighty-Six - Diseño de Logo",
+            "en": "Nomads Eighty-Six - Diseño de Logo"
+          },
+          "category": {
+            "es": "Logo",
+            "en": "Logo"
+          },
+          "group": "logos"
+        },
+        {
+          "image": "/images/la-pedrena.png",
+          "alt": {
+            "es": "Carnicería La Pedreña - Diseño de Logo",
+            "en": "Carnicería La Pedreña - Diseño de Logo"
+          },
+          "category": {
+            "es": "Logo",
+            "en": "Logo"
+          },
+          "group": "logos"
+        },
+        {
+          "image": "/images/falecon.png",
+          "alt": {
+            "es": "Falecon Decoraciones - Diseño de Logo",
+            "en": "Falecon Decoraciones - Diseño de Logo"
+          },
+          "category": {
+            "es": "Logo",
+            "en": "Logo"
+          },
+          "group": "logos"
+        }
+      ]
+    },
+    {
+      "slug": "web-apps",
+      "name": {
+        "es": "Diseño Web y Apps",
+        "en": "Web & App Design"
+      },
+      "anchorId": "web-apps",
+      "page": {
+        "title": {
+          "es": "Diseño Web y Apps",
+          "en": "Web & App Design"
+        },
+        "description": {
+          "es": "Experiencias digitales intuitivas y centradas en el usuario",
+          "en": "Intuitive and user-centered digital experiences"
+        }
+      },
+      "projects": [
+        {
+          "image": "/images/offday-trainer.png",
+          "alt": {
+            "es": "OFF DAY Trainer - Diseño Web de Fitness",
+            "en": "OFF DAY Trainer - Diseño Web de Fitness"
+          },
+          "category": {
+            "es": "Diseño Web",
+            "en": "Diseño Web"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/topmed-ecommerce.png",
+          "alt": {
+            "es": "TOPMED E-Commerce - Diseño Responsivo",
+            "en": "TOPMED E-Commerce - Diseño Responsivo"
+          },
+          "category": {
+            "es": "E-Commerce",
+            "en": "E-Commerce"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/live-betting.png",
+          "alt": {
+            "es": "Live Betting App - UI/UX Mobile",
+            "en": "Live Betting App - UI/UX Mobile"
+          },
+          "category": {
+            "es": "App Mobile",
+            "en": "App Mobile"
+          },
+          "group": null
+        }
+      ]
+    },
+    {
+      "slug": "uxui-producto",
+      "name": {
+        "es": "UX/UI Producto",
+        "en": "UX/UI Product"
+      },
+      "anchorId": "uxui",
+      "page": {
+        "title": {
+          "es": "",
+          "en": ""
+        },
+        "description": {
+          "es": "",
+          "en": ""
+        }
+      },
+      "projects": []
+    },
+    {
+      "slug": "fotografia-producto",
+      "name": {
+        "es": "Fotografía de Producto y Packaging",
+        "en": "Product Photography & Packaging"
+      },
+      "anchorId": "fotografia",
+      "page": {
+        "title": {
+          "es": "Fotografía de Producto y Packaging",
+          "en": "Product Photography & Packaging"
+        },
+        "description": {
+          "es": "Dirección de arte y fotografía que resalta la esencia de cada producto",
+          "en": "Art direction and photography that highlights the essence of each product"
+        }
+      },
+      "projects": [
+        {
+          "image": "/images/crackers.png",
+          "alt": {
+            "es": "Crackers D'Argent - Fotografía de Producto",
+            "en": "Crackers D'Argent - Fotografía de Producto"
+          },
+          "category": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/croissant.png",
+          "alt": {
+            "es": "Croissant Artesanal - Fotografía de Producto",
+            "en": "Croissant Artesanal - Fotografía de Producto"
+          },
+          "category": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/bread-dargent.png",
+          "alt": {
+            "es": "Pan D'Argent - Fotografía de Producto",
+            "en": "Pan D'Argent - Fotografía de Producto"
+          },
+          "category": {
+            "es": "Fotografía de Producto",
+            "en": "Fotografía de Producto"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/croissant-packaging.png",
+          "alt": {
+            "es": "Croissant Premium - Packaging & Fotografía",
+            "en": "Croissant Premium - Packaging & Fotografía"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-1.png",
+          "alt": {
+            "es": "Caja de Regalo Navideña - Packaging & Fotografía",
+            "en": "Caja de Regalo Navideña - Packaging & Fotografía"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-1.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 1",
+            "en": "Set Regalo Vinte-Vinte - Vista 1"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-2.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 2",
+            "en": "Set Regalo Vinte-Vinte - Vista 2"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-3.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 3",
+            "en": "Set Regalo Vinte-Vinte - Vista 3"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 4",
+            "en": "Set Regalo Vinte-Vinte - Vista 4"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-4.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 5",
+            "en": "Set Regalo Vinte-Vinte - Vista 5"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-5.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 6",
+            "en": "Set Regalo Vinte-Vinte - Vista 6"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/gift-box-vinte-6.png",
+          "alt": {
+            "es": "Set Regalo Vinte-Vinte - Vista 7",
+            "en": "Set Regalo Vinte-Vinte - Vista 7"
+          },
+          "category": {
+            "es": "Packaging",
+            "en": "Packaging"
+          },
+          "group": null
+        }
+      ]
+    },
+    {
+      "slug": "marketing-360",
+      "name": {
+        "es": "Diseño 360°",
+        "en": "360° Design"
+      },
+      "anchorId": "marketing-360",
+      "page": {
+        "title": {
+          "es": "Diseño 360°",
+          "en": "360° Design"
+        },
+        "description": {
+          "es": "Estrategias integrales de diseño visual para todos los canales",
+          "en": "Comprehensive visual design strategies for all channels"
+        }
+      },
+      "projects": [
+        {
+          "image": "/images/santa-fe-brochure.png",
+          "alt": {
+            "es": "Brochure Corporativo - Grupo Santa Fe",
+            "en": "Brochure Corporativo - Grupo Santa Fe"
+          },
+          "category": {
+            "es": "Material Impreso",
+            "en": "Material Impreso"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/concert-banner.png",
+          "alt": {
+            "es": "Banner de Evento - Concierto",
+            "en": "Banner de Evento - Concierto"
+          },
+          "category": {
+            "es": "Publicidad Digital",
+            "en": "Publicidad Digital"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/basketball-mural.png",
+          "alt": {
+            "es": "Mural Deportivo - PAS Eagles",
+            "en": "Mural Deportivo - PAS Eagles"
+          },
+          "category": {
+            "es": "Publicidad OOH",
+            "en": "Publicidad OOH"
+          },
+          "group": null
+        },
+        {
+          "image": "/images/fisioterapia-cards.png",
+          "alt": {
+            "es": "Tarjetas de Presentación - Fisioterapia",
+            "en": "Tarjetas de Presentación - Fisioterapia"
+          },
+          "category": {
+            "es": "Branding",
+            "en": "Branding"
+          },
+          "group": null
+        }
+      ]
+    }
+  ]
+}

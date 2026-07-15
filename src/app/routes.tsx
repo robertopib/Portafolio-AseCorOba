@@ -1,23 +1,20 @@
 import { createBrowserRouter } from "react-router";
 import { Layout } from "./components/Layout";
-import { HomePage } from "./pages/HomePage";
-import { BrandingProjects } from "./pages/BrandingProjects";
-import { WebAppProjects } from "./pages/WebAppProjects";
-import { UXUIProductProjects } from "./pages/UXUIProductProjects";
-import { ProductPhotographyProjects } from "./pages/ProductPhotographyProjects";
-import { Marketing360Projects } from "./pages/Marketing360Projects";
+import { PageRenderer } from "./PageRenderer";
+import { CategoryArchive, CaseStudyRoute } from "./blocks/CategoryArchive";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Layout,
     children: [
-      { index: true, Component: HomePage },
-      { path: "proyectos/branding", Component: BrandingProjects },
-      { path: "proyectos/web-apps", Component: WebAppProjects },
-      { path: "proyectos/uxui-producto", Component: UXUIProductProjects },
-      { path: "proyectos/fotografia-producto", Component: ProductPhotographyProjects },
-      { path: "proyectos/marketing-360", Component: Marketing360Projects },
+      { index: true, element: <PageRenderer slug="home" /> },
+      // Category archive: renders via the category's Página (pixel-identical)
+      // when one exists, else an auto-archive of that category's Proyectos.
+      { path: "proyectos/:categorySlug", element: <CategoryArchive /> },
+      // Case-study post: renders a caseStudy Proyecto's inline body via the
+      // case-study template.
+      { path: "proyectos/:categorySlug/:projectSlug", element: <CaseStudyRoute /> },
     ],
   },
 ]);

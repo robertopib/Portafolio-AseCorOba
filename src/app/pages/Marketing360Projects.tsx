@@ -2,22 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes existentes
-import santaFeBrochure from "figma:asset/948f59a23fd540d4046c36f4ab1b7a97b1698104.png";
-import concertBanner from "figma:asset/76f828416fc7ad72fb4f511192913809307465d8.png";
-import basketballMural from "figma:asset/7ff4421de649ad1136460666ff29df586b068030.png";
-import fisioterapiaCards from "figma:asset/8d4051360f9c5a7adefe677a485c2e2c7ccadb2b.png";
-
-const marketing360Projects = [
-  { id: 1, src: santaFeBrochure, alt: "Brochure Corporativo - Grupo Santa Fe", category: "Material Impreso" },
-  { id: 2, src: concertBanner, alt: "Banner de Evento - Concierto", category: "Publicidad Digital" },
-  { id: 3, src: basketballMural, alt: "Mural Deportivo - PAS Eagles", category: "Publicidad OOH" },
-  { id: 4, src: fisioterapiaCards, alt: "Tarjetas de Presentación - Fisioterapia", category: "Branding" },
-  // Puedes agregar más proyectos aquí
-];
+import { Lightbox } from "../components/Lightbox";
+import marketing360 from "../../../content/sections/marketing-360.json";
 
 export function Marketing360Projects() {
+  const { language, t } = useLanguage();
+  const marketing360Projects = marketing360.page.projects.map((p, id) => ({
+    id,
+    src: p.image,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   const openLightbox = (index: number) => {
@@ -40,8 +36,6 @@ export function Marketing360Projects() {
     }
   };
 
-  const { language } = useLanguage();
-
   return (
     <div className="min-h-screen bg-black pt-32 pb-16 px-6 md:px-12 lg:px-24 relative overflow-hidden">
       {/* Abstract gradient background shapes */}
@@ -57,7 +51,7 @@ export function Marketing360Projects() {
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm tracking-wider uppercase font-semibold">
-              {language === 'es' ? 'Volver al inicio' : 'Back to home'}
+              {t('nav.back')}
             </span>
           </Link>
 
@@ -67,12 +61,10 @@ export function Marketing360Projects() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-            {language === 'es' ? 'Diseño 360°' : '360° Design'}
+            {marketing360.page.title[language]}
           </h1>
           <p className="text-base text-neutral-300 max-w-3xl">
-            {language === 'es'
-              ? 'Estrategias integrales de diseño visual para todos los canales'
-              : 'Comprehensive visual design strategies for all channels'}
+            {marketing360.page.description[language]}
           </p>
         </div>
 
@@ -109,8 +101,9 @@ export function Marketing360Projects() {
 
         {/* Lightbox con imagen escalada apropiadamente */}
         {selectedImage !== null && (
-          <div 
-            className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
+          <Lightbox>
+          <div
+            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
             onClick={closeLightbox}
           >
             <button
@@ -154,6 +147,7 @@ export function Marketing360Projects() {
               </div>
             </div>
           </div>
+          </Lightbox>
         )}
       </div>
     </div>

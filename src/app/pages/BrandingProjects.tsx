@@ -2,73 +2,47 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes existentes
-import wodfest1 from "figma:asset/25e9467c4a5ed8a5438a741b2b6c73115fc4554c.png";
-import wodfest2 from "figma:asset/a8198d99a2383d3dc8005422e6c483014ec215fe.png";
-import adrianaMunoz from "figma:asset/334fe9a7bb579717d2294738e06927cda7ba71a4.png";
-import anaGrace from "figma:asset/d705e68558f43f7321e71ebf82bad319ce1c7b72.png";
-
-// Nuevas imágenes
-import phicontourLive from "figma:asset/924ad8cc50b1d2cc4562e881da584a8099b8ca98.png";
-import anaGraceHair from "figma:asset/8e1fdaaa60ef73c2d936187bbd5aeadde19c9452.png";
-import anaGraceOnline from "figma:asset/55e51786f46dbf8d1280df1ee1f2191b9f8c5da1.png";
-import phibrowsCourse from "figma:asset/61aebc44de89fc59129fc24f781098cc2ebd70ce.png";
-import fitnessDeadlift from "figma:asset/88cf5aac8e94d4becb93d3b24d6e943d0a189931.png";
-import fitnessPullups from "figma:asset/eca57c4fcb41f2da0eda93130941acd192e257ae.png";
-import phibrowsBeforeAfter from "figma:asset/c1204bdbfeefd699b75d0ea1dbec84f6da20a935.png";
-import anaGracePayment from "figma:asset/bc36c9234b465fd0ed6e541eac26253ad2aa52df.png";
-import liveMicroblading from "figma:asset/3856ecdfcb52b909e8f214c65f073bd1b2de4f84.png";
-import livePhibrowsShading from "figma:asset/b009bfec53131ea367511acf598545f131e873aa.png";
-import snagaRelay from "figma:asset/b1c180497fe9c391756224aaf833491497eb695f.png";
-
-// Logos
-import laDulcereta from "figma:asset/8083d12e7a676eb9b6c1bef623e4ebaf921955b8.png";
-import fitCookie from "figma:asset/18ad2feac1b520b631082da80d1b66696f2552e6.png";
-import nomads from "figma:asset/0ad42528d7f8e6294084c527d4199685070316d5.png";
-import laPedrena from "figma:asset/ef09c6d26327eeac752f4e66090243daccb967ac.png";
-import falecon from "figma:asset/98eac7c8344e7766f5b561451c912181822195c1.png";
-
-// Proyectos de Deportes/Fitness
-const sportsProjects = [
-  { id: 1, src: wodfest1, alt: "WodFest Costa Rica - Campaña publicitaria", category: "Campaña Publicitaria" },
-  { id: 2, src: wodfest2, alt: "WodFest Costa Rica - Diseño de marca", category: "Diseño de Marca" },
-  { id: 10, src: fitnessDeadlift, alt: "OFF DAY Trainer - Técnica Deadlift", category: "Contenido Educativo" },
-  { id: 11, src: fitnessPullups, alt: "OFF DAY Trainer - Técnica Pull-ups", category: "Contenido Educativo" },
-  { id: 16, src: snagaRelay, alt: "SNAGA Team Relay 9th Anniversary", category: "Evento Fitness" },
-];
-
-// Proyectos de Belleza - Adriana Muñoz
-const adrianaMunozProjects = [
-  { id: 3, src: adrianaMunoz, alt: "Adriana Muñoz - Contenido para redes sociales", category: "Social Media" },
-  { id: 6, src: phicontourLive, alt: "Live Técnica Phicontour - Adriana Muñoz", category: "Social Media" },
-  { id: 9, src: phibrowsCourse, alt: "Curso Phibrows - Material Promocional", category: "Social Media" },
-  { id: 12, src: phibrowsBeforeAfter, alt: "Curso Phibrows - Antes y Después", category: "Social Media" },
-  { id: 14, src: liveMicroblading, alt: "Live con Ana Oprea - Técnica Microblading", category: "Evento Online" },
-  { id: 15, src: livePhibrowsShading, alt: "Live con Stefany Galeano - Phibrows Shading", category: "Evento Online" },
-];
-
-// Proyectos de Belleza - Ana Grace
-const anaGraceProjects = [
-  { id: 5, src: anaGrace, alt: "Ana Grace Salon & Estética - Branding digital", category: "Branding Digital" },
-  { id: 7, src: anaGraceHair, alt: "Ana Grace - Promoción Tratamiento Capilar", category: "Social Media" },
-  { id: 8, src: anaGraceOnline, alt: "Ana Grace - Compra Online", category: "Social Media" },
-  { id: 13, src: anaGracePayment, alt: "Ana Grace - Información de Pago", category: "Social Media" },
-];
-
-// Logos
-const logoProjects = [
-  { id: 17, src: laDulcereta, alt: "La Dulcereta Obleas - Diseño de Logo", category: "Logo" },
-  { id: 18, src: fitCookie, alt: "Fit Cookie by Elsa Cubero - Diseño de Logo", category: "Logo" },
-  { id: 19, src: nomads, alt: "Nomads Eighty-Six - Diseño de Logo", category: "Logo" },
-  { id: 20, src: laPedrena, alt: "Carnicería La Pedreña - Diseño de Logo", category: "Logo" },
-  { id: 21, src: falecon, alt: "Falecon Decoraciones - Diseño de Logo", category: "Logo" },
-];
-
-const allProjects = [...sportsProjects, ...adrianaMunozProjects, ...anaGraceProjects, ...logoProjects];
+import { Lightbox } from "../components/Lightbox";
+import branding from "../../../content/sections/branding.json";
 
 export function BrandingProjects() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+
+  const { language, t } = useLanguage();
+
+  // Proyectos de Deportes/Fitness
+  const sportsProjects = branding.page.sportsProjects.map((p) => ({
+    id: p.id,
+    src: p.src,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
+  // Proyectos de Belleza - Adriana Muñoz
+  const adrianaMunozProjects = branding.page.adrianaMunozProjects.map((p) => ({
+    id: p.id,
+    src: p.src,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
+  // Proyectos de Belleza - Ana Grace
+  const anaGraceProjects = branding.page.anaGraceProjects.map((p) => ({
+    id: p.id,
+    src: p.src,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
+  // Logos
+  const logoProjects = branding.page.logoProjects.map((p) => ({
+    id: p.id,
+    src: p.src,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
+  const allProjects = [...sportsProjects, ...adrianaMunozProjects, ...anaGraceProjects, ...logoProjects];
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -90,8 +64,6 @@ export function BrandingProjects() {
     }
   };
 
-  const { language } = useLanguage();
-
   return (
     <div className="min-h-screen bg-black pt-32 pb-16 px-6 md:px-12 lg:px-24 relative overflow-hidden">
       {/* Abstract gradient background shapes */}
@@ -108,7 +80,7 @@ export function BrandingProjects() {
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm tracking-wider uppercase font-semibold">
-              {language === 'es' ? 'Volver al inicio' : 'Back to home'}
+              {t('nav.back')}
             </span>
           </Link>
 
@@ -118,19 +90,17 @@ export function BrandingProjects() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-            {language === 'es' ? 'Branding Corporativo' : 'Corporate Branding'}
+            {branding.page.title[language]}
           </h1>
           <p className="text-base text-neutral-300 max-w-3xl">
-            {language === 'es'
-              ? 'Identidades visuales coherentes y memorables que conectan con tu audiencia'
-              : 'Coherent and memorable visual identities that connect with your audience'}
+            {branding.page.description[language]}
           </p>
         </div>
 
         {/* Sección Deportes/Fitness */}
         <div className="mb-16">
           <h2 className="text-xl tracking-wider uppercase text-purple-300 mb-8 font-bold">
-            {language === 'es' ? 'Deportes & Fitness' : 'Sports & Fitness'}
+            {branding.page.subtitleSports[language]}
           </h2>
           <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
             {/* Hero Image - Large */}
@@ -229,7 +199,7 @@ export function BrandingProjects() {
         {/* Sección Belleza/Estética */}
         <div>
           <h2 className="text-xl tracking-wider uppercase text-pink-300 mb-8 font-bold">
-            {language === 'es' ? 'Belleza & Estética' : 'Beauty & Aesthetics'}
+            {branding.page.subtitleBeauty[language]}
           </h2>
 
           {/* Masonry Grid Combinado */}
@@ -362,8 +332,9 @@ export function BrandingProjects() {
 
         {/* Lightbox - Imagen completa y proporcional */}
         {selectedImage !== null && (
-          <div 
-            className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
+          <Lightbox>
+          <div
+            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
             onClick={closeLightbox}
           >
             <button
@@ -407,6 +378,7 @@ export function BrandingProjects() {
               </div>
             </div>
           </div>
+          </Lightbox>
         )}
       </div>
     </div>

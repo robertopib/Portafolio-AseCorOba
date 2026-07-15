@@ -3,43 +3,18 @@ import { ChevronRight, ChevronLeft, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes de Figma
-import santaFeBrochure from "figma:asset/948f59a23fd540d4046c36f4ab1b7a97b1698104.png";
-import concertBanner from "figma:asset/76f828416fc7ad72fb4f511192913809307465d8.png";
-import basketballMural from "figma:asset/7ff4421de649ad1136460666ff29df586b068030.png";
-import fisioterapiaCards from "figma:asset/8d4051360f9c5a7adefe677a485c2e2c7ccadb2b.png";
-
-const marketingProjects = [
-  {
-    id: 1,
-    title: "Brochure Corporativo",
-    category: "Material Impreso - Grupo Santa Fe",
-    image: santaFeBrochure
-  },
-  {
-    id: 2,
-    title: "Banner de Evento",
-    category: "Publicidad Digital - Concierto",
-    image: concertBanner
-  },
-  {
-    id: 3,
-    title: "Mural Deportivo",
-    category: "Publicidad OOH - PAS Eagles",
-    image: basketballMural
-  },
-  {
-    id: 4,
-    title: "Tarjetas de Presentación",
-    category: "Branding - Fisioterapia",
-    image: fisioterapiaCards
-  }
-];
+import marketing360 from "../../../content/sections/marketing-360.json";
+import { Lightbox } from "./Lightbox";
 
 export function Marketing360() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const marketingProjects = marketing360.home.projects.map((p, id) => ({
+    id,
+    title: p.title[language],
+    category: p.category[language],
+    image: p.image,
+  }));
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -74,22 +49,20 @@ export function Marketing360() {
         </div>
 
         <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {language === 'es' ? 'Diseño 360°' : '360° Design'}
+          {marketing360.home.heading[language]}
         </h3>
         <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {language === 'es' ? 'Estrategias integrales de diseño visual' : 'Comprehensive visual design strategies'}
+          {marketing360.home.description[language]}
         </p>
         <div className="mb-12 max-w-2xl">
           <p className="text-base text-neutral-100 mb-2">
-            <strong>{language === 'es' ? 'Branding corporativo de:' : 'Corporate branding for:'}</strong> Barbas.Studio
+            <strong>{t('home.studioLabel')}</strong> {marketing360.home.studioName}
           </p>
           <p className="text-sm text-purple-300 font-semibold mb-1 uppercase tracking-wide">
-            {language === 'es' ? 'Mi rol' : 'My Role'}
+            {t('home.roleLabel')}
           </p>
           <p className="text-base text-neutral-400">
-            {language === 'es'
-              ? 'Desarrollo de soluciones de diseño 360° en entorno profesional, adaptando identidad visual a múltiples formatos y canales de comunicación.'
-              : 'Development of 360° design solutions in a professional environment, adapting visual identity to multiple formats and communication channels.'}
+            {marketing360.home.roleDescription[language]}
           </p>
         </div>
 
@@ -124,7 +97,7 @@ export function Marketing360() {
             to="/proyectos/marketing-360"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
           >
-            <span>{language === 'es' ? 'Ver más proyectos 360°' : 'View more 360° projects'}</span>
+            <span>{marketing360.home.cta[language]}</span>
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
@@ -132,8 +105,9 @@ export function Marketing360() {
 
       {/* Lightbox Modal */}
       {selectedImage !== null && (
+        <Lightbox>
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
           onClick={closeLightbox}
         >
           {/* Close Button */}
@@ -204,6 +178,7 @@ export function Marketing360() {
             ))}
           </div>
         </div>
+        </Lightbox>
       )}
     </section>
   );

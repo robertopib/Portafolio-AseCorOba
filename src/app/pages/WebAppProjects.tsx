@@ -2,20 +2,18 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes existentes
-import offDayTrainer from "figma:asset/70572ae2f8aee9426315051ec0e738ab6e96ae98.png";
-import topmedEcommerce from "figma:asset/fe5868516f8f0f0648ac6a6beba62d2b7659a597.png";
-import liveBetting from "figma:asset/4f71976a828021b2f3acf2659ef404cd311f5808.png";
-
-const webAppProjects = [
-  { id: 1, src: offDayTrainer, alt: "OFF DAY Trainer - Diseño Web de Fitness", category: "Diseño Web" },
-  { id: 2, src: topmedEcommerce, alt: "TOPMED E-Commerce - Diseño Responsivo", category: "E-Commerce" },
-  { id: 3, src: liveBetting, alt: "Live Betting App - UI/UX Mobile", category: "App Mobile" },
-  // Puedes agregar más proyectos aquí
-];
+import { Lightbox } from "../components/Lightbox";
+import webApps from "../../../content/sections/web-apps.json";
 
 export function WebAppProjects() {
+  const { language, t } = useLanguage();
+  const webAppProjects = webApps.page.projects.map((p, id) => ({
+    id,
+    src: p.image,
+    alt: p.alt[language],
+    category: p.category[language],
+  }));
+
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   const openLightbox = (index: number) => {
@@ -38,8 +36,6 @@ export function WebAppProjects() {
     }
   };
 
-  const { language } = useLanguage();
-
   return (
     <div className="min-h-screen bg-black pt-32 pb-16 px-6 md:px-12 lg:px-24 relative overflow-hidden">
       {/* Abstract gradient background shapes */}
@@ -55,7 +51,7 @@ export function WebAppProjects() {
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm tracking-wider uppercase font-semibold">
-              {language === 'es' ? 'Volver al inicio' : 'Back to home'}
+              {t('nav.back')}
             </span>
           </Link>
 
@@ -65,12 +61,10 @@ export function WebAppProjects() {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-            {language === 'es' ? 'Diseño Web y Apps' : 'Web & App Design'}
+            {webApps.page.title[language]}
           </h1>
           <p className="text-base text-neutral-300 max-w-3xl">
-            {language === 'es'
-              ? 'Experiencias digitales intuitivas y centradas en el usuario'
-              : 'Intuitive and user-centered digital experiences'}
+            {webApps.page.description[language]}
           </p>
         </div>
 
@@ -107,8 +101,9 @@ export function WebAppProjects() {
 
         {/* Lightbox con imagen escalada apropiadamente */}
         {selectedImage !== null && (
-          <div 
-            className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
+          <Lightbox>
+          <div
+            className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-8 md:p-12 lg:p-16"
             onClick={closeLightbox}
           >
             <button
@@ -152,6 +147,7 @@ export function WebAppProjects() {
               </div>
             </div>
           </div>
+          </Lightbox>
         )}
       </div>
     </div>

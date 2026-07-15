@@ -1,0 +1,116 @@
+{
+  "home": {
+    "heading": { "es": "Fotografía de producto y packaging", "en": "Product Photography & Packaging" },
+    "description": {
+      "es": "Fotografía comercial y diseño de empaque",
+      "en": "Commercial photography and packaging design"
+    },
+    "studioName": "Click&Print",
+    "roleDescription": {
+      "es": "Desarrollo visual de producto desde la conceptualización hasta la ejecución: fotografía, diseño de empaque y retoque digital enfocado en comunicación comercial.",
+      "en": "Visual product development from conceptualization to execution: photography, packaging design and digital retouching focused on commercial communication."
+    },
+    "cta": { "es": "Ver más fotografías", "en": "View more photos" },
+    "projects": [
+      {
+        "image": "/images/crackers.png",
+        "title": { "es": "Crackers D'Argent", "en": "Crackers D'Argent" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/croissant.png",
+        "title": { "es": "Croissant Artesanal", "en": "Croissant Artesanal" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/bread-dargent.png",
+        "title": { "es": "Pan D'Argent", "en": "Pan D'Argent" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/croissant-packaging.png",
+        "title": { "es": "Croissant Premium", "en": "Croissant Premium" },
+        "category": { "es": "Packaging & Fotografía", "en": "Packaging & Fotografía" }
+      },
+      {
+        "image": "/images/gift-box-1.png",
+        "title": { "es": "Caja de Regalo Navideña", "en": "Caja de Regalo Navideña" },
+        "category": { "es": "Packaging & Fotografía", "en": "Packaging & Fotografía" }
+      },
+      {
+        "image": "/images/gift-box-vinte.png",
+        "title": { "es": "Set Regalo Vinte-Vinte", "en": "Set Regalo Vinte-Vinte" },
+        "category": { "es": "Packaging & Fotografía", "en": "Packaging & Fotografía" }
+      }
+    ]
+  },
+  "page": {
+    "title": { "es": "Fotografía de Producto y Packaging", "en": "Product Photography & Packaging" },
+    "description": {
+      "es": "Dirección de arte y fotografía que resalta la esencia de cada producto",
+      "en": "Art direction and photography that highlights the essence of each product"
+    },
+    "projects": [
+      {
+        "image": "/images/crackers.png",
+        "alt": { "es": "Crackers D'Argent - Fotografía de Producto", "en": "Crackers D'Argent - Fotografía de Producto" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/croissant.png",
+        "alt": { "es": "Croissant Artesanal - Fotografía de Producto", "en": "Croissant Artesanal - Fotografía de Producto" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/bread-dargent.png",
+        "alt": { "es": "Pan D'Argent - Fotografía de Producto", "en": "Pan D'Argent - Fotografía de Producto" },
+        "category": { "es": "Fotografía de Producto", "en": "Fotografía de Producto" }
+      },
+      {
+        "image": "/images/croissant-packaging.png",
+        "alt": { "es": "Croissant Premium - Packaging & Fotografía", "en": "Croissant Premium - Packaging & Fotografía" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-1.png",
+        "alt": { "es": "Caja de Regalo Navideña - Packaging & Fotografía", "en": "Caja de Regalo Navideña - Packaging & Fotografía" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-1.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 1", "en": "Set Regalo Vinte-Vinte - Vista 1" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-2.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 2", "en": "Set Regalo Vinte-Vinte - Vista 2" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-3.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 3", "en": "Set Regalo Vinte-Vinte - Vista 3" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 4", "en": "Set Regalo Vinte-Vinte - Vista 4" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-4.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 5", "en": "Set Regalo Vinte-Vinte - Vista 5" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-5.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 6", "en": "Set Regalo Vinte-Vinte - Vista 6" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      },
+      {
+        "image": "/images/gift-box-vinte-6.png",
+        "alt": { "es": "Set Regalo Vinte-Vinte - Vista 7", "en": "Set Regalo Vinte-Vinte - Vista 7" },
+        "category": { "es": "Packaging", "en": "Packaging" }
+      }
+    ]
+  }
+}

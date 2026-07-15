@@ -3,57 +3,18 @@ import { ChevronRight, ChevronLeft, X } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { useLanguage } from "../context/LanguageContext";
-
-// Importar las imágenes de Figma
-import crackers from "figma:asset/0331bcc7cb0ecb8bd115a7c0cf30c0a8ff135f20.png";
-import croissant from "figma:asset/2d1ee71b9db3d47cf9b08fb26a0fcc51b694724b.png";
-import breadDargent from "figma:asset/018f2b6c0c838991be0fd695b9a40d96c17a99cb.png";
-import croissantPackaging from "figma:asset/95b1f1901a9a927a55eb85ba8046e64a5a1c45cb.png";
-import giftBox1 from "figma:asset/499ed072f4775e6510a42bfef3ec1b4947d31bd9.png";
-import giftBoxVinte from "figma:asset/7049f97e2491edd848fa3c28b66e0294e0cf12a8.png";
-
-const products = [
-  {
-    id: 1,
-    title: "Crackers D'Argent",
-    category: "Fotografía de Producto",
-    image: crackers
-  },
-  {
-    id: 2,
-    title: "Croissant Artesanal",
-    category: "Fotografía de Producto",
-    image: croissant
-  },
-  {
-    id: 3,
-    title: "Pan D'Argent",
-    category: "Fotografía de Producto",
-    image: breadDargent
-  },
-  {
-    id: 4,
-    title: "Croissant Premium",
-    category: "Packaging & Fotografía",
-    image: croissantPackaging
-  },
-  {
-    id: 5,
-    title: "Caja de Regalo Navideña",
-    category: "Packaging & Fotografía",
-    image: giftBox1
-  },
-  {
-    id: 6,
-    title: "Set Regalo Vinte-Vinte",
-    category: "Packaging & Fotografía",
-    image: giftBoxVinte
-  }
-];
+import photography from "../../../content/sections/photography.json";
+import { Lightbox } from "./Lightbox";
 
 export function ProductPhotography() {
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const products = photography.home.projects.map((p, id) => ({
+    id,
+    title: p.title[language],
+    category: p.category[language],
+    image: p.image,
+  }));
 
   const openLightbox = (index: number) => {
     setSelectedImage(index);
@@ -88,22 +49,20 @@ export function ProductPhotography() {
         </div>
 
         <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {language === 'es' ? 'Fotografía de producto y packaging' : 'Product Photography & Packaging'}
+          {photography.home.heading[language]}
         </h3>
         <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {language === 'es' ? 'Fotografía comercial y diseño de empaque' : 'Commercial photography and packaging design'}
+          {photography.home.description[language]}
         </p>
         <div className="mb-12 max-w-2xl">
           <p className="text-base text-neutral-100 mb-2">
-            <strong>{language === 'es' ? 'Branding corporativo de:' : 'Corporate branding for:'}</strong> Click&Print
+            <strong>{t('home.studioLabel')}</strong> {photography.home.studioName}
           </p>
           <p className="text-sm text-rose-300 font-semibold mb-1 uppercase tracking-wide">
-            {language === 'es' ? 'Mi rol' : 'My Role'}
+            {t('home.roleLabel')}
           </p>
           <p className="text-base text-neutral-400">
-            {language === 'es'
-              ? 'Desarrollo visual de producto desde la conceptualización hasta la ejecución: fotografía, diseño de empaque y retoque digital enfocado en comunicación comercial.'
-              : 'Visual product development from conceptualization to execution: photography, packaging design and digital retouching focused on commercial communication.'}
+            {photography.home.roleDescription[language]}
           </p>
         </div>
 
@@ -221,7 +180,7 @@ export function ProductPhotography() {
             to="/proyectos/fotografia-producto"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 hover:from-orange-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
           >
-            <span>{language === 'es' ? 'Ver más fotografías' : 'View more photos'}</span>
+            <span>{photography.home.cta[language]}</span>
             <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
@@ -229,8 +188,9 @@ export function ProductPhotography() {
 
       {/* Lightbox Modal */}
       {selectedImage !== null && (
+        <Lightbox>
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
           onClick={closeLightbox}
         >
           {/* Close Button */}
@@ -301,6 +261,7 @@ export function ProductPhotography() {
             ))}
           </div>
         </div>
+        </Lightbox>
       )}
     </section>
   );

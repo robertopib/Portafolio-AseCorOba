@@ -1,0 +1,33 @@
+{
+  "siteTitle": {
+    "es": "Portafolio-AseCorOba",
+    "en": "Portafolio-AseCorOba"
+  },
+  "brand": {
+    "es": "Asenat Cordero Obando",
+    "en": "Asenat Cordero Obando"
+  },
+  "navItems": [
+    {
+      "label": {
+        "es": "Proyectos",
+        "en": "Projects"
+      },
+      "target": "#work"
+    },
+    {
+      "label": {
+        "es": "Sobre Mí",
+        "en": "About Me"
+      },
+      "target": "#about"
+    },
+    {
+      "label": {
+        "es": "Contacto",
+        "en": "Contact"
+      },
+      "target": "#contact"
+    }
+  ]
+}

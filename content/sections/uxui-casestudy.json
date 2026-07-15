@@ -1,0 +1,582 @@
+{
+  "header": {
+    "title": { "es": "UX/UI Producto", "en": "UX/UI Product" },
+    "tagline": { "es": "Quiero… ¡Encontrar soluciones!", "en": "I want to… Find solutions!" }
+  },
+  "hero": {
+    "image": "/images/uxui-sketch.png",
+    "alt": { "es": "Snaga - UX/UI Case Study", "en": "Snaga - UX/UI Case Study" }
+  },
+  "project": {
+    "name": { "es": "Snaga", "en": "Snaga" },
+    "subtitle": {
+      "es": "Centro de Entrenamiento Físico · Costa Rica",
+      "en": "Centro de Entrenamiento Físico · Costa Rica"
+    },
+    "overview": [
+      {
+        "label": { "es": "Proyecto:", "en": "Proyecto:" },
+        "text": {
+          "es": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico",
+          "en": "Creación completa de branding, sitio web y estrategia de contenido digital para centro de entrenamiento físico"
+        }
+      },
+      {
+        "label": { "es": "Mi Rol:", "en": "Mi Rol:" },
+        "text": {
+          "es": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator",
+          "en": "UX/UI Designer, Creadora de Contenido Digital, Stakeholder Facilitator"
+        }
+      },
+      {
+        "label": { "es": "Contribución:", "en": "Contribución:" },
+        "text": {
+          "es": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios.",
+          "en": "Lideré el proceso de investigación de usuarios (entrevistas, user personas, journey mapping), diseñé wireframes y prototipos, y creé el sistema de diseño completo. Aumenté las tasas de conversión simplificando el flujo de contacto basado en insights de usuarios."
+        }
+      }
+    ]
+  },
+  "intro": [
+    {
+      "es": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing.",
+      "en": "Snaga es un centro de entrenamiento físico en Costa Rica, un cliente real. Snaga en sí es el producto que se trabajó, inicio creando su línea gráfica, así como crear su sitio web y concluyendo con creación de contenido para redes sociales y marketing."
+    },
+    {
+      "es": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable.",
+      "en": "Su primera necesidad era dar a conocer su metodología de entrenamiento, a personas que estuvieran interesadas en un cambio de estilo de vida o mantener uno saludable."
+    },
+    {
+      "es": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad.",
+      "en": "Generando así confianza a su público para que estos llegarán a consumir el producto. No obstante se debía de mantener interesadas a las personas que ya consumían dicho producto, asegurando así su fidelidad."
+    }
+  ],
+  "problemSolution": {
+    "problem": {
+      "label": { "es": "Problema", "en": "Problema" },
+      "text": {
+        "es": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología.",
+        "en": "Los usuarios tienen poco o ningún conocimiento del centro de entrenamiento y su metodología."
+      }
+    },
+    "solution": {
+      "label": { "es": "Solución", "en": "Solución" },
+      "text": {
+        "es": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto.",
+        "en": "Crear un branding que represente los valores del producto, un sitio web y contenido de valor, para dar a conocer a detalle todo sobre el producto."
+      }
+    }
+  },
+  "details": {
+    "headers": {
+      "tools": { "es": "Herramientas", "en": "Herramientas" },
+      "team": { "es": "Equipo", "en": "Equipo" },
+      "role": { "es": "Mi Rol", "en": "Mi Rol" }
+    },
+    "rows": [
+      {
+        "tools": { "es": "Miro", "en": "Miro" },
+        "team": { "es": "2 UX/UI designers", "en": "2 UX/UI designers" },
+        "role": { "es": "UX/UI designer", "en": "UX/UI designer" }
+      },
+      {
+        "tools": { "es": "Figma", "en": "Figma" },
+        "team": { "es": "1 developer", "en": "1 developer" },
+        "role": { "es": "Creadora de contenido", "en": "Creadora de contenido" }
+      },
+      {
+        "tools": { "es": "Adobe", "en": "Adobe" },
+        "team": { "es": "", "en": "" },
+        "role": { "es": "Diseño digital", "en": "Diseño digital" }
+      },
+      {
+        "tools": { "es": "", "en": "" },
+        "team": { "es": "", "en": "" },
+        "role": { "es": "Stakeholder facilitador", "en": "Stakeholder facilitador" }
+      }
+    ]
+  },
+  "timeline": {
+    "title": { "es": "Línea de Tiempo", "en": "Línea de Tiempo" },
+    "durationLabel": { "es": "Duración total:", "en": "Duración total:" },
+    "durationValue": { "es": "2 meses y 15 días", "en": "2 meses y 15 días" },
+    "phases": [
+      {
+        "phase": { "es": "Descubrimiento y búsqueda", "en": "Descubrimiento y búsqueda" },
+        "duration": { "es": "1 semana", "en": "1 semana" }
+      },
+      {
+        "phase": { "es": "Creación de branding", "en": "Creación de branding" },
+        "duration": { "es": "2 semanas", "en": "2 semanas" }
+      },
+      {
+        "phase": { "es": "Desarrollo sitio web", "en": "Desarrollo sitio web" },
+        "duration": { "es": "3 semanas", "en": "3 semanas" }
+      },
+      {
+        "phase": { "es": "Testing", "en": "Testing" },
+        "duration": { "es": "2 semanas", "en": "2 semanas" }
+      },
+      {
+        "phase": { "es": "Creación de contenido digital", "en": "Creación de contenido digital" },
+        "duration": { "es": "2 semanas", "en": "2 semanas" }
+      }
+    ]
+  },
+  "journey": {
+    "title": { "es": "User Journey Map", "en": "User Journey Map" },
+    "intro": [
+      {
+        "es": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing.",
+        "en": "Con el objetivo claro, nos aseguramos de que nuestros usuarios tengan toda la información necesaria para llegar a contactar con el equipo de marketing."
+      },
+      {
+        "es": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora.",
+        "en": "Dibujamos un mapa de viaje del usuario del estado actual para identificar qué información es la que más le interesa conocer y así vemos la oportunidad de mejora."
+      },
+      {
+        "es": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores.",
+        "en": "Terminamos con una experiencia de solicitar información más rápida y sencilla, generando de esta forma tasas de conversión mayores."
+      }
+    ],
+    "labels": {
+      "action": { "es": "Acción", "en": "Acción" },
+      "thought": { "es": "Pensamiento", "en": "Pensamiento" },
+      "friction": { "es": "Fricción", "en": "Fricción" }
+    },
+    "stages": [
+      {
+        "number": "1",
+        "name": { "es": "Discovery", "en": "Discovery" },
+        "action": {
+          "es": "Encuentra el sitio web a través de búsqueda o redes sociales",
+          "en": "Encuentra el sitio web a través de búsqueda o redes sociales"
+        },
+        "thought": {
+          "es": "\"¿Este servicio es lo que necesito?\"",
+          "en": "\"¿Este servicio es lo que necesito?\""
+        },
+        "friction": {
+          "es": "Primera impresión poco clara",
+          "en": "Primera impresión poco clara"
+        }
+      },
+      {
+        "number": "2",
+        "name": { "es": "Exploration", "en": "Exploration" },
+        "action": {
+          "es": "Navega el sitio para entender los servicios",
+          "en": "Navega el sitio para entender los servicios"
+        },
+        "thought": {
+          "es": "\"¿Qué ofrecen exactamente?\"",
+          "en": "\"¿Qué ofrecen exactamente?\""
+        },
+        "friction": {
+          "es": "Demasiada información",
+          "en": "Demasiada información"
+        }
+      },
+      {
+        "number": "3",
+        "name": { "es": "Evaluation", "en": "Evaluation" },
+        "action": {
+          "es": "Revisa portafolio, casos y credibilidad",
+          "en": "Revisa portafolio, casos y credibilidad"
+        },
+        "thought": {
+          "es": "\"¿Tienen experiencia en mi industria?\"",
+          "en": "\"¿Tienen experiencia en mi industria?\""
+        },
+        "friction": {
+          "es": "Casos sin suficiente detalle",
+          "en": "Casos sin suficiente detalle"
+        }
+      },
+      {
+        "number": "4",
+        "name": { "es": "Decision", "en": "Decision" },
+        "action": {
+          "es": "Decide si el servicio se ajusta a sus necesidades",
+          "en": "Decide si el servicio se ajusta a sus necesidades"
+        },
+        "thought": {
+          "es": "\"Quiero saber precios y disponibilidad\"",
+          "en": "\"Quiero saber precios y disponibilidad\""
+        },
+        "friction": {
+          "es": "Falta info de tarifas",
+          "en": "Falta info de tarifas"
+        }
+      },
+      {
+        "number": "5",
+        "name": { "es": "Contact", "en": "Contact" },
+        "action": {
+          "es": "Llena un formulario o se contacta",
+          "en": "Llena un formulario o se contacta"
+        },
+        "thought": {
+          "es": "\"Espero una respuesta rápida\"",
+          "en": "\"Espero una respuesta rápida\""
+        },
+        "friction": {
+          "es": "Formulario largo",
+          "en": "Formulario largo"
+        }
+      }
+    ],
+    "qa": [
+      {
+        "question": {
+          "es": "¿Cómo y por qué eligimos qué camino mapear?",
+          "en": "¿Cómo y por qué eligimos qué camino mapear?"
+        },
+        "answer": {
+          "es": "Basándonos en las necesidades e inquietudes del usuario.",
+          "en": "Basándonos en las necesidades e inquietudes del usuario."
+        }
+      },
+      {
+        "question": {
+          "es": "¿Cómo probamos y validamos el mapa?",
+          "en": "¿Cómo probamos y validamos el mapa?"
+        },
+        "answer": {
+          "es": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo.",
+          "en": "Una vez que conocimos las necesidades del usuario y teníamos las ideas claras, procedimos a realizar encuestas con dicha información para saber si el mapa era coherente, fácil e intuitivo."
+        }
+      },
+      {
+        "question": {
+          "es": "¿Qué nos reveló el mapeo del viaje?",
+          "en": "¿Qué nos reveló el mapeo del viaje?"
+        },
+        "answer": {
+          "es": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio.",
+          "en": "Reveló que hay puntos que si bien es cierto le interesan al usuario, no son el punto más fuerte. Nos dimos cuenta que básicamente el usuario de este producto literal prefiere empezar por el final, saber datos que no se entregan al inicio."
+        }
+      },
+      {
+        "question": {
+          "es": "¿Cuáles fueron los principales puntos débiles del usuario?",
+          "en": "¿Cuáles fueron los principales puntos débiles del usuario?"
+        },
+        "bullets": [
+          {
+            "es": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad.",
+            "en": "Al usuario no le interesa leer de más, por lo que hay que darle poco contenido pero de calidad."
+          },
+          {
+            "es": "El usuario no puede inscribirse a través de la web.",
+            "en": "El usuario no puede inscribirse a través de la web."
+          },
+          {
+            "es": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad.",
+            "en": "El tiempo de respuesta en la vía de comunicación podría ser una debilidad."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?",
+          "en": "¿Qué cambiamos en el diseño debido al mapeo del recorrido del usuario?"
+        },
+        "answer": {
+          "es": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto.",
+          "en": "Cambiamos contenidos, cantidad de información, cambiamos el orden de la entrega de información y la forma en que hacen el primer contacto."
+        }
+      }
+    ]
+  },
+  "personas": {
+    "title": { "es": "User Personas", "en": "User Personas" },
+    "intro": [
+      {
+        "es": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios).",
+        "en": "Para lograr comprender de manera más exacta los objetivos, necesidades, experiencias y comportamientos de nuestros usuarios, creamos personas (usuarios)."
+      },
+      {
+        "es": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas.",
+        "en": "Nos basamos en recopilación y el análisis de datos sobre los usuarios reales, incluidas sus características demográficas, comportamientos, necesidades y metas."
+      }
+    ],
+    "qa": [
+      {
+        "question": {
+          "es": "¿Por qué necesitábamos user personas?",
+          "en": "¿Por qué necesitábamos user personas?"
+        },
+        "answer": [
+          {
+            "es": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto.",
+            "en": "Queríamos entender las necesidades del usuario y conocer la manera en que ven y asimilan el producto."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Qué datos utilizamos para construir estas personas?",
+          "en": "¿Qué datos utilizamos para construir estas personas?"
+        },
+        "answer": [
+          {
+            "es": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros.",
+            "en": "Se utilizaron datos demográficos, sexo, edad, educación, ingresos, también sus intereses, gustos entre otros."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Cómo nos influyeron los personajes al proceso de diseño?",
+          "en": "¿Cómo nos influyeron los personajes al proceso de diseño?"
+        },
+        "answer": [
+          {
+            "es": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario.",
+            "en": "Lo hicieron a la hora de proporcionar información detallada y centrada en el usuario, ayudando a comprender mejor las necesidades, preferencias y comportamientos. Lo que da como resultado soluciones de diseño más efectivas y orientadas al usuario."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?",
+          "en": "¿Durante qué etapa del proceso de diseño reflexionamos sobre las personas?"
+        },
+        "answer": [
+          {
+            "es": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad.",
+            "en": "En la investigación y comprensión del usuario. Siguiendo en la ideación y conceptualización, luego en el UX/UI estructura de la información, la arquitectura de la navegación, la disposición de los elementos de la interfaz, la usabilidad y la accesibilidad. Después en la evaluación y pruebas de usabilidad."
+          },
+          {
+            "es": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos.",
+            "en": "En resumen los user personas son indispensables en todas las etapas ya que nos asegura que el diseño está centrado en el usuario y satisfaga las necesidades y objetivos de los mismos."
+          }
+        ]
+      }
+    ],
+    "sectionLabels": {
+      "basicInfo": { "es": "Información básica", "en": "Información básica" },
+      "channels": { "es": "Canales", "en": "Canales" },
+      "motivations": { "es": "Motivaciones", "en": "Motivaciones" },
+      "painPoints": { "es": "Pain points", "en": "Pain points" }
+    },
+    "cards": [
+      {
+        "name": { "es": "Adolfo Sanchez", "en": "Adolfo Sanchez" },
+        "descriptor": { "es": "No físicamente activo", "en": "No físicamente activo" },
+        "quote": {
+          "es": "\"Te ayudaremos a darle un giro a tu vida\"",
+          "en": "\"Te ayudaremos a darle un giro a tu vida\""
+        },
+        "basicInfo": [
+          { "es": "Hombre", "en": "Hombre" },
+          { "es": "35 años de edad", "en": "35 años de edad" },
+          { "es": "Trabaja en P&G", "en": "Trabaja en P&G" },
+          { "es": "Locación: Escazú", "en": "Locación: Escazú" },
+          { "es": "Estatus económico: Medio, medio-alto", "en": "Estatus económico: Medio, medio-alto" }
+        ],
+        "channels": [
+          { "es": "Instagram", "en": "Instagram" },
+          { "es": "Facebook", "en": "Facebook" },
+          { "es": "Website", "en": "Website" },
+          { "es": "Mailchimp", "en": "Mailchimp" },
+          { "es": "Whatsapp campaigns", "en": "Whatsapp campaigns" },
+          { "es": "Convenios con empresa", "en": "Convenios con empresa" }
+        ],
+        "motivations": [
+          { "es": "Mejorar salud", "en": "Mejorar salud" },
+          { "es": "Mejor físico", "en": "Mejor físico" },
+          { "es": "Conocer personas", "en": "Conocer personas" }
+        ],
+        "painPoints": [
+          { "es": "El gimnasio convencional me aburre", "en": "El gimnasio convencional me aburre" },
+          { "es": "Las sesiones de entrenamiento son largas", "en": "Las sesiones de entrenamiento son largas" },
+          { "es": "Entrenar solo", "en": "Entrenar solo" },
+          { "es": "No entender los programas de entrenamiento", "en": "No entender los programas de entrenamiento" },
+          { "es": "Programas de entrenamiento sin enfoque", "en": "Programas de entrenamiento sin enfoque" },
+          { "es": "Pocos horarios", "en": "Pocos horarios" },
+          { "es": "Lesiones", "en": "Lesiones" }
+        ]
+      },
+      {
+        "name": { "es": "Eva Rodríguez", "en": "Eva Rodríguez" },
+        "descriptor": { "es": "Físicamente activa", "en": "Físicamente activa" },
+        "quote": {
+          "es": "\"Te ayudaremos a mantener tu estilo de vida saludable\"",
+          "en": "\"Te ayudaremos a mantener tu estilo de vida saludable\""
+        },
+        "basicInfo": [
+          { "es": "Mujer", "en": "Mujer" },
+          { "es": "43 años de edad", "en": "43 años de edad" },
+          { "es": "Coach de nutrición", "en": "Coach de nutrición" },
+          { "es": "Locación: Santa Ana", "en": "Locación: Santa Ana" },
+          { "es": "Estatus económico: Medio, medio-alto", "en": "Estatus económico: Medio, medio-alto" }
+        ],
+        "channels": [
+          { "es": "Instagram", "en": "Instagram" },
+          { "es": "Facebook", "en": "Facebook" },
+          { "es": "Website", "en": "Website" },
+          { "es": "Mailchimp", "en": "Mailchimp" },
+          { "es": "Whatsapp campaigns", "en": "Whatsapp campaigns" },
+          { "es": "Boca en boca", "en": "Boca en boca" },
+          { "es": "Convenios con empresa", "en": "Convenios con empresa" }
+        ],
+        "motivations": [
+          { "es": "Continuar con una salud óptima", "en": "Continuar con una salud óptima" },
+          { "es": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa", "en": "Mejorar físico, enfocado en ganar masa muscular o pérdida de grasa" },
+          { "es": "Pertenecer a una comunidad", "en": "Pertenecer a una comunidad" },
+          { "es": "Conocer nuevos ejercicios", "en": "Conocer nuevos ejercicios" },
+          { "es": "Preparación específica para competir en alguna disciplina", "en": "Preparación específica para competir en alguna disciplina" }
+        ],
+        "painPoints": [
+          { "es": "No ver resultados", "en": "No ver resultados" },
+          { "es": "No tener programación específica", "en": "No tener programación específica" },
+          { "es": "El gimnasio convencional me aburre", "en": "El gimnasio convencional me aburre" },
+          { "es": "Entrenar solo", "en": "Entrenar solo" },
+          { "es": "No entender los programas de entrenamiento", "en": "No entender los programas de entrenamiento" },
+          { "es": "Pocos horarios", "en": "Pocos horarios" },
+          { "es": "Lesiones", "en": "Lesiones" }
+        ]
+      },
+      {
+        "name": { "es": "Mario López", "en": "Mario López" },
+        "descriptor": { "es": "Practicante de CrossFit", "en": "Practicante de CrossFit" },
+        "quote": {
+          "es": "\"Somos el mejor centro de entrenamiento, ven y prueba\"",
+          "en": "\"Somos el mejor centro de entrenamiento, ven y prueba\""
+        },
+        "basicInfo": [
+          { "es": "Hombre", "en": "Hombre" },
+          { "es": "23 años de edad", "en": "23 años de edad" },
+          { "es": "Estudia fisioterapia", "en": "Estudia fisioterapia" },
+          { "es": "Locación: Escazú", "en": "Locación: Escazú" },
+          { "es": "Estatus económico: Medio, medio-alto", "en": "Estatus económico: Medio, medio-alto" }
+        ],
+        "channels": [
+          { "es": "Instagram", "en": "Instagram" },
+          { "es": "Facebook", "en": "Facebook" },
+          { "es": "Website", "en": "Website" },
+          { "es": "Mailchimp", "en": "Mailchimp" },
+          { "es": "Whatsapp campaigns", "en": "Whatsapp campaigns" },
+          { "es": "Boca en boca", "en": "Boca en boca" }
+        ],
+        "motivations": [
+          { "es": "Continuar entrenando crossfit", "en": "Continuar entrenando crossfit" },
+          { "es": "Continuar con una salud óptima", "en": "Continuar con una salud óptima" },
+          { "es": "Mantener su estado físico", "en": "Mantener su estado físico" },
+          { "es": "Pertenecer a una comunidad", "en": "Pertenecer a una comunidad" },
+          { "es": "Mejorar algunos ejercicios/movimientos", "en": "Mejorar algunos ejercicios/movimientos" },
+          { "es": "Competir en esta disciplina", "en": "Competir en esta disciplina" },
+          { "es": "Programación nueva y mejor", "en": "Programación nueva y mejor" },
+          { "es": "Diferencia de tarifas", "en": "Diferencia de tarifas" }
+        ],
+        "painPoints": [
+          { "es": "No ver resultados", "en": "No ver resultados" },
+          { "es": "Tener programación cambiante", "en": "Tener programación cambiante" },
+          { "es": "Coaches no a la altura", "en": "Coaches no a la altura" },
+          { "es": "Tarifas altas", "en": "Tarifas altas" },
+          { "es": "Rotación de personas", "en": "Rotación de personas" },
+          { "es": "No tener open box", "en": "No tener open box" },
+          { "es": "Mal mantenimiento de las instalaciones y equipo", "en": "Mal mantenimiento de las instalaciones y equipo" }
+        ]
+      }
+    ]
+  },
+  "sketches": {
+    "title": { "es": "Bocetos", "en": "Bocetos" },
+    "intro": [
+      {
+        "es": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones.",
+        "en": "Lo primero que se realizó fue el proceso de diseño con bocetos en papel y lápiz, wireframes de baja fidelidad para así agilizar las tomas de decisiones."
+      },
+      {
+        "es": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\".",
+        "en": "Los bocetos se basaron en las entrevistas iniciales con los usuarios y el objetivo del cliente. Nos comentaron de manera constante que lo que les interesaba ver al inicio eran las tarifas del producto y que en los primeros bocetos se entrega mucha información que es valiosa pero no para un \"enganche rápido\"."
+      },
+      {
+        "es": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales.",
+        "en": "Por lo que volvimos a bocetar, cuidando en el proceso no perder el objetivo e ideas principales."
+      }
+    ],
+    "qa": [
+      {
+        "question": {
+          "es": "¿Cuál fue el objetivo principal de los bocetos?",
+          "en": "¿Cuál fue el objetivo principal de los bocetos?"
+        },
+        "answer": {
+          "es": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar.",
+          "en": "Tener una idea del flujo que deben tener los usuarios, así como darnos cuenta de errores de una forma temprana para optimizar el tiempo de desarrollo y así evitar pérdida de dinero. No obstante tener una visualización de los espacios a desarrollar."
+        }
+      },
+      {
+        "question": {
+          "es": "¿Qué información fue la base para los bocetos?",
+          "en": "¿Qué información fue la base para los bocetos?"
+        },
+        "answer": {
+          "es": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders.",
+          "en": "La información fue la recopilada de las entrevistas, y de la comunicación con los key stakeholders."
+        }
+      }
+    ]
+  },
+  "learnings": {
+    "title": { "es": "Aprendizajes", "en": "Aprendizajes" },
+    "qa": [
+      {
+        "question": {
+          "es": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?",
+          "en": "¿Qué nueva habilidad o herramienta aprendí a lo largo del proyecto?"
+        },
+        "answer": [
+          {
+            "es": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones.",
+            "en": "La parte de research es una herramienta que en alguna ocasión la subestimamos por el hecho de creer conocer muy bien el producto que estamos trabajando o al escuchar a los product owner hablar claro del tema y pensar muy erróneamente que con solo eso ya tenemos claro los pains o soluciones."
+          },
+          {
+            "es": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda.",
+            "en": "Tanto el research como el testing son herramientas muy importantes, en este proyecto aprendí a valorarlas aún más y fueron de mucha ayuda."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "Prácticas de diseño que utilicé por primera vez",
+          "en": "Prácticas de diseño que utilicé por primera vez"
+        },
+        "answer": [
+          {
+            "es": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa.",
+            "en": "Las entrevistas, las utilicé por primera vez y creo que no hay vuelta atrás después de eso. La información que proporcionan es realmente valiosa."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?",
+          "en": "¿Cómo contribuyó este proyecto a mi crecimiento como diseñadora?"
+        },
+        "answer": [
+          {
+            "es": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto.",
+            "en": "Creo que con cada proyecto uno crece, ya que siempre hay nuevos aprendizajes, nuevas técnicas que poner en marcha, definitivamente aprendes a leer mejor los datos y conectar más con el user, y así crear un mejor producto."
+          }
+        ]
+      },
+      {
+        "question": {
+          "es": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?",
+          "en": "¿Qué aprendí a lo largo de este proyecto que influye en la forma de diseñar?"
+        },
+        "answer": [
+          {
+            "es": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica.",
+            "en": "Definitivamente, la necesidad de conocer más datos del user. Ya no solo pienso en el diseño para que se vea bonito, ahora pienso en diseño inteligente, con una usabilidad práctica."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "home": {
+    "heading": { "es": "UX/UI Producto", "en": "UX/UI Product" },
+    "tagline": { "es": "Quiero… ¡Encontrar soluciones!", "en": "I want to… Find solutions!" },
+    "description": {
+      "es": "Diseño de experiencias digitales centradas en el usuario",
+      "en": "User-centered digital experience design"
+    },
+    "studioName": "Barbas.Studio",
+    "roleDescription": {
+      "es": "Trabajo en diseño de producto digital aplicando metodologías UX: research, definición de flujos, prototipado y testing para optimizar la experiencia del usuario.",
+      "en": "Work in digital product design applying UX methodologies: research, flow definition, prototyping and testing to optimize user experience."
+    },
+    "sketchImage": "/images/uxui-sketch.png",
+    "sketchAlt": { "es": "UX/UI Wireframes & Sketches", "en": "UX/UI Wireframes & Sketches" },
+    "cta": { "es": "Ver más proyectos UX/UI", "en": "View more UX/UI projects" }
+  }
+}

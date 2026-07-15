@@ -1,0 +1,56 @@
+{
+  "home": {
+    "heading": { "es": "Diseño web y apps", "en": "Web & App Design" },
+    "description": {
+      "es": "Interfaces responsivas y centradas en el usuario",
+      "en": "Responsive and user-centered interfaces"
+    },
+    "studioName": "Barbas.Studio",
+    "roleDescription": {
+      "es": "Desarrollo de interfaces web y apps en entorno profesional, trabajando en diseño UI, prototipado y definición de experiencia de usuario para productos digitales escalables.",
+      "en": "Development of web and app interfaces in a professional environment, working on UI design, prototyping and user experience definition for scalable digital products."
+    },
+    "cta": { "es": "Ver más proyectos web", "en": "View more web projects" },
+    "projects": [
+      {
+        "image": "/images/offday-trainer.png",
+        "title": { "es": "OFF DAY Trainer", "en": "OFF DAY Trainer" },
+        "category": { "es": "Diseño Web de Fitness", "en": "Diseño Web de Fitness" }
+      },
+      {
+        "image": "/images/topmed-ecommerce.png",
+        "title": { "es": "TOPMED E-Commerce", "en": "TOPMED E-Commerce" },
+        "category": { "es": "Diseño Responsivo", "en": "Diseño Responsivo" }
+      },
+      {
+        "image": "/images/live-betting.png",
+        "title": { "es": "Live Betting App", "en": "Live Betting App" },
+        "category": { "es": "Aplicación de Apuestas", "en": "Aplicación de Apuestas" }
+      }
+    ]
+  },
+  "page": {
+    "title": { "es": "Diseño Web y Apps", "en": "Web & App Design" },
+    "description": {
+      "es": "Experiencias digitales intuitivas y centradas en el usuario",
+      "en": "Intuitive and user-centered digital experiences"
+    },
+    "projects": [
+      {
+        "image": "/images/offday-trainer.png",
+        "alt": { "es": "OFF DAY Trainer - Diseño Web de Fitness", "en": "OFF DAY Trainer - Diseño Web de Fitness" },
+        "category": { "es": "Diseño Web", "en": "Diseño Web" }
+      },
+      {
+        "image": "/images/topmed-ecommerce.png",
+        "alt": { "es": "TOPMED E-Commerce - Diseño Responsivo", "en": "TOPMED E-Commerce - Diseño Responsivo" },
+        "category": { "es": "E-Commerce", "en": "E-Commerce" }
+      },
+      {
+        "image": "/images/live-betting.png",
+        "alt": { "es": "Live Betting App - UI/UX Mobile", "en": "Live Betting App - UI/UX Mobile" },
+        "category": { "es": "App Mobile", "en": "App Mobile" }
+      }
+    ]
+  }
+}

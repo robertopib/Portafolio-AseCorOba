@@ -1,0 +1,25 @@
+{
+  "hero": {
+    "backgroundImage": "/images/hero-background.jpg",
+    "title": {
+      "es": "Soy diseñadora gráfica 360º",
+      "en": "I am a graphic designer 360º"
+    },
+    "subtitle": {
+      "es": "Y este es mi portafolio",
+      "en": "And this is my portfolio"
+    },
+    "body": {
+      "es": "Con más de 10 años de experiencia en diseño visual y estrategia de marca, me especializo en crear identidades visuales cohesivas y experiencias digitales que generan resultados. Mi enfoque combina creatividad estratégica con atención al detalle en cada proyecto.",
+      "en": "With over 10 years of experience in visual design and brand strategy, I specialize in creating cohesive visual identities and digital experiences that generate results. My approach combines strategic creativity with attention to detail in every project."
+    },
+    "cta1": {
+      "es": "Ver mi trabajo",
+      "en": "View my work"
+    },
+    "cta2": {
+      "es": "Contactar",
+      "en": "Contact"
+    }
+  }
+}
