@@ -55,6 +55,33 @@ El menú está organizado en tres bloques. Cada opción controla una parte de la
 3. Escribe el nuevo texto.
 4. Pulsa **Guardar** (botón arriba a la derecha).
 
+### Mostrar u ocultar un elemento en la web
+
+Casi todos los campos tienen, justo debajo, una casilla **"Mostrar «…» en el
+sitio"**. Está marcada por defecto (el elemento se ve).
+
+- **Desmárcala** para **ocultar** ese elemento en la web pública, sin borrar su
+  texto (queda guardado por si quieres volver a mostrarlo).
+- **Vuélvela a marcar** para que aparezca otra vez.
+
+Ocultar un elemento cambia el diseño de esa parte (lo que estaba debajo sube a
+ocupar el hueco). Es la forma segura de quitar algo temporalmente.
+
+### La etiqueta que se ve en la web
+
+Cuando un texto es una **etiqueta o título** (por ejemplo "Herramientas",
+"Equipo", "Rol", "Deportes", "Belleza", "Trayectoria"), ese texto **es** el campo
+que editas: cámbialo directamente y cambiará en la web. No hay un campo aparte
+para la etiqueta.
+
+### Los textos de introducción de cada sección
+
+Los títulos y textos que van **encima de cada grupo de proyectos** (la vista
+previa en inicio y el encabezado de cada página) se editan en
+**Portafolio → Categorías**, dentro de cada categoría (Branding, Web y Apps,
+etc.), en los apartados **"Vista previa en inicio"** y **"Página de la
+categoría"**. Ahí también está la casilla para mostrar u ocultar cada texto.
+
 ### El cambio de idioma (Español / Inglés)
 La web está en dos idiomas. Arriba a la derecha verás un selector de idioma
 (**ES / EN**).
