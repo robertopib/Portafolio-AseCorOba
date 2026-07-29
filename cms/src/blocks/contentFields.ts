@@ -218,43 +218,47 @@ export const UXUI_CONTENT_BLOCK_TYPES = [
   'uxuiLearnings',
 ] as const
 
+// Each scalar leaf gets a `<name>Visible` toggle; each array gets a whole-array
+// toggle (per-row toggles would break the index-parallel data). Nested slice
+// groups (header/hero/…) stay groups; block-level show/hide already exists via
+// adding/removing the body sub-block.
 const caseStudyFields = (): Field[] => [
   {
     type: 'group',
     name: 'header',
     label: 'Encabezado',
-    fields: [t('title', 'Título'), t('tagline', 'Lema')],
+    fields: [...meta(t('title', 'Título'), 'Título'), ...meta(t('tagline', 'Lema'), 'Lema')],
   },
   {
     type: 'group',
     name: 'hero',
     label: 'Imagen principal',
-    fields: [{ name: 'image', type: 'text', label: 'Imagen (ruta)' }, t('alt', 'Texto alternativo')],
+    fields: [
+      ...meta({ name: 'image', type: 'text', label: 'Imagen (ruta)' }, 'Imagen'),
+      ...meta(t('alt', 'Texto alternativo'), 'Texto alternativo'),
+    ],
   },
   {
     type: 'group',
     name: 'project',
     label: 'El proyecto',
     fields: [
-      t('name', 'Nombre'),
-      t('subtitle', 'Subtítulo'),
-      {
-        name: 'overview',
-        type: 'array',
-        label: 'Resumen',
-        dbName: 'u_ov',
-        fields: [t('label', 'Etiqueta'), ta('text', 'Texto')],
-      },
+      ...meta(t('name', 'Nombre'), 'Nombre'),
+      ...meta(t('subtitle', 'Subtítulo'), 'Subtítulo'),
+      ...meta(
+        { name: 'overview', type: 'array', label: 'Resumen', dbName: 'u_ov', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+        'Resumen',
+      ),
     ],
   },
-  textArray('intro', 'Introducción', 'u_intro'),
+  ...meta(textArray('intro', 'Introducción', 'u_intro'), 'Introducción'),
   {
     type: 'group',
     name: 'problemSolution',
     label: 'Problema y solución',
     fields: [
-      { type: 'group', name: 'problem', label: 'Problema', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
-      { type: 'group', name: 'solution', label: 'Solución', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+      { type: 'group', name: 'problem', label: 'Problema', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Problema)'), ...meta(ta('text', 'Texto'), 'Texto (Problema)')] },
+      { type: 'group', name: 'solution', label: 'Solución', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Solución)'), ...meta(ta('text', 'Texto'), 'Texto (Solución)')] },
     ],
   },
   {
@@ -266,15 +270,12 @@ const caseStudyFields = (): Field[] => [
         type: 'group',
         name: 'headers',
         label: 'Encabezados',
-        fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
+        fields: [...meta(t('tools', 'Herramientas'), 'Herramientas'), ...meta(t('team', 'Equipo'), 'Equipo'), ...meta(t('role', 'Rol'), 'Rol')],
       },
-      {
-        name: 'rows',
-        type: 'array',
-        label: 'Filas',
-        dbName: 'u_rows',
-        fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
-      },
+      ...meta(
+        { name: 'rows', type: 'array', label: 'Filas', dbName: 'u_rows', fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')] },
+        'Filas',
+      ),
     ],
   },
   {
@@ -282,16 +283,13 @@ const caseStudyFields = (): Field[] => [
     name: 'timeline',
     label: 'Cronograma',
     fields: [
-      t('title', 'Título'),
-      t('durationLabel', 'Etiqueta de duración'),
-      t('durationValue', 'Duración'),
-      {
-        name: 'phases',
-        type: 'array',
-        label: 'Fases',
-        dbName: 'u_phases',
-        fields: [t('phase', 'Fase'), t('duration', 'Duración')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(t('durationLabel', 'Etiqueta de duración'), 'Etiqueta de duración'),
+      ...meta(t('durationValue', 'Duración'), 'Duración'),
+      ...meta(
+        { name: 'phases', type: 'array', label: 'Fases', dbName: 'u_phases', fields: [t('phase', 'Fase'), t('duration', 'Duración')] },
+        'Fases',
+      ),
     ],
   },
   {
@@ -299,34 +297,34 @@ const caseStudyFields = (): Field[] => [
     name: 'journey',
     label: 'Recorrido del usuario',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_jn_intro'),
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_jn_intro'), 'Introducción'),
       {
         type: 'group',
         name: 'labels',
         label: 'Etiquetas',
-        fields: [t('action', 'Acción'), t('thought', 'Pensamiento'), t('friction', 'Fricción')],
+        fields: [...meta(t('action', 'Acción'), 'Acción'), ...meta(t('thought', 'Pensamiento'), 'Pensamiento'), ...meta(t('friction', 'Fricción'), 'Fricción')],
       },
-      {
-        name: 'stages',
-        type: 'array',
-        label: 'Etapas',
-        dbName: 'u_stages',
-        fields: [
-          { name: 'number', type: 'text', label: 'Número' }, // agnostic
-          t('name', 'Nombre'),
-          ta('action', 'Acción'),
-          t('thought', 'Pensamiento'),
-          t('friction', 'Fricción'),
-        ],
-      },
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_jn_qa',
-        fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'u_jn_bul')],
-      },
+      ...meta(
+        {
+          name: 'stages',
+          type: 'array',
+          label: 'Etapas',
+          dbName: 'u_stages',
+          fields: [
+            { name: 'number', type: 'text', label: 'Número' }, // agnostic
+            t('name', 'Nombre'),
+            ta('action', 'Acción'),
+            t('thought', 'Pensamiento'),
+            t('friction', 'Fricción'),
+          ],
+        },
+        'Etapas',
+      ),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_jn_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'u_jn_bul')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
   {
@@ -334,41 +332,41 @@ const caseStudyFields = (): Field[] => [
     name: 'personas',
     label: 'Personas',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_pr_intro'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_pr_qa',
-        fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_pr_ans')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_pr_intro'), 'Introducción'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_pr_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_pr_ans')] },
+        'Preguntas y respuestas',
+      ),
       {
         type: 'group',
         name: 'sectionLabels',
         label: 'Etiquetas de fichas',
         fields: [
-          t('basicInfo', 'Información básica'),
-          t('channels', 'Canales'),
-          t('motivations', 'Motivaciones'),
-          t('painPoints', 'Frustraciones'),
+          ...meta(t('basicInfo', 'Información básica'), 'Información básica'),
+          ...meta(t('channels', 'Canales'), 'Canales'),
+          ...meta(t('motivations', 'Motivaciones'), 'Motivaciones'),
+          ...meta(t('painPoints', 'Frustraciones'), 'Frustraciones'),
         ],
       },
-      {
-        name: 'cards',
-        type: 'array',
-        label: 'Fichas',
-        dbName: 'u_cards',
-        fields: [
-          t('name', 'Nombre'),
-          t('descriptor', 'Descriptor'),
-          ta('quote', 'Cita'),
-          textArray('basicInfo', 'Información básica', 'u_c_bi', false),
-          textArray('channels', 'Canales', 'u_c_ch', false),
-          textArray('motivations', 'Motivaciones', 'u_c_mo', false),
-          textArray('painPoints', 'Frustraciones', 'u_c_pp', false),
-        ],
-      },
+      ...meta(
+        {
+          name: 'cards',
+          type: 'array',
+          label: 'Fichas',
+          dbName: 'u_cards',
+          fields: [
+            t('name', 'Nombre'),
+            t('descriptor', 'Descriptor'),
+            ta('quote', 'Cita'),
+            textArray('basicInfo', 'Información básica', 'u_c_bi', false),
+            textArray('channels', 'Canales', 'u_c_ch', false),
+            textArray('motivations', 'Motivaciones', 'u_c_mo', false),
+            textArray('painPoints', 'Frustraciones', 'u_c_pp', false),
+          ],
+        },
+        'Fichas',
+      ),
     ],
   },
   {
@@ -376,15 +374,12 @@ const caseStudyFields = (): Field[] => [
     name: 'sketches',
     label: 'Bocetos',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_sk_intro'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_sk_qa',
-        fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_sk_intro'), 'Introducción'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_sk_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
   {
@@ -392,14 +387,11 @@ const caseStudyFields = (): Field[] => [
     name: 'learnings',
     label: 'Aprendizajes',
     fields: [
-      t('title', 'Título'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_ln_qa',
-        fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_ln_ans')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_ln_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_ln_ans')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
 ]

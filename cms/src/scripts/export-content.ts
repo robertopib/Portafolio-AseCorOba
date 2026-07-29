@@ -381,39 +381,56 @@ async function main() {
       },
     })
     const uxuiFrom = (cs: any) => ({
-      header: { title: loc(cs.header.title), tagline: loc(cs.header.tagline) },
-      hero: { image: cs.hero.image, alt: loc(cs.hero.alt) },
+      header: { title: loc(cs.header.title), titleVisible: vis(cs.header.titleVisible), tagline: loc(cs.header.tagline), taglineVisible: vis(cs.header.taglineVisible) },
+      hero: { image: cs.hero.image, imageVisible: vis(cs.hero.imageVisible), alt: loc(cs.hero.alt), altVisible: vis(cs.hero.altVisible) },
       project: {
         name: loc(cs.project.name),
+        nameVisible: vis(cs.project.nameVisible),
         subtitle: loc(cs.project.subtitle),
+        subtitleVisible: vis(cs.project.subtitleVisible),
         overview: cs.project.overview.map((o: any) => ({ label: loc(o.label), text: loc(o.text) })),
+        overviewVisible: vis(cs.project.overviewVisible),
       },
       intro: rowsText(cs.intro),
+      introVisible: vis(cs.introVisible),
       problemSolution: {
-        problem: { label: loc(cs.problemSolution.problem.label), text: loc(cs.problemSolution.problem.text) },
-        solution: { label: loc(cs.problemSolution.solution.label), text: loc(cs.problemSolution.solution.text) },
+        problem: { label: loc(cs.problemSolution.problem.label), labelVisible: vis(cs.problemSolution.problem.labelVisible), text: loc(cs.problemSolution.problem.text), textVisible: vis(cs.problemSolution.problem.textVisible) },
+        solution: { label: loc(cs.problemSolution.solution.label), labelVisible: vis(cs.problemSolution.solution.labelVisible), text: loc(cs.problemSolution.solution.text), textVisible: vis(cs.problemSolution.solution.textVisible) },
       },
       details: {
         headers: {
           tools: loc(cs.details.headers.tools),
+          toolsVisible: vis(cs.details.headers.toolsVisible),
           team: loc(cs.details.headers.team),
+          teamVisible: vis(cs.details.headers.teamVisible),
           role: loc(cs.details.headers.role),
+          roleVisible: vis(cs.details.headers.roleVisible),
         },
         rows: cs.details.rows.map((r: any) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+        rowsVisible: vis(cs.details.rowsVisible),
       },
       timeline: {
         title: loc(cs.timeline.title),
+        titleVisible: vis(cs.timeline.titleVisible),
         durationLabel: loc(cs.timeline.durationLabel),
+        durationLabelVisible: vis(cs.timeline.durationLabelVisible),
         durationValue: loc(cs.timeline.durationValue),
+        durationValueVisible: vis(cs.timeline.durationValueVisible),
         phases: cs.timeline.phases.map((p: any) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+        phasesVisible: vis(cs.timeline.phasesVisible),
       },
       journey: {
         title: loc(cs.journey.title),
+        titleVisible: vis(cs.journey.titleVisible),
         intro: rowsText(cs.journey.intro),
+        introVisible: vis(cs.journey.introVisible),
         labels: {
           action: loc(cs.journey.labels.action),
+          actionVisible: vis(cs.journey.labels.actionVisible),
           thought: loc(cs.journey.labels.thought),
+          thoughtVisible: vis(cs.journey.labels.thoughtVisible),
           friction: loc(cs.journey.labels.friction),
+          frictionVisible: vis(cs.journey.labels.frictionVisible),
         },
         stages: cs.journey.stages.map((s: any) => ({
           number: s.number,
@@ -422,22 +439,31 @@ async function main() {
           thought: loc(s.thought),
           friction: loc(s.friction),
         })),
+        stagesVisible: vis(cs.journey.stagesVisible),
         qa: cs.journey.qa.map((q: any) => {
           const out: any = { question: loc(q.question) }
           if (q.bullets && q.bullets.length > 0) out.bullets = rowsText(q.bullets)
           else out.answer = loc(q.answer)
           return out
         }),
+        qaVisible: vis(cs.journey.qaVisible),
       },
       personas: {
         title: loc(cs.personas.title),
+        titleVisible: vis(cs.personas.titleVisible),
         intro: rowsText(cs.personas.intro),
+        introVisible: vis(cs.personas.introVisible),
         qa: cs.personas.qa.map((q: any) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+        qaVisible: vis(cs.personas.qaVisible),
         sectionLabels: {
           basicInfo: loc(cs.personas.sectionLabels.basicInfo),
+          basicInfoVisible: vis(cs.personas.sectionLabels.basicInfoVisible),
           channels: loc(cs.personas.sectionLabels.channels),
+          channelsVisible: vis(cs.personas.sectionLabels.channelsVisible),
           motivations: loc(cs.personas.sectionLabels.motivations),
+          motivationsVisible: vis(cs.personas.sectionLabels.motivationsVisible),
           painPoints: loc(cs.personas.sectionLabels.painPoints),
+          painPointsVisible: vis(cs.personas.sectionLabels.painPointsVisible),
         },
         cards: cs.personas.cards.map((c: any) => ({
           name: loc(c.name),
@@ -448,15 +474,21 @@ async function main() {
           motivations: rowsText(c.motivations),
           painPoints: rowsText(c.painPoints),
         })),
+        cardsVisible: vis(cs.personas.cardsVisible),
       },
       sketches: {
         title: loc(cs.sketches.title),
+        titleVisible: vis(cs.sketches.titleVisible),
         intro: rowsText(cs.sketches.intro),
+        introVisible: vis(cs.sketches.introVisible),
         qa: cs.sketches.qa.map((q: any) => ({ question: loc(q.question), answer: loc(q.answer) })),
+        qaVisible: vis(cs.sketches.qaVisible),
       },
       learnings: {
         title: loc(cs.learnings.title),
+        titleVisible: vis(cs.learnings.titleVisible),
         qa: cs.learnings.qa.map((q: any) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+        qaVisible: vis(cs.learnings.qaVisible),
       },
     })
 
@@ -831,48 +863,64 @@ async function main() {
   // source to fidelity-diff against).
   {
     const arrText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
+    const vis = (v: any) => v !== false
 
     // Reconstruct one body block's slice from its stored fields (block is the
-    // flat block instance; b.blockType selects the slice shape).
+    // flat block instance; b.blockType selects the slice shape). Each field's
+    // `<name>Visible` flag is carried through so the detail route honors it.
     const sliceFrom = (b: any): any => {
       switch (b.blockType) {
         case 'uxuiHeader':
-          return { title: loc(b.title), tagline: loc(b.tagline) }
+          return { title: loc(b.title), titleVisible: vis(b.titleVisible), tagline: loc(b.tagline), taglineVisible: vis(b.taglineVisible) }
         case 'uxuiHero':
-          return { image: b.image, alt: loc(b.alt) }
+          return { image: b.image, imageVisible: vis(b.imageVisible), alt: loc(b.alt), altVisible: vis(b.altVisible) }
         case 'uxuiOverview':
           return {
             name: loc(b.name),
+            nameVisible: vis(b.nameVisible),
             subtitle: loc(b.subtitle),
+            subtitleVisible: vis(b.subtitleVisible),
             overview: (b.overview || []).map((o: any) => ({ label: loc(o.label), text: loc(o.text) })),
+            overviewVisible: vis(b.overviewVisible),
           }
         case 'uxuiIntro':
           return arrText(b.intro)
         case 'uxuiProblemSolution':
           return {
-            problem: { label: loc(b.problem.label), text: loc(b.problem.text) },
-            solution: { label: loc(b.solution.label), text: loc(b.solution.text) },
+            problem: { label: loc(b.problem.label), labelVisible: vis(b.problem.labelVisible), text: loc(b.problem.text), textVisible: vis(b.problem.textVisible) },
+            solution: { label: loc(b.solution.label), labelVisible: vis(b.solution.labelVisible), text: loc(b.solution.text), textVisible: vis(b.solution.textVisible) },
           }
         case 'uxuiDetails':
           return {
-            headers: { tools: loc(b.headers.tools), team: loc(b.headers.team), role: loc(b.headers.role) },
+            headers: {
+              tools: loc(b.headers.tools), toolsVisible: vis(b.headers.toolsVisible),
+              team: loc(b.headers.team), teamVisible: vis(b.headers.teamVisible),
+              role: loc(b.headers.role), roleVisible: vis(b.headers.roleVisible),
+            },
             rows: (b.rows || []).map((r: any) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+            rowsVisible: vis(b.rowsVisible),
           }
         case 'uxuiTimeline':
           return {
             title: loc(b.title),
+            titleVisible: vis(b.titleVisible),
             durationLabel: loc(b.durationLabel),
+            durationLabelVisible: vis(b.durationLabelVisible),
             durationValue: loc(b.durationValue),
+            durationValueVisible: vis(b.durationValueVisible),
             phases: (b.phases || []).map((p: any) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+            phasesVisible: vis(b.phasesVisible),
           }
         case 'uxuiJourney':
           return {
             title: loc(b.title),
+            titleVisible: vis(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: vis(b.introVisible),
             labels: {
-              action: loc(b.labels.action),
-              thought: loc(b.labels.thought),
-              friction: loc(b.labels.friction),
+              action: loc(b.labels.action), actionVisible: vis(b.labels.actionVisible),
+              thought: loc(b.labels.thought), thoughtVisible: vis(b.labels.thoughtVisible),
+              friction: loc(b.labels.friction), frictionVisible: vis(b.labels.frictionVisible),
             },
             stages: (b.stages || []).map((s: any) => ({
               number: s.number,
@@ -881,23 +929,28 @@ async function main() {
               thought: loc(s.thought),
               friction: loc(s.friction),
             })),
+            stagesVisible: vis(b.stagesVisible),
             qa: (b.qa || []).map((q: any) => {
               const out: any = { question: loc(q.question) }
               if (q.bullets && q.bullets.length > 0) out.bullets = arrText(q.bullets)
               else out.answer = loc(q.answer)
               return out
             }),
+            qaVisible: vis(b.qaVisible),
           }
         case 'uxuiPersonas':
           return {
             title: loc(b.title),
+            titleVisible: vis(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: vis(b.introVisible),
             qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+            qaVisible: vis(b.qaVisible),
             sectionLabels: {
-              basicInfo: loc(b.sectionLabels.basicInfo),
-              channels: loc(b.sectionLabels.channels),
-              motivations: loc(b.sectionLabels.motivations),
-              painPoints: loc(b.sectionLabels.painPoints),
+              basicInfo: loc(b.sectionLabels.basicInfo), basicInfoVisible: vis(b.sectionLabels.basicInfoVisible),
+              channels: loc(b.sectionLabels.channels), channelsVisible: vis(b.sectionLabels.channelsVisible),
+              motivations: loc(b.sectionLabels.motivations), motivationsVisible: vis(b.sectionLabels.motivationsVisible),
+              painPoints: loc(b.sectionLabels.painPoints), painPointsVisible: vis(b.sectionLabels.painPointsVisible),
             },
             cards: (b.cards || []).map((c: any) => ({
               name: loc(c.name),
@@ -908,17 +961,23 @@ async function main() {
               motivations: arrText(c.motivations),
               painPoints: arrText(c.painPoints),
             })),
+            cardsVisible: vis(b.cardsVisible),
           }
         case 'uxuiSketches':
           return {
             title: loc(b.title),
+            titleVisible: vis(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: vis(b.introVisible),
             qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: loc(q.answer) })),
+            qaVisible: vis(b.qaVisible),
           }
         case 'uxuiLearnings':
           return {
             title: loc(b.title),
+            titleVisible: vis(b.titleVisible),
             qa: (b.qa || []).map((q: any) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+            qaVisible: vis(b.qaVisible),
           }
         default:
           return {}

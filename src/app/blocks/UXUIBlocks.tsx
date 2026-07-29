@@ -2,6 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useLanguage } from "../context/LanguageContext";
+import { fieldVisible } from "./contentMeta";
 import caseStudyJson from "../../../content/sections/uxui-casestudy.json";
 
 /**
@@ -28,12 +29,16 @@ export function UXUIHeader({ content }: { content?: CaseStudyContent }) {
         <span className="font-semibold">{t('nav.back')}</span>
       </Link>
 
-      <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-6 uppercase">
-        {caseStudy.header.title[language]}
-      </h1>
-      <p className="text-xl md:text-2xl text-pink-300 mb-6 italic font-semibold">
-        {caseStudy.header.tagline[language]}
-      </p>
+      {fieldVisible(caseStudy.header, "title") && (
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-6 uppercase">
+          {caseStudy.header.title[language]}
+        </h1>
+      )}
+      {fieldVisible(caseStudy.header, "tagline") && (
+        <p className="text-xl md:text-2xl text-pink-300 mb-6 italic font-semibold">
+          {caseStudy.header.tagline[language]}
+        </p>
+      )}
     </div>
   );
 }
@@ -42,6 +47,7 @@ export function UXUIHeader({ content }: { content?: CaseStudyContent }) {
 export function UXUIHero({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
   const caseStudy = content ?? caseStudyJson;
+  if (!fieldVisible(caseStudy.hero, "image")) return null;
   return (
     <div className="mb-16">
       <div className="relative bg-neutral-800 rounded-[3px] overflow-hidden shadow-sm">
@@ -63,21 +69,27 @@ export function UXUIOverview({ content }: { content?: CaseStudyContent }) {
   const caseStudy = content ?? caseStudyJson;
   return (
     <div className="mb-16">
-      <h2 className="text-2xl md:text-4xl tracking-tight text-neutral-100 mb-4">
-        {caseStudy.project.name[language]}
-      </h2>
-      <p className="text-lg md:text-xl text-pink-300 mb-8">
-        {caseStudy.project.subtitle[language]}
-      </p>
+      {fieldVisible(caseStudy.project, "name") && (
+        <h2 className="text-2xl md:text-4xl tracking-tight text-neutral-100 mb-4">
+          {caseStudy.project.name[language]}
+        </h2>
+      )}
+      {fieldVisible(caseStudy.project, "subtitle") && (
+        <p className="text-lg md:text-xl text-pink-300 mb-8">
+          {caseStudy.project.subtitle[language]}
+        </p>
+      )}
 
       {/* Project Overview - New Content */}
-      <div className="space-y-4">
-        {caseStudy.project.overview.map((item, index) => (
-          <p key={index} className="text-base text-neutral-100">
-            <strong>{item.label[language]}</strong> {item.text[language]}
-          </p>
-        ))}
-      </div>
+      {fieldVisible(caseStudy.project, "overview") && (
+        <div className="space-y-4">
+          {caseStudy.project.overview.map((item, index) => (
+            <p key={index} className="text-base text-neutral-100">
+              <strong>{item.label[language]}</strong> {item.text[language]}
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -86,6 +98,7 @@ export function UXUIOverview({ content }: { content?: CaseStudyContent }) {
 export function UXUIIntro({ content }: { content?: CaseStudyContent }) {
   const { language } = useLanguage();
   const caseStudy = content ?? caseStudyJson;
+  if (!fieldVisible(caseStudy, "intro")) return null;
   return (
     <section className="mb-16">
       {caseStudy.intro.map((paragraph, index) => (
@@ -106,26 +119,34 @@ export function UXUIProblemSolution({ content }: { content?: CaseStudyContent })
       <div className="grid md:grid-cols-2 gap-12">
         {/* Problema */}
         <div>
-          <div className="mb-6">
-            <div className="inline-block px-4 py-2 bg-pink-900/20 text-pink-300 rounded-[3px] text-sm tracking-widest uppercase mb-4">
-              {caseStudy.problemSolution.problem.label[language]}
+          {fieldVisible(caseStudy.problemSolution.problem, "label") && (
+            <div className="mb-6">
+              <div className="inline-block px-4 py-2 bg-pink-900/20 text-pink-300 rounded-[3px] text-sm tracking-widest uppercase mb-4">
+                {caseStudy.problemSolution.problem.label[language]}
+              </div>
             </div>
-          </div>
-          <p className="text-base text-neutral-100 leading-relaxed">
-            {caseStudy.problemSolution.problem.text[language]}
-          </p>
+          )}
+          {fieldVisible(caseStudy.problemSolution.problem, "text") && (
+            <p className="text-base text-neutral-100 leading-relaxed">
+              {caseStudy.problemSolution.problem.text[language]}
+            </p>
+          )}
         </div>
 
         {/* Solución */}
         <div>
-          <div className="mb-6">
-            <div className="inline-block px-4 py-2 bg-gradient-to-r from-pink-300 to-rose-300 hover:from-fuchsia-500 hover:to-orange-500 text-neutral-100 rounded-[3px] text-sm tracking-widest uppercase mb-4">
-              {caseStudy.problemSolution.solution.label[language]}
+          {fieldVisible(caseStudy.problemSolution.solution, "label") && (
+            <div className="mb-6">
+              <div className="inline-block px-4 py-2 bg-gradient-to-r from-pink-300 to-rose-300 hover:from-fuchsia-500 hover:to-orange-500 text-neutral-100 rounded-[3px] text-sm tracking-widest uppercase mb-4">
+                {caseStudy.problemSolution.solution.label[language]}
+              </div>
             </div>
-          </div>
-          <p className="text-base text-neutral-100 leading-relaxed">
-            {caseStudy.problemSolution.solution.text[language]}
-          </p>
+          )}
+          {fieldVisible(caseStudy.problemSolution.solution, "text") && (
+            <p className="text-base text-neutral-100 leading-relaxed">
+              {caseStudy.problemSolution.solution.text[language]}
+            </p>
+          )}
         </div>
       </div>
     </section>
@@ -143,18 +164,18 @@ export function UXUIDetails({ content }: { content?: CaseStudyContent }) {
           <thead>
             <tr className="border-b border-neutral-800">
               <th className="text-left px-8 py-4 text-base text-pink-300 font-semibold bg-neutral-900/50">
-                {caseStudy.details.headers.tools[language]}
+                {fieldVisible(caseStudy.details.headers, "tools") && caseStudy.details.headers.tools[language]}
               </th>
               <th className="text-left px-8 py-4 text-base text-pink-300 font-semibold bg-neutral-900/50">
-                {caseStudy.details.headers.team[language]}
+                {fieldVisible(caseStudy.details.headers, "team") && caseStudy.details.headers.team[language]}
               </th>
               <th className="text-left px-8 py-4 text-base text-pink-300 font-semibold bg-neutral-900/50">
-                {caseStudy.details.headers.role[language]}
+                {fieldVisible(caseStudy.details.headers, "role") && caseStudy.details.headers.role[language]}
               </th>
             </tr>
           </thead>
           <tbody>
-            {caseStudy.details.rows.map((row, index) => (
+            {fieldVisible(caseStudy.details, "rows") && caseStudy.details.rows.map((row, index) => (
               <tr key={index} className={index < caseStudy.details.rows.length - 1 ? "border-b border-neutral-800" : undefined}>
                 <td className="px-8 py-4 text-base text-neutral-100 align-top">{row.tools[language]}</td>
                 <td className="px-8 py-4 text-base text-neutral-100 align-top">{row.team[language]}</td>
@@ -174,21 +195,27 @@ export function UXUITimeline({ content }: { content?: CaseStudyContent }) {
   const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
-      <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
-        {caseStudy.timeline.title[language]}
-      </h3>
+      {fieldVisible(caseStudy.timeline, "title") && (
+        <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
+          {caseStudy.timeline.title[language]}
+        </h3>
+      )}
       <div className="bg-neutral-900 rounded-[3px] p-8">
-        <p className="text-base text-pink-300 mb-6">
-          <strong>{caseStudy.timeline.durationLabel[language]}</strong> {caseStudy.timeline.durationValue[language]}
-        </p>
-        <div className="space-y-4">
-          {caseStudy.timeline.phases.map((phase, index) => (
-            <div key={index} className="flex gap-4">
-              <span className="text-base text-neutral-100 min-w-[200px]">{phase.phase[language]}</span>
-              <span className="text-base text-neutral-400">{phase.duration[language]}</span>
-            </div>
-          ))}
-        </div>
+        {fieldVisible(caseStudy.timeline, "durationValue") && (
+          <p className="text-base text-pink-300 mb-6">
+            {fieldVisible(caseStudy.timeline, "durationLabel") && <strong>{caseStudy.timeline.durationLabel[language]}</strong>} {caseStudy.timeline.durationValue[language]}
+          </p>
+        )}
+        {fieldVisible(caseStudy.timeline, "phases") && (
+          <div className="space-y-4">
+            {caseStudy.timeline.phases.map((phase, index) => (
+              <div key={index} className="flex gap-4">
+                <span className="text-base text-neutral-100 min-w-[200px]">{phase.phase[language]}</span>
+                <span className="text-base text-neutral-400">{phase.duration[language]}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -200,20 +227,27 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
   const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
-      <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
-        {caseStudy.journey.title[language]}
-      </h3>
-      <p className="text-base text-neutral-100 leading-relaxed mb-8">
-        {caseStudy.journey.intro[0][language]}
-      </p>
-      <p className="text-base text-neutral-100 leading-relaxed mb-8">
-        {caseStudy.journey.intro[1][language]}
-      </p>
-      <p className="text-base text-neutral-100 leading-relaxed mb-12">
-        {caseStudy.journey.intro[2][language]}
-      </p>
+      {fieldVisible(caseStudy.journey, "title") && (
+        <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
+          {caseStudy.journey.title[language]}
+        </h3>
+      )}
+      {fieldVisible(caseStudy.journey, "intro") && caseStudy.journey.intro.length >= 3 && (
+        <>
+          <p className="text-base text-neutral-100 leading-relaxed mb-8">
+            {caseStudy.journey.intro[0][language]}
+          </p>
+          <p className="text-base text-neutral-100 leading-relaxed mb-8">
+            {caseStudy.journey.intro[1][language]}
+          </p>
+          <p className="text-base text-neutral-100 leading-relaxed mb-12">
+            {caseStudy.journey.intro[2][language]}
+          </p>
+        </>
+      )}
 
       {/* Visual Journey Map */}
+      {fieldVisible(caseStudy.journey, "stages") && caseStudy.journey.stages.length >= 5 && (
       <div className="mb-12">
         <div className="relative">
           {/* Journey Timeline */}
@@ -231,15 +265,15 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "action") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>}
                     <p className="text-sm text-neutral-100">{caseStudy.journey.stages[0].action[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "thought") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>}
                     <p className="text-sm text-neutral-300 italic">{caseStudy.journey.stages[0].thought[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "friction") && <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>}
                     <p className="text-sm text-rose-300">{caseStudy.journey.stages[0].friction[language]}</p>
                   </div>
                 </div>
@@ -259,15 +293,15 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "action") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>}
                     <p className="text-sm text-neutral-100">{caseStudy.journey.stages[1].action[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "thought") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>}
                     <p className="text-sm text-neutral-300 italic">{caseStudy.journey.stages[1].thought[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "friction") && <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>}
                     <p className="text-sm text-rose-300">{caseStudy.journey.stages[1].friction[language]}</p>
                   </div>
                 </div>
@@ -287,15 +321,15 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "action") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>}
                     <p className="text-sm text-neutral-100">{caseStudy.journey.stages[2].action[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "thought") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>}
                     <p className="text-sm text-neutral-300 italic">{caseStudy.journey.stages[2].thought[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "friction") && <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>}
                     <p className="text-sm text-rose-300">{caseStudy.journey.stages[2].friction[language]}</p>
                   </div>
                 </div>
@@ -315,15 +349,15 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "action") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>}
                     <p className="text-sm text-neutral-100">{caseStudy.journey.stages[3].action[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "thought") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>}
                     <p className="text-sm text-neutral-300 italic">{caseStudy.journey.stages[3].thought[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "friction") && <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>}
                     <p className="text-sm text-rose-300">{caseStudy.journey.stages[3].friction[language]}</p>
                   </div>
                 </div>
@@ -343,15 +377,15 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "action") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.action[language]}</p>}
                     <p className="text-sm text-neutral-100">{caseStudy.journey.stages[4].action[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "thought") && <p className="text-xs text-neutral-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.thought[language]}</p>}
                     <p className="text-sm text-neutral-300 italic">{caseStudy.journey.stages[4].thought[language]}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>
+                    {fieldVisible(caseStudy.journey.labels, "friction") && <p className="text-xs text-orange-500 uppercase tracking-wider mb-1">{caseStudy.journey.labels.friction[language]}</p>}
                     <p className="text-sm text-rose-300">{caseStudy.journey.stages[4].friction[language]}</p>
                   </div>
                 </div>
@@ -363,8 +397,10 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
           <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-600 via-fuchsia-600 via-pink-600 via-orange-600 to-amber-600 opacity-30" style={{ top: '24px' }}></div>
         </div>
       </div>
+      )}
 
       {/* Questions & Answers */}
+      {fieldVisible(caseStudy.journey, "qa") && (
       <div className="space-y-8">
         {caseStudy.journey.qa.map((item, index) => (
           <div key={index}>
@@ -385,6 +421,7 @@ export function UXUIJourney({ content }: { content?: CaseStudyContent }) {
           </div>
         ))}
       </div>
+      )}
     </section>
   );
 }
@@ -395,17 +432,24 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
   const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
-      <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
-        {caseStudy.personas.title[language]}
-      </h3>
-      <p className="text-base text-neutral-100 leading-relaxed mb-8">
-        {caseStudy.personas.intro[0][language]}
-      </p>
-      <p className="text-base text-neutral-100 leading-relaxed mb-12">
-        {caseStudy.personas.intro[1][language]}
-      </p>
+      {fieldVisible(caseStudy.personas, "title") && (
+        <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
+          {caseStudy.personas.title[language]}
+        </h3>
+      )}
+      {fieldVisible(caseStudy.personas, "intro") && caseStudy.personas.intro.length >= 2 && (
+        <>
+          <p className="text-base text-neutral-100 leading-relaxed mb-8">
+            {caseStudy.personas.intro[0][language]}
+          </p>
+          <p className="text-base text-neutral-100 leading-relaxed mb-12">
+            {caseStudy.personas.intro[1][language]}
+          </p>
+        </>
+      )}
 
       {/* Preguntas sobre User Personas */}
+      {fieldVisible(caseStudy.personas, "qa") && (
       <div className="space-y-6 mb-12">
         {caseStudy.personas.qa.map((item, index) => (
           <div key={index}>
@@ -423,8 +467,10 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
           </div>
         ))}
       </div>
+      )}
 
       {/* Persona Cards */}
+      {fieldVisible(caseStudy.personas, "cards") && (
       <div className="space-y-8">
         {caseStudy.personas.cards.map((persona, index) => (
           <div key={index} className="bg-neutral-900 rounded-[3px] p-8">
@@ -436,7 +482,7 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
 
             <div className="grid md:grid-cols-2 gap-8 mb-6">
               <div>
-                <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.basicInfo[language]}</h5>
+                {fieldVisible(caseStudy.personas.sectionLabels, "basicInfo") && <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.basicInfo[language]}</h5>}
                 <ul className="space-y-1 text-base text-neutral-400">
                   {persona.basicInfo.map((entry, eIndex) => (
                     <li key={eIndex}>• {entry[language]}</li>
@@ -445,7 +491,7 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
               </div>
 
               <div>
-                <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.channels[language]}</h5>
+                {fieldVisible(caseStudy.personas.sectionLabels, "channels") && <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.channels[language]}</h5>}
                 <ul className="space-y-1 text-base text-neutral-400">
                   {persona.channels.map((entry, eIndex) => (
                     <li key={eIndex}>• {entry[language]}</li>
@@ -456,7 +502,7 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.motivations[language]}</h5>
+                {fieldVisible(caseStudy.personas.sectionLabels, "motivations") && <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.motivations[language]}</h5>}
                 <ul className="space-y-1 text-base text-neutral-400">
                   {persona.motivations.map((entry, eIndex) => (
                     <li key={eIndex}>• {entry[language]}</li>
@@ -465,7 +511,7 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
               </div>
 
               <div>
-                <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.painPoints[language]}</h5>
+                {fieldVisible(caseStudy.personas.sectionLabels, "painPoints") && <h5 className="text-base text-neutral-100 mb-3">{caseStudy.personas.sectionLabels.painPoints[language]}</h5>}
                 <ul className="space-y-1 text-base text-neutral-400">
                   {persona.painPoints.map((entry, eIndex) => (
                     <li key={eIndex}>• {entry[language]}</li>
@@ -476,6 +522,7 @@ export function UXUIPersonas({ content }: { content?: CaseStudyContent }) {
           </div>
         ))}
       </div>
+      )}
     </section>
   );
 }
@@ -486,31 +533,39 @@ export function UXUISketches({ content }: { content?: CaseStudyContent }) {
   const caseStudy = content ?? caseStudyJson;
   return (
     <section className="mb-16">
-      <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
-        {caseStudy.sketches.title[language]}
-      </h3>
-      <p className="text-base text-neutral-100 leading-relaxed mb-6">
-        {caseStudy.sketches.intro[0][language]}
-      </p>
-      <p className="text-base text-neutral-100 leading-relaxed mb-6">
-        {caseStudy.sketches.intro[1][language]}
-      </p>
-      <p className="text-base text-neutral-100 leading-relaxed mb-12">
-        {caseStudy.sketches.intro[2][language]}
-      </p>
+      {fieldVisible(caseStudy.sketches, "title") && (
+        <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
+          {caseStudy.sketches.title[language]}
+        </h3>
+      )}
+      {fieldVisible(caseStudy.sketches, "intro") && caseStudy.sketches.intro.length >= 3 && (
+        <>
+          <p className="text-base text-neutral-100 leading-relaxed mb-6">
+            {caseStudy.sketches.intro[0][language]}
+          </p>
+          <p className="text-base text-neutral-100 leading-relaxed mb-6">
+            {caseStudy.sketches.intro[1][language]}
+          </p>
+          <p className="text-base text-neutral-100 leading-relaxed mb-12">
+            {caseStudy.sketches.intro[2][language]}
+          </p>
+        </>
+      )}
 
-      <div className="space-y-6">
-        {caseStudy.sketches.qa.map((item, index) => (
-          <div key={index}>
-            <h4 className="text-base text-pink-300 mb-3">
-              {item.question[language]}
-            </h4>
-            <p className="text-base text-neutral-100 leading-relaxed">
-              {item.answer[language]}
-            </p>
-          </div>
-        ))}
-      </div>
+      {fieldVisible(caseStudy.sketches, "qa") && (
+        <div className="space-y-6">
+          {caseStudy.sketches.qa.map((item, index) => (
+            <div key={index}>
+              <h4 className="text-base text-pink-300 mb-3">
+                {item.question[language]}
+              </h4>
+              <p className="text-base text-neutral-100 leading-relaxed">
+                {item.answer[language]}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -522,10 +577,13 @@ export function UXUILearnings({ content }: { content?: CaseStudyContent }) {
   return (
     <>
       <section className="mb-16">
-        <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
-          {caseStudy.learnings.title[language]}
-        </h3>
+        {fieldVisible(caseStudy.learnings, "title") && (
+          <h3 className="text-xl md:text-2xl tracking-tight text-neutral-100 mb-8">
+            {caseStudy.learnings.title[language]}
+          </h3>
+        )}
 
+        {fieldVisible(caseStudy.learnings, "qa") && (
         <div className="space-y-8">
           {caseStudy.learnings.qa.map((item, index) => (
             <div key={index}>
@@ -543,6 +601,7 @@ export function UXUILearnings({ content }: { content?: CaseStudyContent }) {
             </div>
           ))}
         </div>
+        )}
       </section>
 
       {/* Back to Home Button */}
