@@ -306,13 +306,20 @@ async function main() {
     // ---- inline-content reconstructors (block group -> flat JSON shape) ----
     const rowsText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
 
+    const vis = (v: any) => v !== false
     const heroFrom = (c: any) => ({
       backgroundImage: c.backgroundImage,
+      backgroundImageVisible: vis(c.backgroundImageVisible),
       title: loc(c.title),
+      titleVisible: vis(c.titleVisible),
       subtitle: loc(c.subtitle),
+      subtitleVisible: vis(c.subtitleVisible),
       body: loc(c.body),
+      bodyVisible: vis(c.bodyVisible),
       cta1: loc(c.cta1),
+      cta1Visible: vis(c.cta1Visible),
       cta2: loc(c.cta2),
+      cta2Visible: vis(c.cta2Visible),
     })
     const careerFrom = (c: any) => {
       const buildExp = (l: 'es' | 'en') =>
@@ -324,35 +331,53 @@ async function main() {
       return {
         headings: {
           careerPath: loc(c.headings.careerPath),
+          careerPathVisible: vis(c.headings.careerPathVisible),
           professionalExperience: loc(c.headings.professionalExperience),
+          professionalExperienceVisible: vis(c.headings.professionalExperienceVisible),
         },
         experience: { es: buildExp('es'), en: buildExp('en') },
+        experienceVisible: vis(c.experienceVisible),
       }
     }
     const aboutFrom = (c: any) => ({
       headings: {
         education: loc(c.headings.education),
+        educationVisible: vis(c.headings.educationVisible),
         tools: loc(c.headings.tools),
+        toolsVisible: vis(c.headings.toolsVisible),
         languages: loc(c.headings.languages),
+        languagesVisible: vis(c.headings.languagesVisible),
       },
       education: {
         es: (c.education || []).map((r: any) => r.item?.es ?? ''),
         en: (c.education || []).map((r: any) => r.item?.en ?? ''),
       },
+      educationVisible: vis(c.educationVisible),
       tools: (c.tools || []).map((r: any) => r.value),
+      toolsVisible: vis(c.toolsVisible),
       languages: (c.languages || []).map((r: any) => r.value),
+      languagesVisible: vis(c.languagesVisible),
       contact: {
         heading: loc(c.contact.heading),
+        headingVisible: vis(c.contact.headingVisible),
         body: loc(c.contact.body),
+        bodyVisible: vis(c.contact.bodyVisible),
         email: c.contact.email,
+        emailVisible: vis(c.contact.emailVisible),
         phone: c.contact.phone,
+        phoneVisible: vis(c.contact.phoneVisible),
       },
       socialLinks: (c.socialLinks || []).map((s: any) => ({ name: s.name, url: s.url })),
+      socialLinksVisible: vis(c.socialLinksVisible),
       footer: {
         copyrightPrefix: c.footer.copyrightPrefix,
+        copyrightPrefixVisible: vis(c.footer.copyrightPrefixVisible),
         rights: loc(c.footer.rights),
+        rightsVisible: vis(c.footer.rightsVisible),
         privacy: loc(c.footer.privacy),
+        privacyVisible: vis(c.footer.privacyVisible),
         terms: loc(c.footer.terms),
+        termsVisible: vis(c.footer.termsVisible),
       },
     })
     const uxuiFrom = (cs: any) => ({

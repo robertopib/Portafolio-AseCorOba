@@ -1,6 +1,7 @@
 import { Briefcase } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
 import { useLanguage } from "../context/LanguageContext";
+import { fieldVisible } from "../blocks/contentMeta";
 import careerJson from "../../../content/career.json";
 
 type LocalizedText = { es: string; en: string };
@@ -26,23 +27,28 @@ export function AboutSection({ content }: { content?: CareerContent }) {
           <div className="h-px flex-1 bg-neutral-700"></div>
         </div>
 
-        <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl tracking-tight mb-6">
-            {career.headings.careerPath[language]}
-          </h2>
-        </div>
+        {fieldVisible(career.headings, "careerPath") && (
+          <div className="mb-16">
+            <h2 className="text-3xl md:text-4xl tracking-tight mb-6">
+              {career.headings.careerPath[language]}
+            </h2>
+          </div>
+        )}
 
         {/* Experience Accordion */}
         <div>
-          <div className="bg-neutral-800 p-6 rounded-[3px] mb-8">
-            <div className="flex items-center gap-3">
-              <Briefcase className="w-5 h-5 text-violet-600" />
-              <h3 className="text-base tracking-wider uppercase text-white">
-                {career.headings.professionalExperience[language]}
-              </h3>
+          {fieldVisible(career.headings, "professionalExperience") && (
+            <div className="bg-neutral-800 p-6 rounded-[3px] mb-8">
+              <div className="flex items-center gap-3">
+                <Briefcase className="w-5 h-5 text-violet-600" />
+                <h3 className="text-base tracking-wider uppercase text-white">
+                  {career.headings.professionalExperience[language]}
+                </h3>
+              </div>
             </div>
-          </div>
+          )}
 
+          {fieldVisible(career, "experience") && (
           <Accordion type="single" collapsible className="space-y-6">
             {experience.map((job, index) => (
               <AccordionItem key={index} value={`exp-${index}`} className="border-l-2 border-neutral-700 hover:border-violet-600 transition-colors pl-6">
@@ -65,6 +71,7 @@ export function AboutSection({ content }: { content?: CareerContent }) {
               </AccordionItem>
             ))}
           </Accordion>
+          )}
         </div>
       </div>
     </section>

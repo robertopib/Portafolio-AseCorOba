@@ -36,6 +36,7 @@
  * (`pages_blocks_u_cards_upp_locales`) stays well under 63.
  */
 import type { Field } from 'payload'
+import { meta } from './fieldMeta'
 
 const t = (name: string, label: string, localized = true): Field => ({
   name,
@@ -73,12 +74,12 @@ export const heroContent = (): Field => ({
   label: 'Contenido — Portada',
   admin: { condition: gate('hero'), description: 'Contenido de la portada (se edita aquí).' },
   fields: [
-    { name: 'backgroundImage', type: 'text', label: 'Imagen de fondo (ruta)' }, // agnostic
-    t('title', 'Título'),
-    t('subtitle', 'Subtítulo'),
-    ta('body', 'Texto'),
-    t('cta1', 'Botón principal'),
-    t('cta2', 'Botón secundario'),
+    ...meta({ name: 'backgroundImage', type: 'text', label: 'Imagen de fondo (ruta)' }, 'Imagen de fondo'), // agnostic
+    ...meta(t('title', 'Título'), 'Título'),
+    ...meta(t('subtitle', 'Subtítulo'), 'Subtítulo'),
+    ...meta(ta('body', 'Texto'), 'Texto'),
+    ...meta(t('cta1', 'Botón principal'), 'Botón principal'),
+    ...meta(t('cta2', 'Botón secundario'), 'Botón secundario'),
   ],
 })
 
@@ -104,28 +105,35 @@ export const careerContent = (): Field => ({
       type: 'group',
       name: 'headings',
       label: 'Títulos',
-      fields: [t('careerPath', 'Título "Trayectoria"'), t('professionalExperience', 'Título "Experiencia"')],
+      fields: [
+        ...meta(t('careerPath', 'Título "Trayectoria"'), 'Título "Trayectoria"'),
+        ...meta(t('professionalExperience', 'Título "Experiencia"'), 'Título "Experiencia"'),
+      ],
     },
     // JSON is { es:[rows], en:[rows] } (index-parallel). Modeled as ONE array of
     // rows with localized role/period + nested localized responsibilities.
-    {
-      name: 'experience',
-      type: 'array',
-      label: 'Experiencia',
-      labels: { singular: 'Puesto', plural: 'Puestos' },
-      dbName: 'car_exp',
-      fields: [
-        t('role', 'Puesto / cargo'),
-        t('period', 'Periodo'),
-        {
-          name: 'responsibilities',
-          type: 'array',
-          label: 'Responsabilidades',
-          dbName: 'car_resp',
-          fields: [t('item', 'Punto')],
-        },
-      ],
-    },
+    // Whole-array visibility toggle (per-row toggles would break index parallelism).
+    ...meta(
+      {
+        name: 'experience',
+        type: 'array',
+        label: 'Experiencia',
+        labels: { singular: 'Puesto', plural: 'Puestos' },
+        dbName: 'car_exp',
+        fields: [
+          t('role', 'Puesto / cargo'),
+          t('period', 'Periodo'),
+          {
+            name: 'responsibilities',
+            type: 'array',
+            label: 'Responsabilidades',
+            dbName: 'car_resp',
+            fields: [t('item', 'Punto')],
+          },
+        ],
+      },
+      'Experiencia',
+    ),
   ],
 })
 
@@ -142,43 +150,51 @@ export const aboutContent = (): Field => ({
       type: 'group',
       name: 'headings',
       label: 'Títulos de sección',
-      fields: [t('education', 'Formación'), t('tools', 'Herramientas'), t('languages', 'Idiomas')],
+      fields: [
+        ...meta(t('education', 'Formación'), 'Formación'),
+        ...meta(t('tools', 'Herramientas'), 'Herramientas'),
+        ...meta(t('languages', 'Idiomas'), 'Idiomas'),
+      ],
     },
-    // education: { es:[...], en:[...] } -> array of { item (localized) }
-    { name: 'education', type: 'array', label: 'Formación', dbName: 'abt_edu', fields: [t('item', 'Estudio')] },
-    // tools / languages: language-agnostic string arrays
-    { name: 'tools', type: 'array', label: 'Herramientas', dbName: 'abt_tools', fields: [t('value', 'Herramienta', false)] },
-    { name: 'languages', type: 'array', label: 'Idiomas', dbName: 'abt_langs', fields: [t('value', 'Idioma', false)] },
+    // education: { es:[...], en:[...] } -> array of { item (localized) }. Whole-array toggle.
+    ...meta({ name: 'education', type: 'array', label: 'Formación', dbName: 'abt_edu', fields: [t('item', 'Estudio')] }, 'Formación (lista)'),
+    // tools / languages: language-agnostic string arrays. Whole-array toggle.
+    ...meta({ name: 'tools', type: 'array', label: 'Herramientas', dbName: 'abt_tools', fields: [t('value', 'Herramienta', false)] }, 'Herramientas (lista)'),
+    ...meta({ name: 'languages', type: 'array', label: 'Idiomas', dbName: 'abt_langs', fields: [t('value', 'Idioma', false)] }, 'Idiomas (lista)'),
     {
       type: 'group',
       name: 'contact',
       label: 'Contacto',
       fields: [
-        t('heading', 'Título de contacto'),
-        ta('body', 'Texto de contacto'),
-        { name: 'email', type: 'text', label: 'Correo' }, // agnostic
-        { name: 'phone', type: 'text', label: 'Teléfono' }, // agnostic
+        ...meta(t('heading', 'Título de contacto'), 'Título de contacto'),
+        ...meta(ta('body', 'Texto de contacto'), 'Texto de contacto'),
+        ...meta({ name: 'email', type: 'text', label: 'Correo' }, 'Correo'), // agnostic
+        ...meta({ name: 'phone', type: 'text', label: 'Teléfono' }, 'Teléfono'), // agnostic
       ],
     },
-    {
-      name: 'socialLinks',
-      type: 'array',
-      label: 'Redes sociales',
-      dbName: 'abt_social',
-      fields: [
-        { name: 'name', type: 'text', label: 'Nombre' }, // agnostic
-        { name: 'url', type: 'text', label: 'Enlace' }, // agnostic
-      ],
-    },
+    // Whole-array toggle for the social links list.
+    ...meta(
+      {
+        name: 'socialLinks',
+        type: 'array',
+        label: 'Redes sociales',
+        dbName: 'abt_social',
+        fields: [
+          { name: 'name', type: 'text', label: 'Nombre' }, // agnostic
+          { name: 'url', type: 'text', label: 'Enlace' }, // agnostic
+        ],
+      },
+      'Redes sociales',
+    ),
     {
       type: 'group',
       name: 'footer',
       label: 'Pie de página',
       fields: [
-        { name: 'copyrightPrefix', type: 'text', label: 'Copyright' }, // agnostic
-        t('rights', 'Derechos reservados'),
-        t('privacy', 'Privacidad'),
-        t('terms', 'Términos'),
+        ...meta({ name: 'copyrightPrefix', type: 'text', label: 'Copyright' }, 'Copyright'), // agnostic
+        ...meta(t('rights', 'Derechos reservados'), 'Derechos reservados'),
+        ...meta(t('privacy', 'Privacidad'), 'Privacidad'),
+        ...meta(t('terms', 'Términos'), 'Términos'),
       ],
     },
   ],

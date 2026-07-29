@@ -255,11 +255,35 @@ export interface Page {
          */
         heroContent?: {
           backgroundImage?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          backgroundImageVisible?: boolean | null;
           title?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          titleVisible?: boolean | null;
           subtitle?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          subtitleVisible?: boolean | null;
           body?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          bodyVisible?: boolean | null;
           cta1?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          cta1Visible?: boolean | null;
           cta2?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          cta2Visible?: boolean | null;
         };
         /**
          * Contenido de la experiencia (se edita aquí).
@@ -267,7 +291,15 @@ export interface Page {
         careerContent?: {
           headings?: {
             careerPath?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            careerPathVisible?: boolean | null;
             professionalExperience?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            professionalExperienceVisible?: boolean | null;
           };
           experience?:
             | {
@@ -282,6 +314,10 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          experienceVisible?: boolean | null;
         };
         /**
          * Contenido de "sobre mí y contacto" (se edita aquí).
@@ -289,8 +325,20 @@ export interface Page {
         aboutContent?: {
           headings?: {
             education?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            educationVisible?: boolean | null;
             tools?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            toolsVisible?: boolean | null;
             languages?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            languagesVisible?: boolean | null;
           };
           education?:
             | {
@@ -298,23 +346,51 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          educationVisible?: boolean | null;
           tools?:
             | {
                 value?: string | null;
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          toolsVisible?: boolean | null;
           languages?:
             | {
                 value?: string | null;
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          languagesVisible?: boolean | null;
           contact?: {
             heading?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            headingVisible?: boolean | null;
             body?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            bodyVisible?: boolean | null;
             email?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            emailVisible?: boolean | null;
             phone?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            phoneVisible?: boolean | null;
           };
           socialLinks?:
             | {
@@ -323,11 +399,31 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          socialLinksVisible?: boolean | null;
           footer?: {
             copyrightPrefix?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            copyrightPrefixVisible?: boolean | null;
             rights?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            rightsVisible?: boolean | null;
             privacy?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            privacyVisible?: boolean | null;
             terms?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            termsVisible?: boolean | null;
           };
         };
         /**
@@ -1295,11 +1391,17 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               backgroundImage?: T;
+              backgroundImageVisible?: T;
               title?: T;
+              titleVisible?: T;
               subtitle?: T;
+              subtitleVisible?: T;
               body?: T;
+              bodyVisible?: T;
               cta1?: T;
+              cta1Visible?: T;
               cta2?: T;
+              cta2Visible?: T;
             };
         careerContent?:
           | T
@@ -1308,7 +1410,9 @@ export interface PagesSelect<T extends boolean = true> {
                 | T
                 | {
                     careerPath?: T;
+                    careerPathVisible?: T;
                     professionalExperience?: T;
+                    professionalExperienceVisible?: T;
                   };
               experience?:
                 | T
@@ -1323,6 +1427,7 @@ export interface PagesSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              experienceVisible?: T;
             };
         aboutContent?:
           | T
@@ -1331,8 +1436,11 @@ export interface PagesSelect<T extends boolean = true> {
                 | T
                 | {
                     education?: T;
+                    educationVisible?: T;
                     tools?: T;
+                    toolsVisible?: T;
                     languages?: T;
+                    languagesVisible?: T;
                   };
               education?:
                 | T
@@ -1340,25 +1448,32 @@ export interface PagesSelect<T extends boolean = true> {
                     item?: T;
                     id?: T;
                   };
+              educationVisible?: T;
               tools?:
                 | T
                 | {
                     value?: T;
                     id?: T;
                   };
+              toolsVisible?: T;
               languages?:
                 | T
                 | {
                     value?: T;
                     id?: T;
                   };
+              languagesVisible?: T;
               contact?:
                 | T
                 | {
                     heading?: T;
+                    headingVisible?: T;
                     body?: T;
+                    bodyVisible?: T;
                     email?: T;
+                    emailVisible?: T;
                     phone?: T;
+                    phoneVisible?: T;
                   };
               socialLinks?:
                 | T
@@ -1367,13 +1482,18 @@ export interface PagesSelect<T extends boolean = true> {
                     url?: T;
                     id?: T;
                   };
+              socialLinksVisible?: T;
               footer?:
                 | T
                 | {
                     copyrightPrefix?: T;
+                    copyrightPrefixVisible?: T;
                     rights?: T;
+                    rightsVisible?: T;
                     privacy?: T;
+                    privacyVisible?: T;
                     terms?: T;
+                    termsVisible?: T;
                   };
             };
         uxuiContent?:
