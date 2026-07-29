@@ -832,11 +832,27 @@ export interface Category {
      * Desmarca esta casilla para ocultar este elemento en el sitio público.
      */
     descriptionVisible?: boolean | null;
+    /**
+     * La etiqueta antes del nombre del estudio (p. ej. «Branding corporativo de:»). Se puede cambiar u ocultar por categoría.
+     */
+    studioLabel?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    studioLabelVisible?: boolean | null;
     studioName?: string | null;
     /**
      * Desmarca esta casilla para ocultar este elemento en el sitio público.
      */
     studioNameVisible?: boolean | null;
+    /**
+     * La etiqueta antes de la descripción del rol (p. ej. «Mi rol»). Se puede cambiar u ocultar por categoría.
+     */
+    roleLabel?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    roleLabelVisible?: boolean | null;
     roleDescription?: string | null;
     /**
      * Desmarca esta casilla para ocultar este elemento en el sitio público.
@@ -2116,8 +2132,12 @@ export interface CategoriesSelect<T extends boolean = true> {
         taglineVisible?: T;
         description?: T;
         descriptionVisible?: T;
+        studioLabel?: T;
+        studioLabelVisible?: T;
         studioName?: T;
         studioNameVisible?: T;
+        roleLabel?: T;
+        roleLabelVisible?: T;
         roleDescription?: T;
         roleDescriptionVisible?: T;
         cta?: T;

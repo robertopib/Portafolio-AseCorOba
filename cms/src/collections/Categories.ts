@@ -103,7 +103,27 @@ export const Categories: CollectionConfig = {
           'Lema',
         ),
         ...meta({ name: 'description', type: 'textarea', localized: true, label: 'Descripción' }, 'Descripción'),
+        ...meta(
+          {
+            name: 'studioLabel',
+            type: 'text',
+            localized: true,
+            label: 'Etiqueta del estudio',
+            admin: { description: 'La etiqueta antes del nombre del estudio (p. ej. «Branding corporativo de:»). Se puede cambiar u ocultar por categoría.' },
+          },
+          'Etiqueta del estudio',
+        ),
         ...meta({ name: 'studioName', type: 'text', label: 'Nombre del estudio' }, 'Nombre del estudio'), // language-agnostic
+        ...meta(
+          {
+            name: 'roleLabel',
+            type: 'text',
+            localized: true,
+            label: 'Etiqueta del rol',
+            admin: { description: 'La etiqueta antes de la descripción del rol (p. ej. «Mi rol»). Se puede cambiar u ocultar por categoría.' },
+          },
+          'Etiqueta del rol',
+        ),
         ...meta({ name: 'roleDescription', type: 'textarea', localized: true, label: 'Rol / descripción del rol' }, 'Rol'),
         ...meta({ name: 'cta', type: 'text', localized: true, label: 'Texto del botón' }, 'Texto del botón'),
         ...meta(

@@ -453,7 +453,12 @@ async function main() {
     if (h.heading !== undefined) out.heading = h.heading
     if (h.tagline !== undefined) out.tagline = h.tagline
     if (h.description !== undefined) out.description = h.description
+    // studioLabel / roleLabel are per-category now, seeded from the shared
+    // ui.json values so they start populated (identical to the old shared text)
+    // and the editor can differentiate or hide them per category.
+    out.studioLabel = { es: ui.es['home.studioLabel'], en: ui.en['home.studioLabel'] }
     if (h.studioName !== undefined) out.studioName = h.studioName
+    out.roleLabel = { es: ui.es['home.roleLabel'], en: ui.en['home.roleLabel'] }
     if (h.roleDescription !== undefined) out.roleDescription = h.roleDescription
     if (h.cta !== undefined) out.cta = h.cta
     if (h.sectionHeading !== undefined) out.sectionHeading = h.sectionHeading

@@ -513,11 +513,21 @@ async function main() {
           out[`${k}Visible`] = h[`${k}Visible`] !== false
         }
       }
+      // Labels with a shared front-end fallback: ALWAYS emit the Visible flag (so
+      // the toggle works even when the per-category text is left blank), and the
+      // text only when set.
+      const putLabel = (k: string) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) out[k] = loc(v)
+        out[`${k}Visible`] = h[`${k}Visible`] !== false
+      }
       putLoc('sectionHeading')
       putLoc('heading')
       putLoc('tagline')
       putLoc('description')
+      putLabel('studioLabel')
       putRaw('studioName')
+      putLabel('roleLabel')
       putLoc('roleDescription')
       putLoc('cta')
       putRaw('sketchImage')

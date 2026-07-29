@@ -692,19 +692,25 @@ function BrandingHome({ content }: { content: CategoryGalleryContent }) {
 
         {/* Barbas.Studio Info */}
         <div className="mb-12 max-w-2xl">
-          {fieldVisible(intro, "studioName") && (
+          {(fieldVisible(intro, "studioLabel") || fieldVisible(intro, "studioName")) && (
             <p className="text-base text-neutral-100 mb-2">
-              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+              {fieldVisible(intro, "studioLabel") && <strong>{intro.studioLabel?.[language] ?? t('home.studioLabel')}</strong>}
+              {fieldVisible(intro, "studioLabel") && fieldVisible(intro, "studioName") ? " " : ""}
+              {fieldVisible(intro, "studioName") && intro.studioName}
             </p>
           )}
-          {fieldVisible(intro, "roleDescription") && (
+          {(fieldVisible(intro, "roleLabel") || fieldVisible(intro, "roleDescription")) && (
             <>
-              <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
-                {t('home.roleLabel')}
-              </p>
-              <p className="text-base text-neutral-400">
-                {intro.roleDescription?.[language]}
-              </p>
+              {fieldVisible(intro, "roleLabel") && (
+                <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
+                  {intro.roleLabel?.[language] ?? t('home.roleLabel')}
+                </p>
+              )}
+              {fieldVisible(intro, "roleDescription") && (
+                <p className="text-base text-neutral-400">
+                  {intro.roleDescription?.[language]}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -873,19 +879,25 @@ function WebAppsHome({ content }: { content: CategoryGalleryContent }) {
           </p>
         )}
         <div className="mb-12 max-w-2xl">
-          {fieldVisible(intro, "studioName") && (
+          {(fieldVisible(intro, "studioLabel") || fieldVisible(intro, "studioName")) && (
             <p className="text-base text-neutral-100 mb-2">
-              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+              {fieldVisible(intro, "studioLabel") && <strong>{intro.studioLabel?.[language] ?? t('home.studioLabel')}</strong>}
+              {fieldVisible(intro, "studioLabel") && fieldVisible(intro, "studioName") ? " " : ""}
+              {fieldVisible(intro, "studioName") && intro.studioName}
             </p>
           )}
-          {fieldVisible(intro, "roleDescription") && (
+          {(fieldVisible(intro, "roleLabel") || fieldVisible(intro, "roleDescription")) && (
             <>
-              <p className="text-sm text-slate-300 font-semibold mb-1 uppercase tracking-wide">
-                {t('home.roleLabel')}
-              </p>
-              <p className="text-base text-neutral-400">
-                {intro.roleDescription?.[language]}
-              </p>
+              {fieldVisible(intro, "roleLabel") && (
+                <p className="text-sm text-slate-300 font-semibold mb-1 uppercase tracking-wide">
+                  {intro.roleLabel?.[language] ?? t('home.roleLabel')}
+                </p>
+              )}
+              {fieldVisible(intro, "roleDescription") && (
+                <p className="text-base text-neutral-400">
+                  {intro.roleDescription?.[language]}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -1044,19 +1056,25 @@ function UxuiHome({ content }: { content: CategoryGalleryContent }) {
           </p>
         )}
         <div className="mb-12 max-w-2xl">
-          {fieldVisible(intro, "studioName") && (
+          {(fieldVisible(intro, "studioLabel") || fieldVisible(intro, "studioName")) && (
             <p className="text-base text-neutral-100 mb-2">
-              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+              {fieldVisible(intro, "studioLabel") && <strong>{intro.studioLabel?.[language] ?? t('home.studioLabel')}</strong>}
+              {fieldVisible(intro, "studioLabel") && fieldVisible(intro, "studioName") ? " " : ""}
+              {fieldVisible(intro, "studioName") && intro.studioName}
             </p>
           )}
-          {fieldVisible(intro, "roleDescription") && (
+          {(fieldVisible(intro, "roleLabel") || fieldVisible(intro, "roleDescription")) && (
             <>
-              <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
-                {t('home.roleLabel')}
-              </p>
-              <p className="text-base text-neutral-400">
-                {intro.roleDescription?.[language]}
-              </p>
+              {fieldVisible(intro, "roleLabel") && (
+                <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
+                  {intro.roleLabel?.[language] ?? t('home.roleLabel')}
+                </p>
+              )}
+              {fieldVisible(intro, "roleDescription") && (
+                <p className="text-base text-neutral-400">
+                  {intro.roleDescription?.[language]}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -1138,19 +1156,25 @@ function PhotographyHome({ content }: { content: CategoryGalleryContent }) {
           </p>
         )}
         <div className="mb-12 max-w-2xl">
-          {fieldVisible(intro, "studioName") && (
+          {(fieldVisible(intro, "studioLabel") || fieldVisible(intro, "studioName")) && (
             <p className="text-base text-neutral-100 mb-2">
-              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+              {fieldVisible(intro, "studioLabel") && <strong>{intro.studioLabel?.[language] ?? t('home.studioLabel')}</strong>}
+              {fieldVisible(intro, "studioLabel") && fieldVisible(intro, "studioName") ? " " : ""}
+              {fieldVisible(intro, "studioName") && intro.studioName}
             </p>
           )}
-          {fieldVisible(intro, "roleDescription") && (
+          {(fieldVisible(intro, "roleLabel") || fieldVisible(intro, "roleDescription")) && (
             <>
-              <p className="text-sm text-rose-300 font-semibold mb-1 uppercase tracking-wide">
-                {t('home.roleLabel')}
-              </p>
-              <p className="text-base text-neutral-400">
-                {intro.roleDescription?.[language]}
-              </p>
+              {fieldVisible(intro, "roleLabel") && (
+                <p className="text-sm text-rose-300 font-semibold mb-1 uppercase tracking-wide">
+                  {intro.roleLabel?.[language] ?? t('home.roleLabel')}
+                </p>
+              )}
+              {fieldVisible(intro, "roleDescription") && (
+                <p className="text-base text-neutral-400">
+                  {intro.roleDescription?.[language]}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -1402,19 +1426,25 @@ function MarketingHome({ content }: { content: CategoryGalleryContent }) {
           </p>
         )}
         <div className="mb-12 max-w-2xl">
-          {fieldVisible(intro, "studioName") && (
+          {(fieldVisible(intro, "studioLabel") || fieldVisible(intro, "studioName")) && (
             <p className="text-base text-neutral-100 mb-2">
-              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+              {fieldVisible(intro, "studioLabel") && <strong>{intro.studioLabel?.[language] ?? t('home.studioLabel')}</strong>}
+              {fieldVisible(intro, "studioLabel") && fieldVisible(intro, "studioName") ? " " : ""}
+              {fieldVisible(intro, "studioName") && intro.studioName}
             </p>
           )}
-          {fieldVisible(intro, "roleDescription") && (
+          {(fieldVisible(intro, "roleLabel") || fieldVisible(intro, "roleDescription")) && (
             <>
-              <p className="text-sm text-purple-300 font-semibold mb-1 uppercase tracking-wide">
-                {t('home.roleLabel')}
-              </p>
-              <p className="text-base text-neutral-400">
-                {intro.roleDescription?.[language]}
-              </p>
+              {fieldVisible(intro, "roleLabel") && (
+                <p className="text-sm text-purple-300 font-semibold mb-1 uppercase tracking-wide">
+                  {intro.roleLabel?.[language] ?? t('home.roleLabel')}
+                </p>
+              )}
+              {fieldVisible(intro, "roleDescription") && (
+                <p className="text-base text-neutral-400">
+                  {intro.roleDescription?.[language]}
+                </p>
+              )}
             </>
           )}
         </div>

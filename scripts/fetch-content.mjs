@@ -548,11 +548,19 @@ async function main() {
           out[`${k}Visible`] = h[`${k}Visible`] !== false
         }
       }
+      // Labels with a shared front-end fallback: always emit Visible, text if set.
+      const putLabel = (k) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) out[k] = loc(v)
+        out[`${k}Visible`] = h[`${k}Visible`] !== false
+      }
       putLoc('sectionHeading')
       putLoc('heading')
       putLoc('tagline')
       putLoc('description')
+      putLabel('studioLabel')
       putRaw('studioName')
+      putLabel('roleLabel')
       putLoc('roleDescription')
       putLoc('cta')
       putRaw('sketchImage')
