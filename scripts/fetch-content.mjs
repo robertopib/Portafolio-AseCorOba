@@ -352,12 +352,6 @@ async function main() {
       cta1: loc(c.cta1),
       cta2: loc(c.cta2),
     })
-    const headerFrom = (c) => ({
-      backLabel: loc(c.backLabel),
-      sectionNumber: c.sectionNumber,
-      title: loc(c.title),
-      description: loc(c.description),
-    })
     const careerFrom = (c) => {
       const buildExp = (l) =>
         (c.experience || []).map((row) => ({
@@ -479,20 +473,55 @@ async function main() {
       },
     })
 
-    const introFrom = (c) => {
+    // Home-preview intro, RESOLVED FROM THE CATEGORÍA (single source of truth),
+    // each emitted key carrying its `<key>Visible` flag. Mirrors export-content.ts.
+    const introFromCat = (cat) => {
+      const h = (cat && cat.home) || {}
       const out = {}
-      const putLoc = (k, v) => {
-        if (v && (v.es || v.en)) out[k] = loc(v)
+      const putLoc = (k) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) {
+          out[k] = loc(v)
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
       }
-      putLoc('sectionHeading', c.sectionHeading)
-      putLoc('heading', c.heading)
-      putLoc('tagline', c.tagline)
-      putLoc('description', c.description)
-      if (c.studioName) out.studioName = c.studioName
-      putLoc('roleDescription', c.roleDescription)
-      putLoc('cta', c.cta)
-      if (c.sketchImage) out.sketchImage = c.sketchImage
-      putLoc('sketchAlt', c.sketchAlt)
+      const putRaw = (k) => {
+        if (h[k]) {
+          out[k] = h[k]
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
+      }
+      putLoc('sectionHeading')
+      putLoc('heading')
+      putLoc('tagline')
+      putLoc('description')
+      putRaw('studioName')
+      putLoc('roleDescription')
+      putLoc('cta')
+      putRaw('sketchImage')
+      putLoc('sketchAlt')
+      return out
+    }
+
+    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-content.ts.
+    const pad2 = (n) => String(n).padStart(2, '0')
+    const HEADER_SLUG = {
+      brandingHeader: 'branding',
+      webAppsHeader: 'web-apps',
+      fotografiaHeader: 'fotografia-producto',
+      marketingHeader: 'marketing-360',
+    }
+    const headerFromCat = (cat) => {
+      const pg = (cat && cat.page) || {}
+      const out = { sectionNumber: pad2((cat?.order ?? 1) + 1) }
+      if (pg.title && (pg.title.es || pg.title.en)) {
+        out.title = loc(pg.title)
+        out.titleVisible = pg.titleVisible !== false
+      }
+      if (pg.description && (pg.description.es || pg.description.en)) {
+        out.description = loc(pg.description)
+        out.descriptionVisible = pg.descriptionVisible !== false
+      }
       return out
     }
 
@@ -537,27 +566,34 @@ async function main() {
                 })
               }
               const content = { layoutVariant: variant, projects: cards }
-              if (b.subheading && (b.subheading.es || b.subheading.en)) {
+              // Branding page subheadings resolve (+ visibility) from the Categoría;
+              // other variants keep the block's own subheading (e.g. "Logos").
+              const catForSub = catBySlug[slug]
+              if (variant === 'branding:sports' && catForSub?.page?.subtitleSports) {
+                content.subheading = loc(catForSub.page.subtitleSports)
+                content.subheadingVisible = catForSub.page.subtitleSportsVisible !== false
+              } else if (variant === 'branding:beauty' && catForSub?.page?.subtitleBeauty) {
+                content.subheading = loc(catForSub.page.subtitleBeauty)
+                content.subheadingVisible = catForSub.page.subtitleBeautyVisible !== false
+              } else if (b.subheading && (b.subheading.es || b.subheading.en)) {
                 content.subheading = loc(b.subheading)
               }
-              const prev = rawBlocks[idx - 1]
-              if (prev && prev.blockType === 'portfolioIntro' && prev.portfolioIntroContent) {
-                content.intro = introFrom(prev.portfolioIntroContent)
+              // Home-preview intro resolved from the referenced Categoría.
+              if (variant.endsWith(':home')) {
+                content.intro = introFromCat(catBySlug[slug])
               }
               block.content = content
             }
             if (b.blockType === 'hero' && b.heroContent) {
               block.content = heroFrom(b.heroContent)
-            } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
-              block.content = headerFrom(b.headerContent)
+            } else if (HEADER_BLOCK_TYPES.has(b.blockType)) {
+              block.content = headerFromCat(catBySlug[HEADER_SLUG[b.blockType]])
             } else if (b.blockType === 'experiencia' && b.careerContent) {
               block.content = careerFrom(b.careerContent)
             } else if (b.blockType === 'contacto' && b.aboutContent) {
               block.content = aboutFrom(b.aboutContent)
             } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
               block.content = uxuiFrom(b.uxuiContent)
-            } else if (b.blockType === 'portfolioIntro' && b.portfolioIntroContent) {
-              block.content = introFrom(b.portfolioIntroContent)
             }
             return block
           }),

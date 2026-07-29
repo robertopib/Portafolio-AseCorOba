@@ -83,21 +83,13 @@ export const heroContent = (): Field => ({
 })
 
 // ---------------------------------------------------------------------------
-// PROJECT-PAGE HEADERS (branding/webApps/fotografia/marketing) -> headerContent
+// PROJECT-PAGE HEADERS (branding/webApps/fotografia/marketing):
+// The header content (título/descripción/número/volver) is NO LONGER edited
+// inline on the block — it is RESOLVED FROM THE CATEGORÍA at export time
+// (Categorías are the single source of truth). The `*Header` blocks now only mark
+// where the header renders; there is no headerContent group. See export-content.ts
+// `headerFromCat` and collections/Categories.ts `page` group.
 // ---------------------------------------------------------------------------
-const HEADER_BLOCK_TYPES = ['brandingHeader', 'webAppsHeader', 'fotografiaHeader', 'marketingHeader']
-export const headerContent = (): Field => ({
-  type: 'group',
-  name: 'headerContent',
-  label: 'Contenido — Encabezado',
-  admin: { condition: gate(HEADER_BLOCK_TYPES), description: 'Contenido del encabezado (se edita aquí).' },
-  fields: [
-    t('backLabel', 'Texto del enlace "volver"'),
-    { name: 'sectionNumber', type: 'text', label: 'Número de sección' }, // agnostic
-    t('title', 'Título'),
-    ta('description', 'Descripción'),
-  ],
-})
 
 // ---------------------------------------------------------------------------
 // CAREER (home 'experiencia') -> careerContent
@@ -409,39 +401,17 @@ export const uxuiContent = (): Field => ({
 })
 
 // ---------------------------------------------------------------------------
-// PORTFOLIO INTRO (home preview intro) -> portfolioIntroContent
+// PORTFOLIO INTRO (home preview intro):
+// The home-preview intro (heading/description/studioName/roleDescription/cta/…)
+// is NO LONGER edited inline. It is RESOLVED FROM THE CATEGORÍA the home
+// `categoryGallery` references (single source of truth) at export time. See
+// export-content.ts `introFromCat` and collections/Categories.ts `home` group.
 // ---------------------------------------------------------------------------
-// The inline intro (heading/description/studioName/roleDescription/cta) shown
-// above a home preview gallery. Split OUT of the old *Preview section blocks so
-// the intro copy is edited in place while the gallery becomes a query block.
-export const PORTFOLIO_INTRO_BLOCK_TYPE = 'portfolioIntro'
-export const portfolioIntroContent = (): Field => ({
-  type: 'group',
-  name: 'portfolioIntroContent',
-  label: 'Contenido — Introducción (vista previa)',
-  admin: {
-    condition: gate(PORTFOLIO_INTRO_BLOCK_TYPE),
-    description: 'El texto de introducción de la vista previa (se edita aquí).',
-  },
-  fields: [
-    t('sectionHeading', 'Título de la sección (solo Branding)'),
-    t('heading', 'Título'),
-    t('tagline', 'Lema (solo UX/UI)'),
-    ta('description', 'Descripción'),
-    { name: 'studioName', type: 'text', label: 'Nombre del estudio' }, // agnostic
-    ta('roleDescription', 'Rol / descripción del rol'),
-    t('cta', 'Texto del botón'),
-    { name: 'sketchImage', type: 'text', label: 'Imagen del boceto (ruta, solo UX/UI)' }, // agnostic
-    t('sketchAlt', 'Texto alternativo del boceto (solo UX/UI)'),
-  ],
-})
 
 /** All inline CONTENT groups to spread into the Pages `blocks` array fields. */
 export const inlineContentFields = (): Field[] => [
   heroContent(),
-  headerContent(),
   careerContent(),
   aboutContent(),
   uxuiContent(),
-  portfolioIntroContent(),
 ]

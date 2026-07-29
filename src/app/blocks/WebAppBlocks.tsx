@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import webApps from "../../../content/sections/web-apps.json";
 import { GalleryLightbox, useGalleryLightbox } from "./galleryShared";
+import { fieldVisible } from "./contentMeta";
 
 /**
  * Web & App project page blocks. Header + gallery extracted VERBATIM from
@@ -40,12 +41,16 @@ export function WebAppHeader({ content }: { content?: HeaderContent }) {
         <div className="h-px flex-1 bg-neutral-800"></div>
       </div>
 
-      <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-        {title[language]}
-      </h1>
-      <p className="text-base text-neutral-300 max-w-3xl">
-        {description[language]}
-      </p>
+      {fieldVisible(content, "title") && (
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+          {title[language]}
+        </h1>
+      )}
+      {fieldVisible(content, "description") && (
+        <p className="text-base text-neutral-300 max-w-3xl">
+          {description[language]}
+        </p>
+      )}
     </div>
   );
 }

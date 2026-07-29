@@ -23,6 +23,7 @@ import {
   CASE_STUDIES_FILE,
   CASE_STUDY_BODY_SLICE_KEY,
 } from './content-map'
+import { assertPortfolioDb } from './dbGuard'
 
 const OUT_DIR = '/tmp/export-out'
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'))
@@ -78,6 +79,10 @@ const loc = (v: LV | undefined | null): { es: string; en: string } => ({
 })
 
 async function main() {
+  // Safety: verify we're pointed at THIS project's database before Payload
+  // connects (auto-push would mutate a wrong/foreign DB). See dbGuard.ts.
+  await assertPortfolioDb()
+
   const payload = await getPayload({ config })
   const report: Record<string, { match: boolean; diffs: string[] }> = {}
   const written: Record<string, any> = {}
@@ -309,12 +314,6 @@ async function main() {
       cta1: loc(c.cta1),
       cta2: loc(c.cta2),
     })
-    const headerFrom = (c: any) => ({
-      backLabel: loc(c.backLabel),
-      sectionNumber: c.sectionNumber,
-      title: loc(c.title),
-      description: loc(c.description),
-    })
     const careerFrom = (c: any) => {
       const buildExp = (l: 'es' | 'en') =>
         (c.experience || []).map((row: any) => ({
@@ -436,23 +435,61 @@ async function main() {
       },
     })
 
-    // PortfolioIntro inline content -> flat intro object. Only non-empty keys
-    // are emitted so, e.g., a non-UX/UI intro omits tagline/sketch* (matching
-    // the original section markup's absent fields).
-    const introFrom = (c: any) => {
+    // Home-preview intro, RESOLVED FROM THE CATEGORÍA (single source of truth).
+    // Only non-empty keys are emitted (so a non-UX/UI intro omits tagline/sketch*,
+    // matching the original markup). Each emitted key carries its `<key>Visible`
+    // flag (default true) so the front-end can hide the field. Categorías now
+    // DRIVE this text — the old inline portfolioIntro content was removed.
+    const introFromCat = (cat: any) => {
+      const h = (cat && cat.home) || {}
       const out: any = {}
-      const putLoc = (k: string, v: any) => {
-        if (v && (v.es || v.en)) out[k] = loc(v)
+      const putLoc = (k: string) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) {
+          out[k] = loc(v)
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
       }
-      putLoc('sectionHeading', c.sectionHeading)
-      putLoc('heading', c.heading)
-      putLoc('tagline', c.tagline)
-      putLoc('description', c.description)
-      if (c.studioName) out.studioName = c.studioName
-      putLoc('roleDescription', c.roleDescription)
-      putLoc('cta', c.cta)
-      if (c.sketchImage) out.sketchImage = c.sketchImage
-      putLoc('sketchAlt', c.sketchAlt)
+      const putRaw = (k: string) => {
+        if (h[k]) {
+          out[k] = h[k]
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
+      }
+      putLoc('sectionHeading')
+      putLoc('heading')
+      putLoc('tagline')
+      putLoc('description')
+      putRaw('studioName')
+      putLoc('roleDescription')
+      putLoc('cta')
+      putRaw('sketchImage')
+      putLoc('sketchAlt')
+      return out
+    }
+
+    // Project-page header, RESOLVED FROM THE CATEGORÍA. title/description (+ their
+    // Visible flags) come from the Categoría `page` group; sectionNumber is derived
+    // from the Categoría order; backLabel is intentionally omitted so the renderer
+    // falls back to the shared, already-editable ui.json `nav.back`.
+    const pad2 = (n: number) => String(n).padStart(2, '0')
+    const HEADER_SLUG: Record<string, string> = {
+      brandingHeader: 'branding',
+      webAppsHeader: 'web-apps',
+      fotografiaHeader: 'fotografia-producto',
+      marketingHeader: 'marketing-360',
+    }
+    const headerFromCat = (cat: any) => {
+      const pg = (cat && cat.page) || {}
+      const out: any = { sectionNumber: pad2((cat?.order ?? 1) + 1) }
+      if (pg.title && (pg.title.es || pg.title.en)) {
+        out.title = loc(pg.title)
+        out.titleVisible = pg.titleVisible !== false
+      }
+      if (pg.description && (pg.description.es || pg.description.en)) {
+        out.description = loc(pg.description)
+        out.descriptionVisible = pg.descriptionVisible !== false
+      }
       return out
     }
 
@@ -505,33 +542,40 @@ async function main() {
                 })
               }
               const content: any = { layoutVariant: variant, projects: cards }
-              if (b.subheading && (b.subheading.es || b.subheading.en)) {
+              // Subheading: the branding page variants resolve it (+ visibility)
+              // from the Categoría (single source of truth); other variants keep
+              // the block's own subheading (e.g. "Logos").
+              const catForSub = catBySlug[slug]
+              if (variant === 'branding:sports' && catForSub?.page?.subtitleSports) {
+                content.subheading = loc(catForSub.page.subtitleSports)
+                content.subheadingVisible = catForSub.page.subtitleSportsVisible !== false
+              } else if (variant === 'branding:beauty' && catForSub?.page?.subtitleBeauty) {
+                content.subheading = loc(catForSub.page.subtitleBeauty)
+                content.subheadingVisible = catForSub.page.subtitleBeautyVisible !== false
+              } else if (b.subheading && (b.subheading.es || b.subheading.en)) {
                 content.subheading = loc(b.subheading)
               }
-              // Home variants render the intro inline in the same <section>: pull
-              // it from the immediately-preceding portfolioIntro block.
-              const prev = rawBlocks[idx - 1]
-              if (prev && prev.blockType === 'portfolioIntro' && prev.portfolioIntroContent) {
-                content.intro = introFrom(prev.portfolioIntroContent)
+              // Home variants render the intro inline in the same <section>. The
+              // intro is now RESOLVED FROM THE CATEGORÍA this gallery references
+              // (single source of truth), not from a separate portfolioIntro block.
+              if (variant.endsWith(':home')) {
+                content.intro = introFromCat(catBySlug[slug])
               }
               block.content = content
             }
             // CONTENT blocks carry inline content, emitted as a flat `content`
             // object matching the front-end renderer's `content` prop shape.
+            // Headers are resolved from the Categoría; the rest stay inline.
             if (b.blockType === 'hero' && b.heroContent) {
               block.content = heroFrom(b.heroContent)
-            } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
-              block.content = headerFrom(b.headerContent)
+            } else if (HEADER_BLOCK_TYPES.has(b.blockType)) {
+              block.content = headerFromCat(catBySlug[HEADER_SLUG[b.blockType]])
             } else if (b.blockType === 'experiencia' && b.careerContent) {
               block.content = careerFrom(b.careerContent)
             } else if (b.blockType === 'contacto' && b.aboutContent) {
               block.content = aboutFrom(b.aboutContent)
             } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
               block.content = uxuiFrom(b.uxuiContent)
-            } else if (b.blockType === 'portfolioIntro' && b.portfolioIntroContent) {
-              // Keep the intro content on its own block too (edited in place);
-              // it renders nothing but documents the intro authored here.
-              block.content = introFrom(b.portfolioIntroContent)
             }
             return block
           }),

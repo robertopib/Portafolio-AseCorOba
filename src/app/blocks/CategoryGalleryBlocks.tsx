@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Lightbox } from "../components/Lightbox";
+import { fieldVisible } from "./contentMeta";
 
 /**
  * CategoryGallery — a WordPress-style "query block".
@@ -161,9 +162,11 @@ function BrandingSports({ content }: { content: CategoryGalleryContent }) {
 
   return (
     <div className="mb-16">
-      <h2 className="text-xl tracking-wider uppercase text-purple-300 mb-8 font-bold">
-        {content.subheading?.[language]}
-      </h2>
+      {fieldVisible(content, "subheading") && (
+        <h2 className="text-xl tracking-wider uppercase text-purple-300 mb-8 font-bold">
+          {content.subheading?.[language]}
+        </h2>
+      )}
       <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
         {/* Hero Image - Large */}
         <div
@@ -299,9 +302,11 @@ function BrandingBeauty({ content }: { content: CategoryGalleryContent }) {
 
   return (
     <div>
-      <h2 className="text-xl tracking-wider uppercase text-pink-300 mb-8 font-bold">
-        {content.subheading?.[language]}
-      </h2>
+      {fieldVisible(content, "subheading") && (
+        <h2 className="text-xl tracking-wider uppercase text-pink-300 mb-8 font-bold">
+          {content.subheading?.[language]}
+        </h2>
+      )}
 
       {/* Masonry Grid Combinado */}
       <div className="grid grid-cols-4 md:grid-cols-8 gap-4 mb-12">
@@ -666,30 +671,42 @@ function BrandingHome({ content }: { content: CategoryGalleryContent }) {
           <div className="h-px flex-1 bg-neutral-800"></div>
         </div>
 
-        <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-100 mb-6 uppercase">
-            {intro.sectionHeading?.[language]}
-          </h2>
-        </div>
+        {fieldVisible(intro, "sectionHeading") && (
+          <div className="mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-100 mb-6 uppercase">
+              {intro.sectionHeading?.[language]}
+            </h2>
+          </div>
+        )}
 
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {intro.heading?.[language]}
-        </h3>
-        <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {intro.description?.[language]}
-        </p>
+        {fieldVisible(intro, "heading") && (
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+            {intro.heading?.[language]}
+          </h3>
+        )}
+        {fieldVisible(intro, "description") && (
+          <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
+            {intro.description?.[language]}
+          </p>
+        )}
 
         {/* Barbas.Studio Info */}
         <div className="mb-12 max-w-2xl">
-          <p className="text-base text-neutral-100 mb-2">
-            <strong>{t('home.studioLabel')}</strong> {intro.studioName}
-          </p>
-          <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
-            {t('home.roleLabel')}
-          </p>
-          <p className="text-base text-neutral-400">
-            {intro.roleDescription?.[language]}
-          </p>
+          {fieldVisible(intro, "studioName") && (
+            <p className="text-base text-neutral-100 mb-2">
+              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+            </p>
+          )}
+          {fieldVisible(intro, "roleDescription") && (
+            <>
+              <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
+                {t('home.roleLabel')}
+              </p>
+              <p className="text-base text-neutral-400">
+                {intro.roleDescription?.[language]}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Gallery Container */}
@@ -722,15 +739,17 @@ function BrandingHome({ content }: { content: CategoryGalleryContent }) {
           </div>
 
           {/* Ver más proyectos Button */}
-          <div className="flex justify-center mt-12">
-            <Link
-              to="/proyectos/branding"
-              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
-            >
-              <span>{intro.cta?.[language]}</span>
-              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
+          {fieldVisible(intro, "cta") && (
+            <div className="flex justify-center mt-12">
+              <Link
+                to="/proyectos/branding"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
+              >
+                <span>{intro.cta?.[language]}</span>
+                <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Lightbox Modal */}
@@ -843,22 +862,32 @@ function WebAppsHome({ content }: { content: CategoryGalleryContent }) {
           <div className="h-px flex-1 bg-neutral-800"></div>
         </div>
 
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {intro.heading?.[language]}
-        </h3>
-        <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {intro.description?.[language]}
-        </p>
+        {fieldVisible(intro, "heading") && (
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+            {intro.heading?.[language]}
+          </h3>
+        )}
+        {fieldVisible(intro, "description") && (
+          <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
+            {intro.description?.[language]}
+          </p>
+        )}
         <div className="mb-12 max-w-2xl">
-          <p className="text-base text-neutral-100 mb-2">
-            <strong>{t('home.studioLabel')}</strong> {intro.studioName}
-          </p>
-          <p className="text-sm text-slate-300 font-semibold mb-1 uppercase tracking-wide">
-            {t('home.roleLabel')}
-          </p>
-          <p className="text-base text-neutral-400">
-            {intro.roleDescription?.[language]}
-          </p>
+          {fieldVisible(intro, "studioName") && (
+            <p className="text-base text-neutral-100 mb-2">
+              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+            </p>
+          )}
+          {fieldVisible(intro, "roleDescription") && (
+            <>
+              <p className="text-sm text-slate-300 font-semibold mb-1 uppercase tracking-wide">
+                {t('home.roleLabel')}
+              </p>
+              <p className="text-base text-neutral-400">
+                {intro.roleDescription?.[language]}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Grid de 3 columnas con el mismo tamaño */}
@@ -888,15 +917,17 @@ function WebAppsHome({ content }: { content: CategoryGalleryContent }) {
         </div>
 
         {/* Ver más proyectos Button */}
-        <div className="flex justify-center mt-12">
-          <Link
-            to="/proyectos/web-apps"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
-          >
-            <span>{intro.cta?.[language]}</span>
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
+        {fieldVisible(intro, "cta") && (
+          <div className="flex justify-center mt-12">
+            <Link
+              to="/proyectos/web-apps"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
+            >
+              <span>{intro.cta?.[language]}</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Lightbox Modal */}
@@ -997,51 +1028,67 @@ function UxuiHome({ content }: { content: CategoryGalleryContent }) {
           <div className="h-px flex-1 bg-neutral-800"></div>
         </div>
 
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {intro.heading?.[language]}
-        </h3>
-        <p className="text-xl md:text-2xl text-pink-300 mb-6 italic font-semibold">
-          {intro.tagline?.[language]}
-        </p>
-        <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {intro.description?.[language]}
-        </p>
+        {fieldVisible(intro, "heading") && (
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+            {intro.heading?.[language]}
+          </h3>
+        )}
+        {fieldVisible(intro, "tagline") && (
+          <p className="text-xl md:text-2xl text-pink-300 mb-6 italic font-semibold">
+            {intro.tagline?.[language]}
+          </p>
+        )}
+        {fieldVisible(intro, "description") && (
+          <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
+            {intro.description?.[language]}
+          </p>
+        )}
         <div className="mb-12 max-w-2xl">
-          <p className="text-base text-neutral-100 mb-2">
-            <strong>{t('home.studioLabel')}</strong> {intro.studioName}
-          </p>
-          <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
-            {t('home.roleLabel')}
-          </p>
-          <p className="text-base text-neutral-400">
-            {intro.roleDescription?.[language]}
-          </p>
+          {fieldVisible(intro, "studioName") && (
+            <p className="text-base text-neutral-100 mb-2">
+              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+            </p>
+          )}
+          {fieldVisible(intro, "roleDescription") && (
+            <>
+              <p className="text-sm text-pink-300 font-semibold mb-1 uppercase tracking-wide">
+                {t('home.roleLabel')}
+              </p>
+              <p className="text-base text-neutral-400">
+                {intro.roleDescription?.[language]}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Imagen horizontal única */}
-        <div className="mb-12">
-          <div className="group relative rounded-[3px] overflow-hidden bg-gradient-to-br from-pink-300/15 via-rose-300/10 to-purple-400/10 p-[2px] hover:shadow-2xl hover:shadow-xl transition-all duration-500">
-            <div className="relative overflow-hidden bg-black rounded-[3px]" style={{ height: '300px' }}>
-              <ImageWithFallback
-                src={intro.sketchImage ?? ""}
-                alt={intro.sketchAlt?.[language] ?? ""}
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-300/20 via-transparent to-rose-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        {fieldVisible(intro, "sketchImage") && (
+          <div className="mb-12">
+            <div className="group relative rounded-[3px] overflow-hidden bg-gradient-to-br from-pink-300/15 via-rose-300/10 to-purple-400/10 p-[2px] hover:shadow-2xl hover:shadow-xl transition-all duration-500">
+              <div className="relative overflow-hidden bg-black rounded-[3px]" style={{ height: '300px' }}>
+                <ImageWithFallback
+                  src={intro.sketchImage ?? ""}
+                  alt={intro.sketchAlt?.[language] ?? ""}
+                  className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-300/20 via-transparent to-rose-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Ver más proyectos Button */}
-        <div className="flex justify-center mt-12">
-          <Link
-            to="/proyectos/uxui-producto"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-300 to-rose-300 hover:from-fuchsia-500 hover:to-orange-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
-          >
-            <span>{intro.cta?.[language]}</span>
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
+        {fieldVisible(intro, "cta") && (
+          <div className="flex justify-center mt-12">
+            <Link
+              to="/proyectos/uxui-producto"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-pink-300 to-rose-300 hover:from-fuchsia-500 hover:to-orange-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
+            >
+              <span>{intro.cta?.[language]}</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1080,22 +1127,32 @@ function PhotographyHome({ content }: { content: CategoryGalleryContent }) {
           <div className="h-px flex-1 bg-neutral-800"></div>
         </div>
 
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {intro.heading?.[language]}
-        </h3>
-        <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {intro.description?.[language]}
-        </p>
+        {fieldVisible(intro, "heading") && (
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+            {intro.heading?.[language]}
+          </h3>
+        )}
+        {fieldVisible(intro, "description") && (
+          <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
+            {intro.description?.[language]}
+          </p>
+        )}
         <div className="mb-12 max-w-2xl">
-          <p className="text-base text-neutral-100 mb-2">
-            <strong>{t('home.studioLabel')}</strong> {intro.studioName}
-          </p>
-          <p className="text-sm text-rose-300 font-semibold mb-1 uppercase tracking-wide">
-            {t('home.roleLabel')}
-          </p>
-          <p className="text-base text-neutral-400">
-            {intro.roleDescription?.[language]}
-          </p>
+          {fieldVisible(intro, "studioName") && (
+            <p className="text-base text-neutral-100 mb-2">
+              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+            </p>
+          )}
+          {fieldVisible(intro, "roleDescription") && (
+            <>
+              <p className="text-sm text-rose-300 font-semibold mb-1 uppercase tracking-wide">
+                {t('home.roleLabel')}
+              </p>
+              <p className="text-base text-neutral-400">
+                {intro.roleDescription?.[language]}
+              </p>
+            </>
+          )}
         </div>
 
         {/* Layout: 1 grande, 2 medianas, 2 pequeñas */}
@@ -1207,15 +1264,17 @@ function PhotographyHome({ content }: { content: CategoryGalleryContent }) {
         </div>
 
         {/* Ver más proyectos Button */}
-        <div className="flex justify-center mt-12">
-          <Link
-            to="/proyectos/fotografia-producto"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 hover:from-orange-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
-          >
-            <span>{intro.cta?.[language]}</span>
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
+        {fieldVisible(intro, "cta") && (
+          <div className="flex justify-center mt-12">
+            <Link
+              to="/proyectos/fotografia-producto"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-600 to-purple-600 hover:from-orange-500 hover:to-purple-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
+            >
+              <span>{intro.cta?.[language]}</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Lightbox Modal */}
@@ -1332,22 +1391,32 @@ function MarketingHome({ content }: { content: CategoryGalleryContent }) {
           <div className="h-px flex-1 bg-neutral-800"></div>
         </div>
 
-        <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-          {intro.heading?.[language]}
-        </h3>
-        <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
-          {intro.description?.[language]}
-        </p>
+        {fieldVisible(intro, "heading") && (
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+            {intro.heading?.[language]}
+          </h3>
+        )}
+        {fieldVisible(intro, "description") && (
+          <p className="text-base text-neutral-300 mt-4 mb-4 max-w-2xl">
+            {intro.description?.[language]}
+          </p>
+        )}
         <div className="mb-12 max-w-2xl">
-          <p className="text-base text-neutral-100 mb-2">
-            <strong>{t('home.studioLabel')}</strong> {intro.studioName}
-          </p>
-          <p className="text-sm text-purple-300 font-semibold mb-1 uppercase tracking-wide">
-            {t('home.roleLabel')}
-          </p>
-          <p className="text-base text-neutral-400">
-            {intro.roleDescription?.[language]}
-          </p>
+          {fieldVisible(intro, "studioName") && (
+            <p className="text-base text-neutral-100 mb-2">
+              <strong>{t('home.studioLabel')}</strong> {intro.studioName}
+            </p>
+          )}
+          {fieldVisible(intro, "roleDescription") && (
+            <>
+              <p className="text-sm text-purple-300 font-semibold mb-1 uppercase tracking-wide">
+                {t('home.roleLabel')}
+              </p>
+              <p className="text-base text-neutral-400">
+                {intro.roleDescription?.[language]}
+              </p>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -1376,15 +1445,17 @@ function MarketingHome({ content }: { content: CategoryGalleryContent }) {
         </div>
 
         {/* Ver más proyectos Button */}
-        <div className="flex justify-center mt-12">
-          <Link
-            to="/proyectos/marketing-360"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
-          >
-            <span>{intro.cta?.[language]}</span>
-            <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
+        {fieldVisible(intro, "cta") && (
+          <div className="flex justify-center mt-12">
+            <Link
+              to="/proyectos/marketing-360"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-neutral-100 font-bold uppercase tracking-wide rounded-[3px] transition-all duration-300 group hover:shadow-lg hover:shadow-xl"
+            >
+              <span>{intro.cta?.[language]}</span>
+              <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Lightbox Modal */}

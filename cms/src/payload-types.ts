@@ -262,15 +262,6 @@ export interface Page {
           cta2?: string | null;
         };
         /**
-         * Contenido del encabezado (se edita aquí).
-         */
-        headerContent?: {
-          backLabel?: string | null;
-          sectionNumber?: string | null;
-          title?: string | null;
-          description?: string | null;
-        };
-        /**
          * Contenido de la experiencia (se edita aquí).
          */
         careerContent?: {
@@ -533,20 +524,6 @@ export interface Page {
               | null;
           };
         };
-        /**
-         * El texto de introducción de la vista previa (se edita aquí).
-         */
-        portfolioIntroContent?: {
-          sectionHeading?: string | null;
-          heading?: string | null;
-          tagline?: string | null;
-          description?: string | null;
-          studioName?: string | null;
-          roleDescription?: string | null;
-          cta?: string | null;
-          sketchImage?: string | null;
-          sketchAlt?: string | null;
-        };
         id?: string | null;
       }[]
     | null;
@@ -583,40 +560,92 @@ export interface Category {
   home?: {
     heading?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    headingVisible?: boolean | null;
+    /**
      * Solo UX/UI: el lema bajo el título.
      */
     tagline?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    taglineVisible?: boolean | null;
     description?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    descriptionVisible?: boolean | null;
     studioName?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    studioNameVisible?: boolean | null;
     roleDescription?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    roleDescriptionVisible?: boolean | null;
     cta?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    ctaVisible?: boolean | null;
     /**
      * Solo Branding: el título "Proyectos".
      */
     sectionHeading?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sectionHeadingVisible?: boolean | null;
+    /**
      * Solo UX/UI: ruta de la imagen del boceto.
      */
     sketchImage?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sketchImageVisible?: boolean | null;
+    /**
      * Solo UX/UI.
      */
     sketchAlt?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sketchAltVisible?: boolean | null;
   };
   /**
    * Se muestra arriba de la página de esta categoría.
    */
   page?: {
     title?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    titleVisible?: boolean | null;
     description?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    descriptionVisible?: boolean | null;
     /**
      * Solo Branding.
      */
     subtitleSports?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    subtitleSportsVisible?: boolean | null;
+    /**
      * Solo Branding.
      */
     subtitleBeauty?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    subtitleBeautyVisible?: boolean | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -1272,14 +1301,6 @@ export interface PagesSelect<T extends boolean = true> {
               cta1?: T;
               cta2?: T;
             };
-        headerContent?:
-          | T
-          | {
-              backLabel?: T;
-              sectionNumber?: T;
-              title?: T;
-              description?: T;
-            };
         careerContent?:
           | T
           | {
@@ -1578,19 +1599,6 @@ export interface PagesSelect<T extends boolean = true> {
                         };
                   };
             };
-        portfolioIntroContent?:
-          | T
-          | {
-              sectionHeading?: T;
-              heading?: T;
-              tagline?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-              sketchImage?: T;
-              sketchAlt?: T;
-            };
         id?: T;
       };
   updatedAt?: T;
@@ -1627,22 +1635,35 @@ export interface CategoriesSelect<T extends boolean = true> {
     | T
     | {
         heading?: T;
+        headingVisible?: T;
         tagline?: T;
+        taglineVisible?: T;
         description?: T;
+        descriptionVisible?: T;
         studioName?: T;
+        studioNameVisible?: T;
         roleDescription?: T;
+        roleDescriptionVisible?: T;
         cta?: T;
+        ctaVisible?: T;
         sectionHeading?: T;
+        sectionHeadingVisible?: T;
         sketchImage?: T;
+        sketchImageVisible?: T;
         sketchAlt?: T;
+        sketchAltVisible?: T;
       };
   page?:
     | T
     | {
         title?: T;
+        titleVisible?: T;
         description?: T;
+        descriptionVisible?: T;
         subtitleSports?: T;
+        subtitleSportsVisible?: T;
         subtitleBeauty?: T;
+        subtitleBeautyVisible?: T;
       };
   updatedAt?: T;
   createdAt?: T;
