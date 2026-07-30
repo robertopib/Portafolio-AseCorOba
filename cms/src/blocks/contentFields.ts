@@ -36,6 +36,7 @@
  * (`pages_blocks_u_cards_upp_locales`) stays well under 63.
  */
 import type { Field } from 'payload'
+import { meta } from './fieldMeta'
 
 const t = (name: string, label: string, localized = true): Field => ({
   name,
@@ -73,31 +74,23 @@ export const heroContent = (): Field => ({
   label: 'Contenido — Portada',
   admin: { condition: gate('hero'), description: 'Contenido de la portada (se edita aquí).' },
   fields: [
-    { name: 'backgroundImage', type: 'text', label: 'Imagen de fondo (ruta)' }, // agnostic
-    t('title', 'Título'),
-    t('subtitle', 'Subtítulo'),
-    ta('body', 'Texto'),
-    t('cta1', 'Botón principal'),
-    t('cta2', 'Botón secundario'),
+    ...meta({ name: 'backgroundImage', type: 'text', label: 'Imagen de fondo (ruta)' }, 'Imagen de fondo'), // agnostic
+    ...meta(t('title', 'Título'), 'Título'),
+    ...meta(t('subtitle', 'Subtítulo'), 'Subtítulo'),
+    ...meta(ta('body', 'Texto'), 'Texto'),
+    ...meta(t('cta1', 'Botón principal'), 'Botón principal'),
+    ...meta(t('cta2', 'Botón secundario'), 'Botón secundario'),
   ],
 })
 
 // ---------------------------------------------------------------------------
-// PROJECT-PAGE HEADERS (branding/webApps/fotografia/marketing) -> headerContent
+// PROJECT-PAGE HEADERS (branding/webApps/fotografia/marketing):
+// The header content (título/descripción/número/volver) is NO LONGER edited
+// inline on the block — it is RESOLVED FROM THE CATEGORÍA at export time
+// (Categorías are the single source of truth). The `*Header` blocks now only mark
+// where the header renders; there is no headerContent group. See export-content.ts
+// `headerFromCat` and collections/Categories.ts `page` group.
 // ---------------------------------------------------------------------------
-const HEADER_BLOCK_TYPES = ['brandingHeader', 'webAppsHeader', 'fotografiaHeader', 'marketingHeader']
-export const headerContent = (): Field => ({
-  type: 'group',
-  name: 'headerContent',
-  label: 'Contenido — Encabezado',
-  admin: { condition: gate(HEADER_BLOCK_TYPES), description: 'Contenido del encabezado (se edita aquí).' },
-  fields: [
-    t('backLabel', 'Texto del enlace "volver"'),
-    { name: 'sectionNumber', type: 'text', label: 'Número de sección' }, // agnostic
-    t('title', 'Título'),
-    ta('description', 'Descripción'),
-  ],
-})
 
 // ---------------------------------------------------------------------------
 // CAREER (home 'experiencia') -> careerContent
@@ -112,28 +105,35 @@ export const careerContent = (): Field => ({
       type: 'group',
       name: 'headings',
       label: 'Títulos',
-      fields: [t('careerPath', 'Título "Trayectoria"'), t('professionalExperience', 'Título "Experiencia"')],
+      fields: [
+        ...meta(t('careerPath', 'Título "Trayectoria"'), 'Título "Trayectoria"'),
+        ...meta(t('professionalExperience', 'Título "Experiencia"'), 'Título "Experiencia"'),
+      ],
     },
     // JSON is { es:[rows], en:[rows] } (index-parallel). Modeled as ONE array of
     // rows with localized role/period + nested localized responsibilities.
-    {
-      name: 'experience',
-      type: 'array',
-      label: 'Experiencia',
-      labels: { singular: 'Puesto', plural: 'Puestos' },
-      dbName: 'car_exp',
-      fields: [
-        t('role', 'Puesto / cargo'),
-        t('period', 'Periodo'),
-        {
-          name: 'responsibilities',
-          type: 'array',
-          label: 'Responsabilidades',
-          dbName: 'car_resp',
-          fields: [t('item', 'Punto')],
-        },
-      ],
-    },
+    // Whole-array visibility toggle (per-row toggles would break index parallelism).
+    ...meta(
+      {
+        name: 'experience',
+        type: 'array',
+        label: 'Experiencia',
+        labels: { singular: 'Puesto', plural: 'Puestos' },
+        dbName: 'car_exp',
+        fields: [
+          t('role', 'Puesto / cargo'),
+          t('period', 'Periodo'),
+          {
+            name: 'responsibilities',
+            type: 'array',
+            label: 'Responsabilidades',
+            dbName: 'car_resp',
+            fields: [t('item', 'Punto')],
+          },
+        ],
+      },
+      'Experiencia',
+    ),
   ],
 })
 
@@ -150,43 +150,51 @@ export const aboutContent = (): Field => ({
       type: 'group',
       name: 'headings',
       label: 'Títulos de sección',
-      fields: [t('education', 'Formación'), t('tools', 'Herramientas'), t('languages', 'Idiomas')],
+      fields: [
+        ...meta(t('education', 'Formación'), 'Formación'),
+        ...meta(t('tools', 'Herramientas'), 'Herramientas'),
+        ...meta(t('languages', 'Idiomas'), 'Idiomas'),
+      ],
     },
-    // education: { es:[...], en:[...] } -> array of { item (localized) }
-    { name: 'education', type: 'array', label: 'Formación', dbName: 'abt_edu', fields: [t('item', 'Estudio')] },
-    // tools / languages: language-agnostic string arrays
-    { name: 'tools', type: 'array', label: 'Herramientas', dbName: 'abt_tools', fields: [t('value', 'Herramienta', false)] },
-    { name: 'languages', type: 'array', label: 'Idiomas', dbName: 'abt_langs', fields: [t('value', 'Idioma', false)] },
+    // education: { es:[...], en:[...] } -> array of { item (localized) }. Whole-array toggle.
+    ...meta({ name: 'education', type: 'array', label: 'Formación', dbName: 'abt_edu', fields: [t('item', 'Estudio')] }, 'Formación (lista)'),
+    // tools / languages: language-agnostic string arrays. Whole-array toggle.
+    ...meta({ name: 'tools', type: 'array', label: 'Herramientas', dbName: 'abt_tools', fields: [t('value', 'Herramienta', false)] }, 'Herramientas (lista)'),
+    ...meta({ name: 'languages', type: 'array', label: 'Idiomas', dbName: 'abt_langs', fields: [t('value', 'Idioma', false)] }, 'Idiomas (lista)'),
     {
       type: 'group',
       name: 'contact',
       label: 'Contacto',
       fields: [
-        t('heading', 'Título de contacto'),
-        ta('body', 'Texto de contacto'),
-        { name: 'email', type: 'text', label: 'Correo' }, // agnostic
-        { name: 'phone', type: 'text', label: 'Teléfono' }, // agnostic
+        ...meta(t('heading', 'Título de contacto'), 'Título de contacto'),
+        ...meta(ta('body', 'Texto de contacto'), 'Texto de contacto'),
+        ...meta({ name: 'email', type: 'text', label: 'Correo' }, 'Correo'), // agnostic
+        ...meta({ name: 'phone', type: 'text', label: 'Teléfono' }, 'Teléfono'), // agnostic
       ],
     },
-    {
-      name: 'socialLinks',
-      type: 'array',
-      label: 'Redes sociales',
-      dbName: 'abt_social',
-      fields: [
-        { name: 'name', type: 'text', label: 'Nombre' }, // agnostic
-        { name: 'url', type: 'text', label: 'Enlace' }, // agnostic
-      ],
-    },
+    // Whole-array toggle for the social links list.
+    ...meta(
+      {
+        name: 'socialLinks',
+        type: 'array',
+        label: 'Redes sociales',
+        dbName: 'abt_social',
+        fields: [
+          { name: 'name', type: 'text', label: 'Nombre' }, // agnostic
+          { name: 'url', type: 'text', label: 'Enlace' }, // agnostic
+        ],
+      },
+      'Redes sociales',
+    ),
     {
       type: 'group',
       name: 'footer',
       label: 'Pie de página',
       fields: [
-        { name: 'copyrightPrefix', type: 'text', label: 'Copyright' }, // agnostic
-        t('rights', 'Derechos reservados'),
-        t('privacy', 'Privacidad'),
-        t('terms', 'Términos'),
+        ...meta({ name: 'copyrightPrefix', type: 'text', label: 'Copyright' }, 'Copyright'), // agnostic
+        ...meta(t('rights', 'Derechos reservados'), 'Derechos reservados'),
+        ...meta(t('privacy', 'Privacidad'), 'Privacidad'),
+        ...meta(t('terms', 'Términos'), 'Términos'),
       ],
     },
   ],
@@ -210,43 +218,47 @@ export const UXUI_CONTENT_BLOCK_TYPES = [
   'uxuiLearnings',
 ] as const
 
+// Each scalar leaf gets a `<name>Visible` toggle; each array gets a whole-array
+// toggle (per-row toggles would break the index-parallel data). Nested slice
+// groups (header/hero/…) stay groups; block-level show/hide already exists via
+// adding/removing the body sub-block.
 const caseStudyFields = (): Field[] => [
   {
     type: 'group',
     name: 'header',
     label: 'Encabezado',
-    fields: [t('title', 'Título'), t('tagline', 'Lema')],
+    fields: [...meta(t('title', 'Título'), 'Título'), ...meta(t('tagline', 'Lema'), 'Lema')],
   },
   {
     type: 'group',
     name: 'hero',
     label: 'Imagen principal',
-    fields: [{ name: 'image', type: 'text', label: 'Imagen (ruta)' }, t('alt', 'Texto alternativo')],
+    fields: [
+      ...meta({ name: 'image', type: 'text', label: 'Imagen (ruta)' }, 'Imagen'),
+      ...meta(t('alt', 'Texto alternativo'), 'Texto alternativo'),
+    ],
   },
   {
     type: 'group',
     name: 'project',
     label: 'El proyecto',
     fields: [
-      t('name', 'Nombre'),
-      t('subtitle', 'Subtítulo'),
-      {
-        name: 'overview',
-        type: 'array',
-        label: 'Resumen',
-        dbName: 'u_ov',
-        fields: [t('label', 'Etiqueta'), ta('text', 'Texto')],
-      },
+      ...meta(t('name', 'Nombre'), 'Nombre'),
+      ...meta(t('subtitle', 'Subtítulo'), 'Subtítulo'),
+      ...meta(
+        { name: 'overview', type: 'array', label: 'Resumen', dbName: 'u_ov', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+        'Resumen',
+      ),
     ],
   },
-  textArray('intro', 'Introducción', 'u_intro'),
+  ...meta(textArray('intro', 'Introducción', 'u_intro'), 'Introducción'),
   {
     type: 'group',
     name: 'problemSolution',
     label: 'Problema y solución',
     fields: [
-      { type: 'group', name: 'problem', label: 'Problema', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
-      { type: 'group', name: 'solution', label: 'Solución', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+      { type: 'group', name: 'problem', label: 'Problema', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Problema)'), ...meta(ta('text', 'Texto'), 'Texto (Problema)')] },
+      { type: 'group', name: 'solution', label: 'Solución', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Solución)'), ...meta(ta('text', 'Texto'), 'Texto (Solución)')] },
     ],
   },
   {
@@ -258,15 +270,12 @@ const caseStudyFields = (): Field[] => [
         type: 'group',
         name: 'headers',
         label: 'Encabezados',
-        fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
+        fields: [...meta(t('tools', 'Herramientas'), 'Herramientas'), ...meta(t('team', 'Equipo'), 'Equipo'), ...meta(t('role', 'Rol'), 'Rol')],
       },
-      {
-        name: 'rows',
-        type: 'array',
-        label: 'Filas',
-        dbName: 'u_rows',
-        fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
-      },
+      ...meta(
+        { name: 'rows', type: 'array', label: 'Filas', dbName: 'u_rows', fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')] },
+        'Filas',
+      ),
     ],
   },
   {
@@ -274,16 +283,13 @@ const caseStudyFields = (): Field[] => [
     name: 'timeline',
     label: 'Cronograma',
     fields: [
-      t('title', 'Título'),
-      t('durationLabel', 'Etiqueta de duración'),
-      t('durationValue', 'Duración'),
-      {
-        name: 'phases',
-        type: 'array',
-        label: 'Fases',
-        dbName: 'u_phases',
-        fields: [t('phase', 'Fase'), t('duration', 'Duración')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(t('durationLabel', 'Etiqueta de duración'), 'Etiqueta de duración'),
+      ...meta(t('durationValue', 'Duración'), 'Duración'),
+      ...meta(
+        { name: 'phases', type: 'array', label: 'Fases', dbName: 'u_phases', fields: [t('phase', 'Fase'), t('duration', 'Duración')] },
+        'Fases',
+      ),
     ],
   },
   {
@@ -291,34 +297,34 @@ const caseStudyFields = (): Field[] => [
     name: 'journey',
     label: 'Recorrido del usuario',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_jn_intro'),
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_jn_intro'), 'Introducción'),
       {
         type: 'group',
         name: 'labels',
         label: 'Etiquetas',
-        fields: [t('action', 'Acción'), t('thought', 'Pensamiento'), t('friction', 'Fricción')],
+        fields: [...meta(t('action', 'Acción'), 'Acción'), ...meta(t('thought', 'Pensamiento'), 'Pensamiento'), ...meta(t('friction', 'Fricción'), 'Fricción')],
       },
-      {
-        name: 'stages',
-        type: 'array',
-        label: 'Etapas',
-        dbName: 'u_stages',
-        fields: [
-          { name: 'number', type: 'text', label: 'Número' }, // agnostic
-          t('name', 'Nombre'),
-          ta('action', 'Acción'),
-          t('thought', 'Pensamiento'),
-          t('friction', 'Fricción'),
-        ],
-      },
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_jn_qa',
-        fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'u_jn_bul')],
-      },
+      ...meta(
+        {
+          name: 'stages',
+          type: 'array',
+          label: 'Etapas',
+          dbName: 'u_stages',
+          fields: [
+            { name: 'number', type: 'text', label: 'Número' }, // agnostic
+            t('name', 'Nombre'),
+            ta('action', 'Acción'),
+            t('thought', 'Pensamiento'),
+            t('friction', 'Fricción'),
+          ],
+        },
+        'Etapas',
+      ),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_jn_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'u_jn_bul')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
   {
@@ -326,41 +332,41 @@ const caseStudyFields = (): Field[] => [
     name: 'personas',
     label: 'Personas',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_pr_intro'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_pr_qa',
-        fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_pr_ans')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_pr_intro'), 'Introducción'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_pr_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_pr_ans')] },
+        'Preguntas y respuestas',
+      ),
       {
         type: 'group',
         name: 'sectionLabels',
         label: 'Etiquetas de fichas',
         fields: [
-          t('basicInfo', 'Información básica'),
-          t('channels', 'Canales'),
-          t('motivations', 'Motivaciones'),
-          t('painPoints', 'Frustraciones'),
+          ...meta(t('basicInfo', 'Información básica'), 'Información básica'),
+          ...meta(t('channels', 'Canales'), 'Canales'),
+          ...meta(t('motivations', 'Motivaciones'), 'Motivaciones'),
+          ...meta(t('painPoints', 'Frustraciones'), 'Frustraciones'),
         ],
       },
-      {
-        name: 'cards',
-        type: 'array',
-        label: 'Fichas',
-        dbName: 'u_cards',
-        fields: [
-          t('name', 'Nombre'),
-          t('descriptor', 'Descriptor'),
-          ta('quote', 'Cita'),
-          textArray('basicInfo', 'Información básica', 'u_c_bi', false),
-          textArray('channels', 'Canales', 'u_c_ch', false),
-          textArray('motivations', 'Motivaciones', 'u_c_mo', false),
-          textArray('painPoints', 'Frustraciones', 'u_c_pp', false),
-        ],
-      },
+      ...meta(
+        {
+          name: 'cards',
+          type: 'array',
+          label: 'Fichas',
+          dbName: 'u_cards',
+          fields: [
+            t('name', 'Nombre'),
+            t('descriptor', 'Descriptor'),
+            ta('quote', 'Cita'),
+            textArray('basicInfo', 'Información básica', 'u_c_bi', false),
+            textArray('channels', 'Canales', 'u_c_ch', false),
+            textArray('motivations', 'Motivaciones', 'u_c_mo', false),
+            textArray('painPoints', 'Frustraciones', 'u_c_pp', false),
+          ],
+        },
+        'Fichas',
+      ),
     ],
   },
   {
@@ -368,15 +374,12 @@ const caseStudyFields = (): Field[] => [
     name: 'sketches',
     label: 'Bocetos',
     fields: [
-      t('title', 'Título'),
-      textArray('intro', 'Introducción', 'u_sk_intro'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_sk_qa',
-        fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(textArray('intro', 'Introducción', 'u_sk_intro'), 'Introducción'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_sk_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
   {
@@ -384,14 +387,11 @@ const caseStudyFields = (): Field[] => [
     name: 'learnings',
     label: 'Aprendizajes',
     fields: [
-      t('title', 'Título'),
-      {
-        name: 'qa',
-        type: 'array',
-        label: 'Preguntas y respuestas',
-        dbName: 'u_ln_qa',
-        fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_ln_ans')],
-      },
+      ...meta(t('title', 'Título'), 'Título'),
+      ...meta(
+        { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'u_ln_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'u_ln_ans')] },
+        'Preguntas y respuestas',
+      ),
     ],
   },
 ]
@@ -409,39 +409,17 @@ export const uxuiContent = (): Field => ({
 })
 
 // ---------------------------------------------------------------------------
-// PORTFOLIO INTRO (home preview intro) -> portfolioIntroContent
+// PORTFOLIO INTRO (home preview intro):
+// The home-preview intro (heading/description/studioName/roleDescription/cta/…)
+// is NO LONGER edited inline. It is RESOLVED FROM THE CATEGORÍA the home
+// `categoryGallery` references (single source of truth) at export time. See
+// export-content.ts `introFromCat` and collections/Categories.ts `home` group.
 // ---------------------------------------------------------------------------
-// The inline intro (heading/description/studioName/roleDescription/cta) shown
-// above a home preview gallery. Split OUT of the old *Preview section blocks so
-// the intro copy is edited in place while the gallery becomes a query block.
-export const PORTFOLIO_INTRO_BLOCK_TYPE = 'portfolioIntro'
-export const portfolioIntroContent = (): Field => ({
-  type: 'group',
-  name: 'portfolioIntroContent',
-  label: 'Contenido — Introducción (vista previa)',
-  admin: {
-    condition: gate(PORTFOLIO_INTRO_BLOCK_TYPE),
-    description: 'El texto de introducción de la vista previa (se edita aquí).',
-  },
-  fields: [
-    t('sectionHeading', 'Título de la sección (solo Branding)'),
-    t('heading', 'Título'),
-    t('tagline', 'Lema (solo UX/UI)'),
-    ta('description', 'Descripción'),
-    { name: 'studioName', type: 'text', label: 'Nombre del estudio' }, // agnostic
-    ta('roleDescription', 'Rol / descripción del rol'),
-    t('cta', 'Texto del botón'),
-    { name: 'sketchImage', type: 'text', label: 'Imagen del boceto (ruta, solo UX/UI)' }, // agnostic
-    t('sketchAlt', 'Texto alternativo del boceto (solo UX/UI)'),
-  ],
-})
 
 /** All inline CONTENT groups to spread into the Pages `blocks` array fields. */
 export const inlineContentFields = (): Field[] => [
   heroContent(),
-  headerContent(),
   careerContent(),
   aboutContent(),
   uxuiContent(),
-  portfolioIntroContent(),
 ]

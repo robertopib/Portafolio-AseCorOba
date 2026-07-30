@@ -255,20 +255,35 @@ export interface Page {
          */
         heroContent?: {
           backgroundImage?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          backgroundImageVisible?: boolean | null;
           title?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          titleVisible?: boolean | null;
           subtitle?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          subtitleVisible?: boolean | null;
           body?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          bodyVisible?: boolean | null;
           cta1?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          cta1Visible?: boolean | null;
           cta2?: string | null;
-        };
-        /**
-         * Contenido del encabezado (se edita aquí).
-         */
-        headerContent?: {
-          backLabel?: string | null;
-          sectionNumber?: string | null;
-          title?: string | null;
-          description?: string | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          cta2Visible?: boolean | null;
         };
         /**
          * Contenido de la experiencia (se edita aquí).
@@ -276,7 +291,15 @@ export interface Page {
         careerContent?: {
           headings?: {
             careerPath?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            careerPathVisible?: boolean | null;
             professionalExperience?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            professionalExperienceVisible?: boolean | null;
           };
           experience?:
             | {
@@ -291,6 +314,10 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          experienceVisible?: boolean | null;
         };
         /**
          * Contenido de "sobre mí y contacto" (se edita aquí).
@@ -298,8 +325,20 @@ export interface Page {
         aboutContent?: {
           headings?: {
             education?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            educationVisible?: boolean | null;
             tools?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            toolsVisible?: boolean | null;
             languages?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            languagesVisible?: boolean | null;
           };
           education?:
             | {
@@ -307,23 +346,51 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          educationVisible?: boolean | null;
           tools?:
             | {
                 value?: string | null;
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          toolsVisible?: boolean | null;
           languages?:
             | {
                 value?: string | null;
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          languagesVisible?: boolean | null;
           contact?: {
             heading?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            headingVisible?: boolean | null;
             body?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            bodyVisible?: boolean | null;
             email?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            emailVisible?: boolean | null;
             phone?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            phoneVisible?: boolean | null;
           };
           socialLinks?:
             | {
@@ -332,11 +399,31 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          socialLinksVisible?: boolean | null;
           footer?: {
             copyrightPrefix?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            copyrightPrefixVisible?: boolean | null;
             rights?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            rightsVisible?: boolean | null;
             privacy?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            privacyVisible?: boolean | null;
             terms?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            termsVisible?: boolean | null;
           };
         };
         /**
@@ -345,15 +432,39 @@ export interface Page {
         uxuiContent?: {
           header?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             tagline?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            taglineVisible?: boolean | null;
           };
           hero?: {
             image?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            imageVisible?: boolean | null;
             alt?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            altVisible?: boolean | null;
           };
           project?: {
             name?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            nameVisible?: boolean | null;
             subtitle?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            subtitleVisible?: boolean | null;
             overview?:
               | {
                   label?: string | null;
@@ -361,6 +472,10 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            overviewVisible?: boolean | null;
           };
           intro?:
             | {
@@ -368,21 +483,53 @@ export interface Page {
                 id?: string | null;
               }[]
             | null;
+          /**
+           * Desmarca esta casilla para ocultar este elemento en el sitio público.
+           */
+          introVisible?: boolean | null;
           problemSolution?: {
             problem?: {
               label?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              labelVisible?: boolean | null;
               text?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              textVisible?: boolean | null;
             };
             solution?: {
               label?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              labelVisible?: boolean | null;
               text?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              textVisible?: boolean | null;
             };
           };
           details?: {
             headers?: {
               tools?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              toolsVisible?: boolean | null;
               team?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              teamVisible?: boolean | null;
               role?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              roleVisible?: boolean | null;
             };
             rows?:
               | {
@@ -392,11 +539,27 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            rowsVisible?: boolean | null;
           };
           timeline?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             durationLabel?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            durationLabelVisible?: boolean | null;
             durationValue?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            durationValueVisible?: boolean | null;
             phases?:
               | {
                   phase?: string | null;
@@ -404,19 +567,43 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            phasesVisible?: boolean | null;
           };
           journey?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             labels?: {
               action?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              actionVisible?: boolean | null;
               thought?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              thoughtVisible?: boolean | null;
               friction?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              frictionVisible?: boolean | null;
             };
             stages?:
               | {
@@ -428,6 +615,10 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            stagesVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -441,15 +632,27 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
           };
           personas?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -462,11 +665,31 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
             sectionLabels?: {
               basicInfo?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              basicInfoVisible?: boolean | null;
               channels?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              channelsVisible?: boolean | null;
               motivations?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              motivationsVisible?: boolean | null;
               painPoints?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              painPointsVisible?: boolean | null;
             };
             cards?:
               | {
@@ -500,15 +723,27 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            cardsVisible?: boolean | null;
           };
           sketches?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -516,9 +751,17 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
           };
           learnings?: {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -531,21 +774,11 @@ export interface Page {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
           };
-        };
-        /**
-         * El texto de introducción de la vista previa (se edita aquí).
-         */
-        portfolioIntroContent?: {
-          sectionHeading?: string | null;
-          heading?: string | null;
-          tagline?: string | null;
-          description?: string | null;
-          studioName?: string | null;
-          roleDescription?: string | null;
-          cta?: string | null;
-          sketchImage?: string | null;
-          sketchAlt?: string | null;
         };
         id?: string | null;
       }[]
@@ -583,40 +816,108 @@ export interface Category {
   home?: {
     heading?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    headingVisible?: boolean | null;
+    /**
      * Solo UX/UI: el lema bajo el título.
      */
     tagline?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    taglineVisible?: boolean | null;
     description?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    descriptionVisible?: boolean | null;
+    /**
+     * La etiqueta antes del nombre del estudio (p. ej. «Branding corporativo de:»). Se puede cambiar u ocultar por categoría.
+     */
+    studioLabel?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    studioLabelVisible?: boolean | null;
     studioName?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    studioNameVisible?: boolean | null;
+    /**
+     * La etiqueta antes de la descripción del rol (p. ej. «Mi rol»). Se puede cambiar u ocultar por categoría.
+     */
+    roleLabel?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    roleLabelVisible?: boolean | null;
     roleDescription?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    roleDescriptionVisible?: boolean | null;
     cta?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    ctaVisible?: boolean | null;
     /**
      * Solo Branding: el título "Proyectos".
      */
     sectionHeading?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sectionHeadingVisible?: boolean | null;
+    /**
      * Solo UX/UI: ruta de la imagen del boceto.
      */
     sketchImage?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sketchImageVisible?: boolean | null;
+    /**
      * Solo UX/UI.
      */
     sketchAlt?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    sketchAltVisible?: boolean | null;
   };
   /**
    * Se muestra arriba de la página de esta categoría.
    */
   page?: {
     title?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    titleVisible?: boolean | null;
     description?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    descriptionVisible?: boolean | null;
     /**
      * Solo Branding.
      */
     subtitleSports?: string | null;
     /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    subtitleSportsVisible?: boolean | null;
+    /**
      * Solo Branding.
      */
     subtitleBeauty?: string | null;
+    /**
+     * Desmarca esta casilla para ocultar este elemento en el sitio público.
+     */
+    subtitleBeautyVisible?: boolean | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -702,21 +1003,45 @@ export interface Project {
     | (
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             tagline?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            taglineVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiHeader';
           }
         | {
             image?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            imageVisible?: boolean | null;
             alt?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            altVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiHero';
           }
         | {
             name?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            nameVisible?: boolean | null;
             subtitle?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            subtitleVisible?: boolean | null;
             overview?:
               | {
                   label?: string | null;
@@ -724,6 +1049,10 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            overviewVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiOverview';
@@ -742,11 +1071,27 @@ export interface Project {
         | {
             problem?: {
               label?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              labelVisible?: boolean | null;
               text?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              textVisible?: boolean | null;
             };
             solution?: {
               label?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              labelVisible?: boolean | null;
               text?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              textVisible?: boolean | null;
             };
             id?: string | null;
             blockName?: string | null;
@@ -755,8 +1100,20 @@ export interface Project {
         | {
             headers?: {
               tools?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              toolsVisible?: boolean | null;
               team?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              teamVisible?: boolean | null;
               role?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              roleVisible?: boolean | null;
             };
             rows?:
               | {
@@ -766,14 +1123,30 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            rowsVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiDetails';
           }
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             durationLabel?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            durationLabelVisible?: boolean | null;
             durationValue?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            durationValueVisible?: boolean | null;
             phases?:
               | {
                   phase?: string | null;
@@ -781,22 +1154,46 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            phasesVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiTimeline';
           }
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             labels?: {
               action?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              actionVisible?: boolean | null;
               thought?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              thoughtVisible?: boolean | null;
               friction?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              frictionVisible?: boolean | null;
             };
             stages?:
               | {
@@ -808,6 +1205,10 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            stagesVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -821,18 +1222,30 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiJourney';
           }
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -845,11 +1258,31 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
             sectionLabels?: {
               basicInfo?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              basicInfoVisible?: boolean | null;
               channels?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              channelsVisible?: boolean | null;
               motivations?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              motivationsVisible?: boolean | null;
               painPoints?: string | null;
+              /**
+               * Desmarca esta casilla para ocultar este elemento en el sitio público.
+               */
+              painPointsVisible?: boolean | null;
             };
             cards?:
               | {
@@ -883,18 +1316,30 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            cardsVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiPersonas';
           }
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             intro?:
               | {
                   text?: string | null;
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            introVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -902,12 +1347,20 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiSketches';
           }
         | {
             title?: string | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            titleVisible?: boolean | null;
             qa?:
               | {
                   question?: string | null;
@@ -920,6 +1373,10 @@ export interface Project {
                   id?: string | null;
                 }[]
               | null;
+            /**
+             * Desmarca esta casilla para ocultar este elemento en el sitio público.
+             */
+            qaVisible?: boolean | null;
             id?: string | null;
             blockName?: string | null;
             blockType: 'uxuiLearnings';
@@ -1266,19 +1723,17 @@ export interface PagesSelect<T extends boolean = true> {
           | T
           | {
               backgroundImage?: T;
+              backgroundImageVisible?: T;
               title?: T;
+              titleVisible?: T;
               subtitle?: T;
+              subtitleVisible?: T;
               body?: T;
+              bodyVisible?: T;
               cta1?: T;
+              cta1Visible?: T;
               cta2?: T;
-            };
-        headerContent?:
-          | T
-          | {
-              backLabel?: T;
-              sectionNumber?: T;
-              title?: T;
-              description?: T;
+              cta2Visible?: T;
             };
         careerContent?:
           | T
@@ -1287,7 +1742,9 @@ export interface PagesSelect<T extends boolean = true> {
                 | T
                 | {
                     careerPath?: T;
+                    careerPathVisible?: T;
                     professionalExperience?: T;
+                    professionalExperienceVisible?: T;
                   };
               experience?:
                 | T
@@ -1302,6 +1759,7 @@ export interface PagesSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              experienceVisible?: T;
             };
         aboutContent?:
           | T
@@ -1310,8 +1768,11 @@ export interface PagesSelect<T extends boolean = true> {
                 | T
                 | {
                     education?: T;
+                    educationVisible?: T;
                     tools?: T;
+                    toolsVisible?: T;
                     languages?: T;
+                    languagesVisible?: T;
                   };
               education?:
                 | T
@@ -1319,25 +1780,32 @@ export interface PagesSelect<T extends boolean = true> {
                     item?: T;
                     id?: T;
                   };
+              educationVisible?: T;
               tools?:
                 | T
                 | {
                     value?: T;
                     id?: T;
                   };
+              toolsVisible?: T;
               languages?:
                 | T
                 | {
                     value?: T;
                     id?: T;
                   };
+              languagesVisible?: T;
               contact?:
                 | T
                 | {
                     heading?: T;
+                    headingVisible?: T;
                     body?: T;
+                    bodyVisible?: T;
                     email?: T;
+                    emailVisible?: T;
                     phone?: T;
+                    phoneVisible?: T;
                   };
               socialLinks?:
                 | T
@@ -1346,13 +1814,18 @@ export interface PagesSelect<T extends boolean = true> {
                     url?: T;
                     id?: T;
                   };
+              socialLinksVisible?: T;
               footer?:
                 | T
                 | {
                     copyrightPrefix?: T;
+                    copyrightPrefixVisible?: T;
                     rights?: T;
+                    rightsVisible?: T;
                     privacy?: T;
+                    privacyVisible?: T;
                     terms?: T;
+                    termsVisible?: T;
                   };
             };
         uxuiContent?:
@@ -1362,19 +1835,25 @@ export interface PagesSelect<T extends boolean = true> {
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     tagline?: T;
+                    taglineVisible?: T;
                   };
               hero?:
                 | T
                 | {
                     image?: T;
+                    imageVisible?: T;
                     alt?: T;
+                    altVisible?: T;
                   };
               project?:
                 | T
                 | {
                     name?: T;
+                    nameVisible?: T;
                     subtitle?: T;
+                    subtitleVisible?: T;
                     overview?:
                       | T
                       | {
@@ -1382,6 +1861,7 @@ export interface PagesSelect<T extends boolean = true> {
                           text?: T;
                           id?: T;
                         };
+                    overviewVisible?: T;
                   };
               intro?:
                 | T
@@ -1389,6 +1869,7 @@ export interface PagesSelect<T extends boolean = true> {
                     text?: T;
                     id?: T;
                   };
+              introVisible?: T;
               problemSolution?:
                 | T
                 | {
@@ -1396,13 +1877,17 @@ export interface PagesSelect<T extends boolean = true> {
                       | T
                       | {
                           label?: T;
+                          labelVisible?: T;
                           text?: T;
+                          textVisible?: T;
                         };
                     solution?:
                       | T
                       | {
                           label?: T;
+                          labelVisible?: T;
                           text?: T;
+                          textVisible?: T;
                         };
                   };
               details?:
@@ -1412,8 +1897,11 @@ export interface PagesSelect<T extends boolean = true> {
                       | T
                       | {
                           tools?: T;
+                          toolsVisible?: T;
                           team?: T;
+                          teamVisible?: T;
                           role?: T;
+                          roleVisible?: T;
                         };
                     rows?:
                       | T
@@ -1423,13 +1911,17 @@ export interface PagesSelect<T extends boolean = true> {
                           role?: T;
                           id?: T;
                         };
+                    rowsVisible?: T;
                   };
               timeline?:
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     durationLabel?: T;
+                    durationLabelVisible?: T;
                     durationValue?: T;
+                    durationValueVisible?: T;
                     phases?:
                       | T
                       | {
@@ -1437,23 +1929,29 @@ export interface PagesSelect<T extends boolean = true> {
                           duration?: T;
                           id?: T;
                         };
+                    phasesVisible?: T;
                   };
               journey?:
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     intro?:
                       | T
                       | {
                           text?: T;
                           id?: T;
                         };
+                    introVisible?: T;
                     labels?:
                       | T
                       | {
                           action?: T;
+                          actionVisible?: T;
                           thought?: T;
+                          thoughtVisible?: T;
                           friction?: T;
+                          frictionVisible?: T;
                         };
                     stages?:
                       | T
@@ -1465,6 +1963,7 @@ export interface PagesSelect<T extends boolean = true> {
                           friction?: T;
                           id?: T;
                         };
+                    stagesVisible?: T;
                     qa?:
                       | T
                       | {
@@ -1478,17 +1977,20 @@ export interface PagesSelect<T extends boolean = true> {
                               };
                           id?: T;
                         };
+                    qaVisible?: T;
                   };
               personas?:
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     intro?:
                       | T
                       | {
                           text?: T;
                           id?: T;
                         };
+                    introVisible?: T;
                     qa?:
                       | T
                       | {
@@ -1501,13 +2003,18 @@ export interface PagesSelect<T extends boolean = true> {
                               };
                           id?: T;
                         };
+                    qaVisible?: T;
                     sectionLabels?:
                       | T
                       | {
                           basicInfo?: T;
+                          basicInfoVisible?: T;
                           channels?: T;
+                          channelsVisible?: T;
                           motivations?: T;
+                          motivationsVisible?: T;
                           painPoints?: T;
+                          painPointsVisible?: T;
                         };
                     cards?:
                       | T
@@ -1541,17 +2048,20 @@ export interface PagesSelect<T extends boolean = true> {
                               };
                           id?: T;
                         };
+                    cardsVisible?: T;
                   };
               sketches?:
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     intro?:
                       | T
                       | {
                           text?: T;
                           id?: T;
                         };
+                    introVisible?: T;
                     qa?:
                       | T
                       | {
@@ -1559,11 +2069,13 @@ export interface PagesSelect<T extends boolean = true> {
                           answer?: T;
                           id?: T;
                         };
+                    qaVisible?: T;
                   };
               learnings?:
                 | T
                 | {
                     title?: T;
+                    titleVisible?: T;
                     qa?:
                       | T
                       | {
@@ -1576,20 +2088,8 @@ export interface PagesSelect<T extends boolean = true> {
                               };
                           id?: T;
                         };
+                    qaVisible?: T;
                   };
-            };
-        portfolioIntroContent?:
-          | T
-          | {
-              sectionHeading?: T;
-              heading?: T;
-              tagline?: T;
-              description?: T;
-              studioName?: T;
-              roleDescription?: T;
-              cta?: T;
-              sketchImage?: T;
-              sketchAlt?: T;
             };
         id?: T;
       };
@@ -1627,22 +2127,39 @@ export interface CategoriesSelect<T extends boolean = true> {
     | T
     | {
         heading?: T;
+        headingVisible?: T;
         tagline?: T;
+        taglineVisible?: T;
         description?: T;
+        descriptionVisible?: T;
+        studioLabel?: T;
+        studioLabelVisible?: T;
         studioName?: T;
+        studioNameVisible?: T;
+        roleLabel?: T;
+        roleLabelVisible?: T;
         roleDescription?: T;
+        roleDescriptionVisible?: T;
         cta?: T;
+        ctaVisible?: T;
         sectionHeading?: T;
+        sectionHeadingVisible?: T;
         sketchImage?: T;
+        sketchImageVisible?: T;
         sketchAlt?: T;
+        sketchAltVisible?: T;
       };
   page?:
     | T
     | {
         title?: T;
+        titleVisible?: T;
         description?: T;
+        descriptionVisible?: T;
         subtitleSports?: T;
+        subtitleSportsVisible?: T;
         subtitleBeauty?: T;
+        subtitleBeautyVisible?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1671,7 +2188,9 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               tagline?: T;
+              taglineVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1679,7 +2198,9 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               image?: T;
+              imageVisible?: T;
               alt?: T;
+              altVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1687,7 +2208,9 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               name?: T;
+              nameVisible?: T;
               subtitle?: T;
+              subtitleVisible?: T;
               overview?:
                 | T
                 | {
@@ -1695,6 +2218,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                     text?: T;
                     id?: T;
                   };
+              overviewVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1717,13 +2241,17 @@ export interface ProjectsSelect<T extends boolean = true> {
                 | T
                 | {
                     label?: T;
+                    labelVisible?: T;
                     text?: T;
+                    textVisible?: T;
                   };
               solution?:
                 | T
                 | {
                     label?: T;
+                    labelVisible?: T;
                     text?: T;
+                    textVisible?: T;
                   };
               id?: T;
               blockName?: T;
@@ -1735,8 +2263,11 @@ export interface ProjectsSelect<T extends boolean = true> {
                 | T
                 | {
                     tools?: T;
+                    toolsVisible?: T;
                     team?: T;
+                    teamVisible?: T;
                     role?: T;
+                    roleVisible?: T;
                   };
               rows?:
                 | T
@@ -1746,6 +2277,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                     role?: T;
                     id?: T;
                   };
+              rowsVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1753,8 +2285,11 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               durationLabel?: T;
+              durationLabelVisible?: T;
               durationValue?: T;
+              durationValueVisible?: T;
               phases?:
                 | T
                 | {
@@ -1762,6 +2297,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                     duration?: T;
                     id?: T;
                   };
+              phasesVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1769,18 +2305,23 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               intro?:
                 | T
                 | {
                     text?: T;
                     id?: T;
                   };
+              introVisible?: T;
               labels?:
                 | T
                 | {
                     action?: T;
+                    actionVisible?: T;
                     thought?: T;
+                    thoughtVisible?: T;
                     friction?: T;
+                    frictionVisible?: T;
                   };
               stages?:
                 | T
@@ -1792,6 +2333,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                     friction?: T;
                     id?: T;
                   };
+              stagesVisible?: T;
               qa?:
                 | T
                 | {
@@ -1805,6 +2347,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              qaVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1812,12 +2355,14 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               intro?:
                 | T
                 | {
                     text?: T;
                     id?: T;
                   };
+              introVisible?: T;
               qa?:
                 | T
                 | {
@@ -1830,13 +2375,18 @@ export interface ProjectsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              qaVisible?: T;
               sectionLabels?:
                 | T
                 | {
                     basicInfo?: T;
+                    basicInfoVisible?: T;
                     channels?: T;
+                    channelsVisible?: T;
                     motivations?: T;
+                    motivationsVisible?: T;
                     painPoints?: T;
+                    painPointsVisible?: T;
                   };
               cards?:
                 | T
@@ -1870,6 +2420,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              cardsVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1877,12 +2428,14 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               intro?:
                 | T
                 | {
                     text?: T;
                     id?: T;
                   };
+              introVisible?: T;
               qa?:
                 | T
                 | {
@@ -1890,6 +2443,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                     answer?: T;
                     id?: T;
                   };
+              qaVisible?: T;
               id?: T;
               blockName?: T;
             };
@@ -1897,6 +2451,7 @@ export interface ProjectsSelect<T extends boolean = true> {
           | T
           | {
               title?: T;
+              titleVisible?: T;
               qa?:
                 | T
                 | {
@@ -1909,6 +2464,7 @@ export interface ProjectsSelect<T extends boolean = true> {
                         };
                     id?: T;
                   };
+              qaVisible?: T;
               id?: T;
               blockName?: T;
             };

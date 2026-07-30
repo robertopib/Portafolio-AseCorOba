@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { meta } from '../blocks/fieldMeta'
 
 /**
  * Categorías — the top level of the intuitive "Categorías → Proyectos" model.
@@ -90,38 +91,70 @@ export const Categories: CollectionConfig = {
       label: 'Vista previa en inicio',
       admin: { description: HOME_NOTE },
       fields: [
-        { name: 'heading', type: 'text', localized: true, label: 'Título' },
-        {
-          name: 'tagline',
-          type: 'text',
-          localized: true,
-          label: 'Lema (tagline)',
-          admin: { description: 'Solo UX/UI: el lema bajo el título.' },
-        },
-        { name: 'description', type: 'textarea', localized: true, label: 'Descripción' },
-        { name: 'studioName', type: 'text', label: 'Nombre del estudio' }, // language-agnostic
-        { name: 'roleDescription', type: 'textarea', localized: true, label: 'Rol / descripción del rol' },
-        { name: 'cta', type: 'text', localized: true, label: 'Texto del botón' },
-        {
-          name: 'sectionHeading',
-          type: 'text',
-          localized: true,
-          label: 'Título de la sección',
-          admin: { description: 'Solo Branding: el título "Proyectos".' },
-        },
-        {
-          name: 'sketchImage',
-          type: 'text',
-          label: 'Imagen del boceto (ruta)',
-          admin: { description: 'Solo UX/UI: ruta de la imagen del boceto.' },
-        },
-        {
-          name: 'sketchAlt',
-          type: 'text',
-          localized: true,
-          label: 'Texto alternativo del boceto',
-          admin: { description: 'Solo UX/UI.' },
-        },
+        ...meta({ name: 'heading', type: 'text', localized: true, label: 'Título' }, 'Título'),
+        ...meta(
+          {
+            name: 'tagline',
+            type: 'text',
+            localized: true,
+            label: 'Lema (tagline)',
+            admin: { description: 'Solo UX/UI: el lema bajo el título.' },
+          },
+          'Lema',
+        ),
+        ...meta({ name: 'description', type: 'textarea', localized: true, label: 'Descripción' }, 'Descripción'),
+        ...meta(
+          {
+            name: 'studioLabel',
+            type: 'text',
+            localized: true,
+            label: 'Etiqueta del estudio',
+            admin: { description: 'La etiqueta antes del nombre del estudio (p. ej. «Branding corporativo de:»). Se puede cambiar u ocultar por categoría.' },
+          },
+          'Etiqueta del estudio',
+        ),
+        ...meta({ name: 'studioName', type: 'text', label: 'Nombre del estudio' }, 'Nombre del estudio'), // language-agnostic
+        ...meta(
+          {
+            name: 'roleLabel',
+            type: 'text',
+            localized: true,
+            label: 'Etiqueta del rol',
+            admin: { description: 'La etiqueta antes de la descripción del rol (p. ej. «Mi rol»). Se puede cambiar u ocultar por categoría.' },
+          },
+          'Etiqueta del rol',
+        ),
+        ...meta({ name: 'roleDescription', type: 'textarea', localized: true, label: 'Rol / descripción del rol' }, 'Rol'),
+        ...meta({ name: 'cta', type: 'text', localized: true, label: 'Texto del botón' }, 'Texto del botón'),
+        ...meta(
+          {
+            name: 'sectionHeading',
+            type: 'text',
+            localized: true,
+            label: 'Título de la sección',
+            admin: { description: 'Solo Branding: el título "Proyectos".' },
+          },
+          'Título de la sección',
+        ),
+        ...meta(
+          {
+            name: 'sketchImage',
+            type: 'text',
+            label: 'Imagen del boceto (ruta)',
+            admin: { description: 'Solo UX/UI: ruta de la imagen del boceto.' },
+          },
+          'Imagen del boceto',
+        ),
+        ...meta(
+          {
+            name: 'sketchAlt',
+            type: 'text',
+            localized: true,
+            label: 'Texto alternativo del boceto',
+            admin: { description: 'Solo UX/UI.' },
+          },
+          'Texto alternativo del boceto',
+        ),
       ],
     },
 
@@ -132,22 +165,28 @@ export const Categories: CollectionConfig = {
       label: 'Página de la categoría',
       admin: { description: PAGE_NOTE },
       fields: [
-        { name: 'title', type: 'text', localized: true, label: 'Título' },
-        { name: 'description', type: 'textarea', localized: true, label: 'Descripción' },
-        {
-          name: 'subtitleSports',
-          type: 'text',
-          localized: true,
-          label: 'Subtítulo "Deportes"',
-          admin: { description: 'Solo Branding.' },
-        },
-        {
-          name: 'subtitleBeauty',
-          type: 'text',
-          localized: true,
-          label: 'Subtítulo "Belleza"',
-          admin: { description: 'Solo Branding.' },
-        },
+        ...meta({ name: 'title', type: 'text', localized: true, label: 'Título' }, 'Título'),
+        ...meta({ name: 'description', type: 'textarea', localized: true, label: 'Descripción' }, 'Descripción'),
+        ...meta(
+          {
+            name: 'subtitleSports',
+            type: 'text',
+            localized: true,
+            label: 'Subtítulo "Deportes"',
+            admin: { description: 'Solo Branding.' },
+          },
+          'Subtítulo "Deportes"',
+        ),
+        ...meta(
+          {
+            name: 'subtitleBeauty',
+            type: 'text',
+            localized: true,
+            label: 'Subtítulo "Belleza"',
+            admin: { description: 'Solo Branding.' },
+          },
+          'Subtítulo "Belleza"',
+        ),
       ],
     },
   ],

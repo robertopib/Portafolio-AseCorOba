@@ -24,12 +24,18 @@ import {
   CASE_STUDY_CATEGORY_SLUG,
   CASE_STUDY_FILE,
 } from './content-map'
+import { assertPortfolioDb } from './dbGuard'
 
 type Loc = { es: string; en: string }
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'))
 const ALL = 'all' as any
 
 async function main() {
+  // Safety: verify we're pointed at THIS project's database BEFORE Payload
+  // connects (getPayload auto-pushes the schema, which would create our tables
+  // on a wrong/foreign database). Aborts on a foreign DB. See dbGuard.ts.
+  await assertPortfolioDb()
+
   const payload = await getPayload({ config })
   const report: Record<string, unknown> = {}
 
@@ -146,15 +152,15 @@ async function main() {
   // placement + optional group) + optional `subheading` so the export can emit
   // what the front-end block renderers need.
   const readSection = (file: string) => readJson(path.join(SECTIONS_DIR, file))
+  // brandingJson still supplies the branding gallery subheadings; the other
+  // sections' presentation text now lives on the Categorías (buildHome/buildPage).
   const brandingJson = readSection('branding.json')
-  const webAppsJson = readSection('web-apps.json')
-  const photographyJson = readSection('photography.json')
-  const marketingJson = readSection('marketing-360.json')
   const caseStudyJson = readSection(CASE_STUDY_FILE)
 
   // ---- Inline CONTENT builders (JSON shape -> Payload block content shape) ----
-  const uiJson = readJson(path.join(CONTENT_DIR, 'ui.json'))
-  const navBack: Loc = { es: uiJson.es['nav.back'], en: uiJson.en['nav.back'] }
+  // NOTE: header (título/descripción) and home-preview intro content are NO LONGER
+  // seeded inline on the blocks — they live on the Categorías (home/page groups,
+  // seeded below via buildHome/buildPage) and are resolved from there at export.
 
   // Localized {es,en} string array -> [{ text:{es,en} }]
   const textRows = (arr: Loc[]) => arr.map((v) => ({ text: v }))
@@ -167,31 +173,6 @@ async function main() {
     cta1: h.cta1,
     cta2: h.cta2,
   })
-
-  const headerContentFrom = (sectionJson: any, sectionNumber: string) => ({
-    backLabel: navBack,
-    sectionNumber,
-    title: sectionJson.page.title,
-    description: sectionJson.page.description,
-  })
-
-  // PortfolioIntro inline content, built from a section file's `home` keys
-  // (the intro copy the old *Preview section drew). Only present keys are set.
-  const introContentFrom = (sectionJson: any) => {
-    const h = sectionJson.home || {}
-    const out: any = {}
-    if (h.sectionHeading !== undefined) out.sectionHeading = h.sectionHeading
-    if (h.heading !== undefined) out.heading = h.heading
-    if (h.tagline !== undefined) out.tagline = h.tagline
-    if (h.description !== undefined) out.description = h.description
-    if (h.studioName !== undefined) out.studioName = h.studioName
-    if (h.roleDescription !== undefined) out.roleDescription = h.roleDescription
-    if (h.cta !== undefined) out.cta = h.cta
-    if (h.sketchImage !== undefined) out.sketchImage = h.sketchImage
-    if (h.sketchAlt !== undefined) out.sketchAlt = h.sketchAlt
-    return out
-  }
-  const uxuiJson = readSection('uxui.json')
 
   const careerJson = readJson(path.join(CONTENT_DIR, 'career.json'))
   const careerContentValue = (() => {
@@ -326,37 +307,35 @@ async function main() {
       // curated preview cards in the faithful layout. The gallery draws the
       // intro from its preceding PortfolioIntro, so on the home page the pair
       // renders exactly one <section> (byte-identical to the old *Preview).
+      // The home-preview intro is now RESOLVED FROM THE CATEGORÍA each
+      // categoryGallery references (single source of truth), so there are no
+      // separate portfolioIntro blocks anymore.
       blocks: [
         { blockType: 'hero', heroContent: heroContentFrom(home.hero) },
-        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(brandingJson) },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['branding'],
           layoutVariant: 'branding:home',
           placement: 'home',
         },
-        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(webAppsJson) },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['web-apps'],
           layoutVariant: 'web-apps:home',
           placement: 'home',
         },
-        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(uxuiJson) },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['uxui-producto'],
           layoutVariant: 'uxui:home',
           placement: 'home',
         },
-        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(photographyJson) },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['fotografia-producto'],
           layoutVariant: 'fotografia:home',
           placement: 'home',
         },
-        { blockType: 'portfolioIntro', portfolioIntroContent: introContentFrom(marketingJson) },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['marketing-360'],
@@ -371,7 +350,7 @@ async function main() {
       slug: 'branding',
       title: { es: 'Branding Corporativo', en: 'Corporate Branding' },
       blocks: [
-        { blockType: 'brandingHeader', headerContent: headerContentFrom(brandingJson, '02') },
+        { blockType: 'brandingHeader' },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['branding'],
@@ -401,7 +380,7 @@ async function main() {
       slug: 'web-apps',
       title: { es: 'Diseño Web y Apps', en: 'Web & App Design' },
       blocks: [
-        { blockType: 'webAppsHeader', headerContent: headerContentFrom(webAppsJson, '03') },
+        { blockType: 'webAppsHeader' },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['web-apps'],
@@ -431,7 +410,7 @@ async function main() {
       slug: 'fotografia-producto',
       title: { es: 'Fotografía de Producto y Packaging', en: 'Product Photography & Packaging' },
       blocks: [
-        { blockType: 'fotografiaHeader', headerContent: headerContentFrom(photographyJson, '05') },
+        { blockType: 'fotografiaHeader' },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['fotografia-producto'],
@@ -444,7 +423,7 @@ async function main() {
       slug: 'marketing-360',
       title: { es: 'Diseño 360°', en: '360° Design' },
       blocks: [
-        { blockType: 'marketingHeader', headerContent: headerContentFrom(marketingJson, '06') },
+        { blockType: 'marketingHeader' },
         {
           blockType: 'categoryGallery',
           category: catIdBySlug['marketing-360'],
@@ -474,7 +453,12 @@ async function main() {
     if (h.heading !== undefined) out.heading = h.heading
     if (h.tagline !== undefined) out.tagline = h.tagline
     if (h.description !== undefined) out.description = h.description
+    // studioLabel / roleLabel are per-category now, seeded from the shared
+    // ui.json values so they start populated (identical to the old shared text)
+    // and the editor can differentiate or hide them per category.
+    out.studioLabel = { es: ui.es['home.studioLabel'], en: ui.en['home.studioLabel'] }
     if (h.studioName !== undefined) out.studioName = h.studioName
+    out.roleLabel = { es: ui.es['home.roleLabel'], en: ui.en['home.roleLabel'] }
     if (h.roleDescription !== undefined) out.roleDescription = h.roleDescription
     if (h.cta !== undefined) out.cta = h.cta
     if (h.sectionHeading !== undefined) out.sectionHeading = h.sectionHeading

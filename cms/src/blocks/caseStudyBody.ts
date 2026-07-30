@@ -24,6 +24,7 @@
  * well under 63 chars, e.g. `projects_body_uxuiLearnings_b_ln_qa_b_ln_ans_locales` (52).
  */
 import type { Block, Field } from 'payload'
+import { meta } from './fieldMeta'
 
 const t = (name: string, label: string, localized = true): Field => ({
   name,
@@ -49,28 +50,27 @@ const textArray = (name: string, label: string, dbName: string, useTextarea = tr
 
 // ---- per-slice field sets (mirror Projects.caseStudy / uxuiContent shapes) ----
 
-const headerFields = (): Field[] => [t('title', 'Título'), t('tagline', 'Lema')]
+// Each scalar leaf gets a `<name>Visible` toggle; each array gets a whole-array
+// toggle. Mirrors contentFields.uxuiContent (u_ prefix) with the b_ prefix here.
+const headerFields = (): Field[] => [...meta(t('title', 'Título'), 'Título'), ...meta(t('tagline', 'Lema'), 'Lema')]
 
 const heroFields = (): Field[] => [
-  { name: 'image', type: 'text', label: 'Imagen (ruta)' },
-  t('alt', 'Texto alternativo'),
+  ...meta({ name: 'image', type: 'text', label: 'Imagen (ruta)' }, 'Imagen'),
+  ...meta(t('alt', 'Texto alternativo'), 'Texto alternativo'),
 ]
 
 const projectFields = (): Field[] => [
-  t('name', 'Nombre'),
-  t('subtitle', 'Subtítulo'),
-  {
-    name: 'overview',
-    type: 'array',
-    label: 'Resumen',
-    dbName: 'b_ov',
-    fields: [t('label', 'Etiqueta'), ta('text', 'Texto')],
-  },
+  ...meta(t('name', 'Nombre'), 'Nombre'),
+  ...meta(t('subtitle', 'Subtítulo'), 'Subtítulo'),
+  ...meta(
+    { name: 'overview', type: 'array', label: 'Resumen', dbName: 'b_ov', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+    'Resumen',
+  ),
 ]
 
 const problemSolutionFields = (): Field[] => [
-  { type: 'group', name: 'problem', label: 'Problema', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
-  { type: 'group', name: 'solution', label: 'Solución', fields: [t('label', 'Etiqueta'), ta('text', 'Texto')] },
+  { type: 'group', name: 'problem', label: 'Problema', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Problema)'), ...meta(ta('text', 'Texto'), 'Texto (Problema)')] },
+  { type: 'group', name: 'solution', label: 'Solución', fields: [...meta(t('label', 'Etiqueta'), 'Etiqueta (Solución)'), ...meta(ta('text', 'Texto'), 'Texto (Solución)')] },
 ]
 
 const detailsFields = (): Field[] => [
@@ -78,120 +78,108 @@ const detailsFields = (): Field[] => [
     type: 'group',
     name: 'headers',
     label: 'Encabezados',
-    fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
+    fields: [...meta(t('tools', 'Herramientas'), 'Herramientas'), ...meta(t('team', 'Equipo'), 'Equipo'), ...meta(t('role', 'Rol'), 'Rol')],
   },
-  {
-    name: 'rows',
-    type: 'array',
-    label: 'Filas',
-    dbName: 'b_rows',
-    fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')],
-  },
+  ...meta(
+    { name: 'rows', type: 'array', label: 'Filas', dbName: 'b_rows', fields: [t('tools', 'Herramientas'), t('team', 'Equipo'), t('role', 'Rol')] },
+    'Filas',
+  ),
 ]
 
 const timelineFields = (): Field[] => [
-  t('title', 'Título'),
-  t('durationLabel', 'Etiqueta de duración'),
-  t('durationValue', 'Duración'),
-  {
-    name: 'phases',
-    type: 'array',
-    label: 'Fases',
-    dbName: 'b_phases',
-    fields: [t('phase', 'Fase'), t('duration', 'Duración')],
-  },
+  ...meta(t('title', 'Título'), 'Título'),
+  ...meta(t('durationLabel', 'Etiqueta de duración'), 'Etiqueta de duración'),
+  ...meta(t('durationValue', 'Duración'), 'Duración'),
+  ...meta(
+    { name: 'phases', type: 'array', label: 'Fases', dbName: 'b_phases', fields: [t('phase', 'Fase'), t('duration', 'Duración')] },
+    'Fases',
+  ),
 ]
 
 const journeyFields = (): Field[] => [
-  t('title', 'Título'),
-  textArray('intro', 'Introducción', 'b_jn_intro'),
+  ...meta(t('title', 'Título'), 'Título'),
+  ...meta(textArray('intro', 'Introducción', 'b_jn_intro'), 'Introducción'),
   {
     type: 'group',
     name: 'labels',
     label: 'Etiquetas',
-    fields: [t('action', 'Acción'), t('thought', 'Pensamiento'), t('friction', 'Fricción')],
+    fields: [...meta(t('action', 'Acción'), 'Acción'), ...meta(t('thought', 'Pensamiento'), 'Pensamiento'), ...meta(t('friction', 'Fricción'), 'Fricción')],
   },
-  {
-    name: 'stages',
-    type: 'array',
-    label: 'Etapas',
-    dbName: 'b_stages',
-    fields: [
-      { name: 'number', type: 'text', label: 'Número' },
-      t('name', 'Nombre'),
-      ta('action', 'Acción'),
-      t('thought', 'Pensamiento'),
-      t('friction', 'Fricción'),
-    ],
-  },
-  {
-    name: 'qa',
-    type: 'array',
-    label: 'Preguntas y respuestas',
-    dbName: 'b_jn_qa',
-    fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'b_jn_bul')],
-  },
+  ...meta(
+    {
+      name: 'stages',
+      type: 'array',
+      label: 'Etapas',
+      dbName: 'b_stages',
+      fields: [
+        { name: 'number', type: 'text', label: 'Número' },
+        t('name', 'Nombre'),
+        ta('action', 'Acción'),
+        t('thought', 'Pensamiento'),
+        t('friction', 'Fricción'),
+      ],
+    },
+    'Etapas',
+  ),
+  ...meta(
+    { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'b_jn_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta'), textArray('bullets', 'Puntos', 'b_jn_bul')] },
+    'Preguntas y respuestas',
+  ),
 ]
 
 const personasFields = (): Field[] => [
-  t('title', 'Título'),
-  textArray('intro', 'Introducción', 'b_pr_intro'),
-  {
-    name: 'qa',
-    type: 'array',
-    label: 'Preguntas y respuestas',
-    dbName: 'b_pr_qa',
-    fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'b_pr_ans')],
-  },
+  ...meta(t('title', 'Título'), 'Título'),
+  ...meta(textArray('intro', 'Introducción', 'b_pr_intro'), 'Introducción'),
+  ...meta(
+    { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'b_pr_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'b_pr_ans')] },
+    'Preguntas y respuestas',
+  ),
   {
     type: 'group',
     name: 'sectionLabels',
     label: 'Etiquetas de fichas',
     fields: [
-      t('basicInfo', 'Información básica'),
-      t('channels', 'Canales'),
-      t('motivations', 'Motivaciones'),
-      t('painPoints', 'Frustraciones'),
+      ...meta(t('basicInfo', 'Información básica'), 'Información básica'),
+      ...meta(t('channels', 'Canales'), 'Canales'),
+      ...meta(t('motivations', 'Motivaciones'), 'Motivaciones'),
+      ...meta(t('painPoints', 'Frustraciones'), 'Frustraciones'),
     ],
   },
-  {
-    name: 'cards',
-    type: 'array',
-    label: 'Fichas',
-    dbName: 'b_cards',
-    fields: [
-      t('name', 'Nombre'),
-      t('descriptor', 'Descriptor'),
-      ta('quote', 'Cita'),
-      textArray('basicInfo', 'Información básica', 'b_c_bi', false),
-      textArray('channels', 'Canales', 'b_c_ch', false),
-      textArray('motivations', 'Motivaciones', 'b_c_mo', false),
-      textArray('painPoints', 'Frustraciones', 'b_c_pp', false),
-    ],
-  },
+  ...meta(
+    {
+      name: 'cards',
+      type: 'array',
+      label: 'Fichas',
+      dbName: 'b_cards',
+      fields: [
+        t('name', 'Nombre'),
+        t('descriptor', 'Descriptor'),
+        ta('quote', 'Cita'),
+        textArray('basicInfo', 'Información básica', 'b_c_bi', false),
+        textArray('channels', 'Canales', 'b_c_ch', false),
+        textArray('motivations', 'Motivaciones', 'b_c_mo', false),
+        textArray('painPoints', 'Frustraciones', 'b_c_pp', false),
+      ],
+    },
+    'Fichas',
+  ),
 ]
 
 const sketchesFields = (): Field[] => [
-  t('title', 'Título'),
-  textArray('intro', 'Introducción', 'b_sk_intro'),
-  {
-    name: 'qa',
-    type: 'array',
-    label: 'Preguntas y respuestas',
-    dbName: 'b_sk_qa',
-    fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')],
-  },
+  ...meta(t('title', 'Título'), 'Título'),
+  ...meta(textArray('intro', 'Introducción', 'b_sk_intro'), 'Introducción'),
+  ...meta(
+    { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'b_sk_qa', fields: [ta('question', 'Pregunta'), ta('answer', 'Respuesta')] },
+    'Preguntas y respuestas',
+  ),
 ]
 
 const learningsFields = (): Field[] => [
-  t('title', 'Título'),
-  {
-    name: 'qa',
-    type: 'array',
-    label: 'Preguntas y respuestas',
-    dbName: 'b_ln_qa',
-    fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'b_ln_ans')],
-  },
+  ...meta(t('title', 'Título'), 'Título'),
+  ...meta(
+    { name: 'qa', type: 'array', label: 'Preguntas y respuestas', dbName: 'b_ln_qa', fields: [ta('question', 'Pregunta'), textArray('answer', 'Respuesta', 'b_ln_ans')] },
+    'Preguntas y respuestas',
+  ),
 ]
 
 /**

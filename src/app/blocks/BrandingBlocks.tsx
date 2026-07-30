@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { ArrowLeft, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { Lightbox } from "../components/Lightbox";
+import { fieldVisible } from "./contentMeta";
 import branding from "../../../content/sections/branding.json";
 
 /**
@@ -131,12 +132,16 @@ export function BrandingHeader({ content }: { content?: HeaderContent }) {
         <div className="h-px flex-1 bg-neutral-800"></div>
       </div>
 
-      <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
-        {title[language]}
-      </h1>
-      <p className="text-base text-neutral-300 max-w-3xl">
-        {description[language]}
-      </p>
+      {fieldVisible(content, "title") && (
+        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-neutral-100 mb-4 uppercase">
+          {title[language]}
+        </h1>
+      )}
+      {fieldVisible(content, "description") && (
+        <p className="text-base text-neutral-300 max-w-3xl">
+          {description[language]}
+        </p>
+      )}
     </div>
   );
 }

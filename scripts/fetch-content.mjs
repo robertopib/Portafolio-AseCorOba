@@ -344,19 +344,20 @@ async function main() {
 
     const rowsText = (arr) => (arr || []).map((r) => loc(r.text))
 
+    const vis = (v) => v !== false
     const heroFrom = (c) => ({
       backgroundImage: c.backgroundImage,
+      backgroundImageVisible: vis(c.backgroundImageVisible),
       title: loc(c.title),
+      titleVisible: vis(c.titleVisible),
       subtitle: loc(c.subtitle),
+      subtitleVisible: vis(c.subtitleVisible),
       body: loc(c.body),
+      bodyVisible: vis(c.bodyVisible),
       cta1: loc(c.cta1),
+      cta1Visible: vis(c.cta1Visible),
       cta2: loc(c.cta2),
-    })
-    const headerFrom = (c) => ({
-      backLabel: loc(c.backLabel),
-      sectionNumber: c.sectionNumber,
-      title: loc(c.title),
-      description: loc(c.description),
+      cta2Visible: vis(c.cta2Visible),
     })
     const careerFrom = (c) => {
       const buildExp = (l) =>
@@ -368,71 +369,106 @@ async function main() {
       return {
         headings: {
           careerPath: loc(c.headings.careerPath),
+          careerPathVisible: vis(c.headings.careerPathVisible),
           professionalExperience: loc(c.headings.professionalExperience),
+          professionalExperienceVisible: vis(c.headings.professionalExperienceVisible),
         },
         experience: { es: buildExp('es'), en: buildExp('en') },
+        experienceVisible: vis(c.experienceVisible),
       }
     }
     const aboutFrom = (c) => ({
       headings: {
         education: loc(c.headings.education),
+        educationVisible: vis(c.headings.educationVisible),
         tools: loc(c.headings.tools),
+        toolsVisible: vis(c.headings.toolsVisible),
         languages: loc(c.headings.languages),
+        languagesVisible: vis(c.headings.languagesVisible),
       },
       education: {
         es: (c.education || []).map((r) => r.item?.es ?? ''),
         en: (c.education || []).map((r) => r.item?.en ?? ''),
       },
+      educationVisible: vis(c.educationVisible),
       tools: (c.tools || []).map((r) => r.value),
+      toolsVisible: vis(c.toolsVisible),
       languages: (c.languages || []).map((r) => r.value),
+      languagesVisible: vis(c.languagesVisible),
       contact: {
         heading: loc(c.contact.heading),
+        headingVisible: vis(c.contact.headingVisible),
         body: loc(c.contact.body),
+        bodyVisible: vis(c.contact.bodyVisible),
         email: c.contact.email,
+        emailVisible: vis(c.contact.emailVisible),
         phone: c.contact.phone,
+        phoneVisible: vis(c.contact.phoneVisible),
       },
       socialLinks: (c.socialLinks || []).map((s) => ({ name: s.name, url: s.url })),
+      socialLinksVisible: vis(c.socialLinksVisible),
       footer: {
         copyrightPrefix: c.footer.copyrightPrefix,
+        copyrightPrefixVisible: vis(c.footer.copyrightPrefixVisible),
         rights: loc(c.footer.rights),
+        rightsVisible: vis(c.footer.rightsVisible),
         privacy: loc(c.footer.privacy),
+        privacyVisible: vis(c.footer.privacyVisible),
         terms: loc(c.footer.terms),
+        termsVisible: vis(c.footer.termsVisible),
       },
     })
     const uxuiFrom = (cs) => ({
-      header: { title: loc(cs.header.title), tagline: loc(cs.header.tagline) },
-      hero: { image: cs.hero.image, alt: loc(cs.hero.alt) },
+      header: { title: loc(cs.header.title), titleVisible: vis(cs.header.titleVisible), tagline: loc(cs.header.tagline), taglineVisible: vis(cs.header.taglineVisible) },
+      hero: { image: cs.hero.image, imageVisible: vis(cs.hero.imageVisible), alt: loc(cs.hero.alt), altVisible: vis(cs.hero.altVisible) },
       project: {
         name: loc(cs.project.name),
+        nameVisible: vis(cs.project.nameVisible),
         subtitle: loc(cs.project.subtitle),
+        subtitleVisible: vis(cs.project.subtitleVisible),
         overview: cs.project.overview.map((o) => ({ label: loc(o.label), text: loc(o.text) })),
+        overviewVisible: vis(cs.project.overviewVisible),
       },
       intro: rowsText(cs.intro),
+      introVisible: vis(cs.introVisible),
       problemSolution: {
-        problem: { label: loc(cs.problemSolution.problem.label), text: loc(cs.problemSolution.problem.text) },
-        solution: { label: loc(cs.problemSolution.solution.label), text: loc(cs.problemSolution.solution.text) },
+        problem: { label: loc(cs.problemSolution.problem.label), labelVisible: vis(cs.problemSolution.problem.labelVisible), text: loc(cs.problemSolution.problem.text), textVisible: vis(cs.problemSolution.problem.textVisible) },
+        solution: { label: loc(cs.problemSolution.solution.label), labelVisible: vis(cs.problemSolution.solution.labelVisible), text: loc(cs.problemSolution.solution.text), textVisible: vis(cs.problemSolution.solution.textVisible) },
       },
       details: {
         headers: {
           tools: loc(cs.details.headers.tools),
+          toolsVisible: vis(cs.details.headers.toolsVisible),
           team: loc(cs.details.headers.team),
+          teamVisible: vis(cs.details.headers.teamVisible),
           role: loc(cs.details.headers.role),
+          roleVisible: vis(cs.details.headers.roleVisible),
         },
         rows: cs.details.rows.map((r) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+        rowsVisible: vis(cs.details.rowsVisible),
       },
       timeline: {
         title: loc(cs.timeline.title),
+        titleVisible: vis(cs.timeline.titleVisible),
         durationLabel: loc(cs.timeline.durationLabel),
+        durationLabelVisible: vis(cs.timeline.durationLabelVisible),
         durationValue: loc(cs.timeline.durationValue),
+        durationValueVisible: vis(cs.timeline.durationValueVisible),
         phases: cs.timeline.phases.map((p) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+        phasesVisible: vis(cs.timeline.phasesVisible),
       },
       journey: {
         title: loc(cs.journey.title),
+        titleVisible: vis(cs.journey.titleVisible),
         intro: rowsText(cs.journey.intro),
+        introVisible: vis(cs.journey.introVisible),
         labels: {
           action: loc(cs.journey.labels.action),
+          actionVisible: vis(cs.journey.labels.actionVisible),
           thought: loc(cs.journey.labels.thought),
+          thoughtVisible: vis(cs.journey.labels.thoughtVisible),
           friction: loc(cs.journey.labels.friction),
+          frictionVisible: vis(cs.journey.labels.frictionVisible),
         },
         stages: cs.journey.stages.map((s) => ({
           number: s.number,
@@ -441,22 +477,31 @@ async function main() {
           thought: loc(s.thought),
           friction: loc(s.friction),
         })),
+        stagesVisible: vis(cs.journey.stagesVisible),
         qa: cs.journey.qa.map((q) => {
           const out = { question: loc(q.question) }
           if (q.bullets && q.bullets.length > 0) out.bullets = rowsText(q.bullets)
           else out.answer = loc(q.answer)
           return out
         }),
+        qaVisible: vis(cs.journey.qaVisible),
       },
       personas: {
         title: loc(cs.personas.title),
+        titleVisible: vis(cs.personas.titleVisible),
         intro: rowsText(cs.personas.intro),
+        introVisible: vis(cs.personas.introVisible),
         qa: cs.personas.qa.map((q) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+        qaVisible: vis(cs.personas.qaVisible),
         sectionLabels: {
           basicInfo: loc(cs.personas.sectionLabels.basicInfo),
+          basicInfoVisible: vis(cs.personas.sectionLabels.basicInfoVisible),
           channels: loc(cs.personas.sectionLabels.channels),
+          channelsVisible: vis(cs.personas.sectionLabels.channelsVisible),
           motivations: loc(cs.personas.sectionLabels.motivations),
+          motivationsVisible: vis(cs.personas.sectionLabels.motivationsVisible),
           painPoints: loc(cs.personas.sectionLabels.painPoints),
+          painPointsVisible: vis(cs.personas.sectionLabels.painPointsVisible),
         },
         cards: cs.personas.cards.map((c) => ({
           name: loc(c.name),
@@ -467,32 +512,81 @@ async function main() {
           motivations: rowsText(c.motivations),
           painPoints: rowsText(c.painPoints),
         })),
+        cardsVisible: vis(cs.personas.cardsVisible),
       },
       sketches: {
         title: loc(cs.sketches.title),
+        titleVisible: vis(cs.sketches.titleVisible),
         intro: rowsText(cs.sketches.intro),
+        introVisible: vis(cs.sketches.introVisible),
         qa: cs.sketches.qa.map((q) => ({ question: loc(q.question), answer: loc(q.answer) })),
+        qaVisible: vis(cs.sketches.qaVisible),
       },
       learnings: {
         title: loc(cs.learnings.title),
+        titleVisible: vis(cs.learnings.titleVisible),
         qa: cs.learnings.qa.map((q) => ({ question: loc(q.question), answer: rowsText(q.answer) })),
+        qaVisible: vis(cs.learnings.qaVisible),
       },
     })
 
-    const introFrom = (c) => {
+    // Home-preview intro, RESOLVED FROM THE CATEGORÍA (single source of truth),
+    // each emitted key carrying its `<key>Visible` flag. Mirrors export-content.ts.
+    const introFromCat = (cat) => {
+      const h = (cat && cat.home) || {}
       const out = {}
-      const putLoc = (k, v) => {
-        if (v && (v.es || v.en)) out[k] = loc(v)
+      const putLoc = (k) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) {
+          out[k] = loc(v)
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
       }
-      putLoc('sectionHeading', c.sectionHeading)
-      putLoc('heading', c.heading)
-      putLoc('tagline', c.tagline)
-      putLoc('description', c.description)
-      if (c.studioName) out.studioName = c.studioName
-      putLoc('roleDescription', c.roleDescription)
-      putLoc('cta', c.cta)
-      if (c.sketchImage) out.sketchImage = c.sketchImage
-      putLoc('sketchAlt', c.sketchAlt)
+      const putRaw = (k) => {
+        if (h[k]) {
+          out[k] = h[k]
+          out[`${k}Visible`] = h[`${k}Visible`] !== false
+        }
+      }
+      // Labels with a shared front-end fallback: always emit Visible, text if set.
+      const putLabel = (k) => {
+        const v = h[k]
+        if (v && (v.es || v.en)) out[k] = loc(v)
+        out[`${k}Visible`] = h[`${k}Visible`] !== false
+      }
+      putLoc('sectionHeading')
+      putLoc('heading')
+      putLoc('tagline')
+      putLoc('description')
+      putLabel('studioLabel')
+      putRaw('studioName')
+      putLabel('roleLabel')
+      putLoc('roleDescription')
+      putLoc('cta')
+      putRaw('sketchImage')
+      putLoc('sketchAlt')
+      return out
+    }
+
+    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-content.ts.
+    const pad2 = (n) => String(n).padStart(2, '0')
+    const HEADER_SLUG = {
+      brandingHeader: 'branding',
+      webAppsHeader: 'web-apps',
+      fotografiaHeader: 'fotografia-producto',
+      marketingHeader: 'marketing-360',
+    }
+    const headerFromCat = (cat) => {
+      const pg = (cat && cat.page) || {}
+      const out = { sectionNumber: pad2((cat?.order ?? 1) + 1) }
+      if (pg.title && (pg.title.es || pg.title.en)) {
+        out.title = loc(pg.title)
+        out.titleVisible = pg.titleVisible !== false
+      }
+      if (pg.description && (pg.description.es || pg.description.en)) {
+        out.description = loc(pg.description)
+        out.descriptionVisible = pg.descriptionVisible !== false
+      }
       return out
     }
 
@@ -537,27 +631,34 @@ async function main() {
                 })
               }
               const content = { layoutVariant: variant, projects: cards }
-              if (b.subheading && (b.subheading.es || b.subheading.en)) {
+              // Branding page subheadings resolve (+ visibility) from the Categoría;
+              // other variants keep the block's own subheading (e.g. "Logos").
+              const catForSub = catBySlug[slug]
+              if (variant === 'branding:sports' && catForSub?.page?.subtitleSports) {
+                content.subheading = loc(catForSub.page.subtitleSports)
+                content.subheadingVisible = catForSub.page.subtitleSportsVisible !== false
+              } else if (variant === 'branding:beauty' && catForSub?.page?.subtitleBeauty) {
+                content.subheading = loc(catForSub.page.subtitleBeauty)
+                content.subheadingVisible = catForSub.page.subtitleBeautyVisible !== false
+              } else if (b.subheading && (b.subheading.es || b.subheading.en)) {
                 content.subheading = loc(b.subheading)
               }
-              const prev = rawBlocks[idx - 1]
-              if (prev && prev.blockType === 'portfolioIntro' && prev.portfolioIntroContent) {
-                content.intro = introFrom(prev.portfolioIntroContent)
+              // Home-preview intro resolved from the referenced Categoría.
+              if (variant.endsWith(':home')) {
+                content.intro = introFromCat(catBySlug[slug])
               }
               block.content = content
             }
             if (b.blockType === 'hero' && b.heroContent) {
               block.content = heroFrom(b.heroContent)
-            } else if (HEADER_BLOCK_TYPES.has(b.blockType) && b.headerContent) {
-              block.content = headerFrom(b.headerContent)
+            } else if (HEADER_BLOCK_TYPES.has(b.blockType)) {
+              block.content = headerFromCat(catBySlug[HEADER_SLUG[b.blockType]])
             } else if (b.blockType === 'experiencia' && b.careerContent) {
               block.content = careerFrom(b.careerContent)
             } else if (b.blockType === 'contacto' && b.aboutContent) {
               block.content = aboutFrom(b.aboutContent)
             } else if (UXUI_BLOCK_TYPES.has(b.blockType) && b.uxuiContent) {
               block.content = uxuiFrom(b.uxuiContent)
-            } else if (b.blockType === 'portfolioIntro' && b.portfolioIntroContent) {
-              block.content = introFrom(b.portfolioIntroContent)
             }
             return block
           }),
@@ -764,45 +865,60 @@ async function main() {
   // ==================== CASE STUDIES (resolved Proyecto bodies) ====================
   {
     const arrText = (arr) => (arr || []).map((r) => loc(r.text))
+    const visB = (v) => v !== false
     const sliceFrom = (b) => {
       switch (b.blockType) {
         case 'uxuiHeader':
-          return { title: loc(b.title), tagline: loc(b.tagline) }
+          return { title: loc(b.title), titleVisible: visB(b.titleVisible), tagline: loc(b.tagline), taglineVisible: visB(b.taglineVisible) }
         case 'uxuiHero':
-          return { image: b.image, alt: loc(b.alt) }
+          return { image: b.image, imageVisible: visB(b.imageVisible), alt: loc(b.alt), altVisible: visB(b.altVisible) }
         case 'uxuiOverview':
           return {
             name: loc(b.name),
+            nameVisible: visB(b.nameVisible),
             subtitle: loc(b.subtitle),
+            subtitleVisible: visB(b.subtitleVisible),
             overview: (b.overview || []).map((o) => ({ label: loc(o.label), text: loc(o.text) })),
+            overviewVisible: visB(b.overviewVisible),
           }
         case 'uxuiIntro':
           return arrText(b.intro)
         case 'uxuiProblemSolution':
           return {
-            problem: { label: loc(b.problem.label), text: loc(b.problem.text) },
-            solution: { label: loc(b.solution.label), text: loc(b.solution.text) },
+            problem: { label: loc(b.problem.label), labelVisible: visB(b.problem.labelVisible), text: loc(b.problem.text), textVisible: visB(b.problem.textVisible) },
+            solution: { label: loc(b.solution.label), labelVisible: visB(b.solution.labelVisible), text: loc(b.solution.text), textVisible: visB(b.solution.textVisible) },
           }
         case 'uxuiDetails':
           return {
-            headers: { tools: loc(b.headers.tools), team: loc(b.headers.team), role: loc(b.headers.role) },
+            headers: {
+              tools: loc(b.headers.tools), toolsVisible: visB(b.headers.toolsVisible),
+              team: loc(b.headers.team), teamVisible: visB(b.headers.teamVisible),
+              role: loc(b.headers.role), roleVisible: visB(b.headers.roleVisible),
+            },
             rows: (b.rows || []).map((r) => ({ tools: loc(r.tools), team: loc(r.team), role: loc(r.role) })),
+            rowsVisible: visB(b.rowsVisible),
           }
         case 'uxuiTimeline':
           return {
             title: loc(b.title),
+            titleVisible: visB(b.titleVisible),
             durationLabel: loc(b.durationLabel),
+            durationLabelVisible: visB(b.durationLabelVisible),
             durationValue: loc(b.durationValue),
+            durationValueVisible: visB(b.durationValueVisible),
             phases: (b.phases || []).map((p) => ({ phase: loc(p.phase), duration: loc(p.duration) })),
+            phasesVisible: visB(b.phasesVisible),
           }
         case 'uxuiJourney':
           return {
             title: loc(b.title),
+            titleVisible: visB(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: visB(b.introVisible),
             labels: {
-              action: loc(b.labels.action),
-              thought: loc(b.labels.thought),
-              friction: loc(b.labels.friction),
+              action: loc(b.labels.action), actionVisible: visB(b.labels.actionVisible),
+              thought: loc(b.labels.thought), thoughtVisible: visB(b.labels.thoughtVisible),
+              friction: loc(b.labels.friction), frictionVisible: visB(b.labels.frictionVisible),
             },
             stages: (b.stages || []).map((s) => ({
               number: s.number,
@@ -811,23 +927,28 @@ async function main() {
               thought: loc(s.thought),
               friction: loc(s.friction),
             })),
+            stagesVisible: visB(b.stagesVisible),
             qa: (b.qa || []).map((q) => {
               const out = { question: loc(q.question) }
               if (q.bullets && q.bullets.length > 0) out.bullets = arrText(q.bullets)
               else out.answer = loc(q.answer)
               return out
             }),
+            qaVisible: visB(b.qaVisible),
           }
         case 'uxuiPersonas':
           return {
             title: loc(b.title),
+            titleVisible: visB(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: visB(b.introVisible),
             qa: (b.qa || []).map((q) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+            qaVisible: visB(b.qaVisible),
             sectionLabels: {
-              basicInfo: loc(b.sectionLabels.basicInfo),
-              channels: loc(b.sectionLabels.channels),
-              motivations: loc(b.sectionLabels.motivations),
-              painPoints: loc(b.sectionLabels.painPoints),
+              basicInfo: loc(b.sectionLabels.basicInfo), basicInfoVisible: visB(b.sectionLabels.basicInfoVisible),
+              channels: loc(b.sectionLabels.channels), channelsVisible: visB(b.sectionLabels.channelsVisible),
+              motivations: loc(b.sectionLabels.motivations), motivationsVisible: visB(b.sectionLabels.motivationsVisible),
+              painPoints: loc(b.sectionLabels.painPoints), painPointsVisible: visB(b.sectionLabels.painPointsVisible),
             },
             cards: (b.cards || []).map((c) => ({
               name: loc(c.name),
@@ -838,17 +959,23 @@ async function main() {
               motivations: arrText(c.motivations),
               painPoints: arrText(c.painPoints),
             })),
+            cardsVisible: visB(b.cardsVisible),
           }
         case 'uxuiSketches':
           return {
             title: loc(b.title),
+            titleVisible: visB(b.titleVisible),
             intro: arrText(b.intro),
+            introVisible: visB(b.introVisible),
             qa: (b.qa || []).map((q) => ({ question: loc(q.question), answer: loc(q.answer) })),
+            qaVisible: visB(b.qaVisible),
           }
         case 'uxuiLearnings':
           return {
             title: loc(b.title),
+            titleVisible: visB(b.titleVisible),
             qa: (b.qa || []).map((q) => ({ question: loc(q.question), answer: arrText(q.answer) })),
+            qaVisible: visB(b.qaVisible),
           }
         default:
           return {}

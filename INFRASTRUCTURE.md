@@ -89,7 +89,19 @@ Prod CMS → rebuilds prod site; preview CMS → rebuilds preview site (separate
 
 ## 7. Enhancement workflow
 
-1. Point local `cms/.env` `DATABASE_URI` at the Neon `dev` branch.
+> ⚠️ **The portfolio's Neon lives in its OWN account.** It is **NOT** the account
+> the local `neonctl` CLI is logged into (that login belongs to a *different*,
+> unrelated project). **Never** use `neonctl` here to discover or repoint the
+> database — always take the connection string from the portfolio's own Neon
+> account. A mis-repoint once contaminated an unrelated project's DB.
+>
+> **Safety guard:** `cms/src/scripts/dbGuard.ts` runs before Payload connects in
+> `seed`/`export` and **aborts unless `DB_TARGET_HOST` (in `cms/.env`) matches the
+> `DATABASE_URI` host.** Set `DB_TARGET_HOST` to the exact host you intend to use;
+> bypass only with `SEED_SKIP_DB_GUARD=1` when you are certain.
+
+1. Point local `cms/.env` `DATABASE_URI` at the portfolio's Neon **dev** branch,
+   and set `DB_TARGET_HOST` to that same host.
 2. Build the change on the `preview` branch (or a feature branch merged into it).
 3. **Run the pixel gate locally** — must be 0.000% (`shoot.mjs` + `diff.mjs` vs
    `screenshots/baseline`). See DEPLOY.md notes + `cms-is-content-editor` memory.

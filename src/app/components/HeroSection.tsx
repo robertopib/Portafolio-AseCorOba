@@ -1,5 +1,6 @@
 import { ArrowDown } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
+import { fieldVisible } from "../blocks/contentMeta";
 import homeJson from "../../../content/home.json";
 
 type LocalizedText = { es: string; en: string };
@@ -29,10 +30,12 @@ export function HeroSection({ content }: { content?: HeroContent }) {
   return (
     <section className="relative min-h-screen flex items-center justify-center px-6 md:px-12 lg:px-24 pt-20 pb-8">
       {/* Background Image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${home.hero.backgroundImage})` }}
-      />
+      {fieldVisible(home.hero, "backgroundImage") && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${home.hero.backgroundImage})` }}
+        />
+      )}
 
       {/* Overlay */}
       <div className="absolute inset-0 bg-white/75" />
@@ -42,37 +45,47 @@ export function HeroSection({ content }: { content?: HeroContent }) {
         <div className="space-y-8">
           <div className="space-y-2">
             {/* Main Title */}
-            <h1 className="text-left text-xl md:text-3xl lg:text-4xl font-bold text-neutral-900">
-              {home.hero.title[language]}
-            </h1>
+            {fieldVisible(home.hero, "title") && (
+              <h1 className="text-left text-xl md:text-3xl lg:text-4xl font-bold text-neutral-900">
+                {home.hero.title[language]}
+              </h1>
+            )}
 
             {/* Subtitle */}
-            <p className="text-left text-base md:text-lg lg:text-xl font-bold text-neutral-900">
-              {home.hero.subtitle[language]}
-            </p>
+            {fieldVisible(home.hero, "subtitle") && (
+              <p className="text-left text-base md:text-lg lg:text-xl font-bold text-neutral-900">
+                {home.hero.subtitle[language]}
+              </p>
+            )}
           </div>
 
-          <div className="max-w-3xl">
-            <p className="text-base text-neutral-900 leading-relaxed text-justify">
-              {home.hero.body[language]}
-            </p>
-          </div>
+          {fieldVisible(home.hero, "body") && (
+            <div className="max-w-3xl">
+              <p className="text-base text-neutral-900 leading-relaxed text-justify">
+                {home.hero.body[language]}
+              </p>
+            </div>
+          )}
 
           {/* Botones CTA */}
           <div className="flex gap-4 flex-wrap">
-            <button
-              onClick={scrollToWork}
-              className="px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-[3px] transition-all duration-300 group flex items-center gap-2"
-            >
-              <span>{home.hero.cta1[language]}</span>
-              <ArrowDown className="w-5 h-5 transition-transform group-hover:translate-y-1" />
-            </button>
-            <button
-              onClick={scrollToContact}
-              className="px-8 py-4 bg-white border-2 border-neutral-300 hover:border-violet-600 text-neutral-900 rounded-[3px] transition-all duration-300"
-            >
-              {home.hero.cta2[language]}
-            </button>
+            {fieldVisible(home.hero, "cta1") && (
+              <button
+                onClick={scrollToWork}
+                className="px-8 py-4 bg-violet-600 hover:bg-violet-700 text-white rounded-[3px] transition-all duration-300 group flex items-center gap-2"
+              >
+                <span>{home.hero.cta1[language]}</span>
+                <ArrowDown className="w-5 h-5 transition-transform group-hover:translate-y-1" />
+              </button>
+            )}
+            {fieldVisible(home.hero, "cta2") && (
+              <button
+                onClick={scrollToContact}
+                className="px-8 py-4 bg-white border-2 border-neutral-300 hover:border-violet-600 text-neutral-900 rounded-[3px] transition-all duration-300"
+              >
+                {home.hero.cta2[language]}
+              </button>
+            )}
           </div>
         </div>
       </div>
