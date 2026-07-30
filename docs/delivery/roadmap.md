@@ -47,13 +47,14 @@ Last updated: 2026-07-30
 
 | ID | Title | Status | Agent | Risk | Depends on |
 |----|-------|--------|-------|------|------------|
-| R1 | Image uploader fix + thumbnails + backfill | todo | full-stack + devops | High | — |
+| R1 | Image uploader fix + thumbnails + backfill | in-progress | full-stack + devops | High | — |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
+| R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | todo | devops | High | R1b |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -68,9 +69,10 @@ Vercel serverless function (no `clientUploads`), which caps request bodies at
 ~4.5 MB. Media has **no `imageSizes`/`adminThumbnail`**, so the library shows no
 thumbnails. R2 *serving* works; R2 has **no CORS** configured; Cloudflare on-the-fly
 resize (`/cdn-cgi/image/`) is **OFF**.
-**First step (diagnostic, do before building):** reproduce in the admin with
-DevTools → Network on `/api/media`; record the status: **413**=size→`clientUploads`
-+ R2 CORS; **500**=server R2 write / S3 env vars; **403/401**=auth/session.
+**Diagnosis (2026-07-30, cms-preview):** upload → **413 FUNCTION_PAYLOAD_TOO_LARGE**
+(Vercel ~4.5 MB serverless body limit). All source images are 11–18 MB, so every
+upload fails → whole uploader appears dead. **Fix path = `clientUploads` (direct
+browser→R2) + R2 CORS.**
 **Acceptance criteria (stub):** editor can upload a small AND a large (>4.5 MB)
 image successfully; the media library shows a thumbnail per image; the 42 existing
 images get thumbnails (backfill); public site still pixel-identical (0.000%).
@@ -78,6 +80,20 @@ images get thumbnails (backfill); public site still pixel-identical (0.000%).
 `clientUploads`: configure R2 CORS (PUT from the admin origin) and
 `disablePayloadAccessControl`. Reference: `cms/src/collections/Media.ts`,
 `cms/src/payload.config.ts` (s3Storage plugin).
+
+### R8 — Restore prod CMS build + confirm Tier 1 live  (High)
+**Context:** The migrations commit (`2095df8`) shipped a broken
+`cms/src/migrations/index.ts` importing a never-committed `20260730_133343_testdelta`
+migration (leftover from a dev test). `next build` has no `ignoreBuildErrors`, so the
+CMS `ci:build` fails → Vercel kept the last good deploy. So **migrations Tier 1 never
+actually deployed**; prod CMS is still serving the pre-migrations build (`d019791`,
+label feature — functionally fine; schema was applied manually earlier). Preview is
+fixed by `987b58c`; `main` still has the broken import.
+**Acceptance criteria (stub):** preview CMS builds green and serves `987b58c`;
+`main` build restored (via the R1b preview→main merge, which includes the fix);
+prod CMS `/api/pages` served by the NEW build; `migrate` runs in `ci:build` (no-op).
+**Note:** resolved as a side effect of merging R1b (clientUploads) to `main` — verify
+explicitly, don't assume.
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
@@ -127,4 +143,7 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   hero/experiencia/contacto + UX/UI case study, per-category studio/role labels.
   Shipped to prod. (commits `de787bc`…`f02262e`, merge `d019791`)
 - 2026-07-30 — Automation Tier 1: Payload migrations + auto-apply on deploy +
-  two-file env; dev+prod baselined. Shipped to prod. (merge `469d2d2`)
+  two-file env; dev+prod baselined; code merged to `main` (`469d2d2`). ⚠️ CORRECTION:
+  did NOT actually deploy — the commit carried a build-breaking phantom `testdelta`
+  import, so the CMS build failed and Vercel kept the prior deploy. Being restored via
+  R8 / the R1b merge. (schema itself WAS applied to prod manually earlier.)
