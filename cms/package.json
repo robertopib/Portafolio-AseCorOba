@@ -14,7 +14,9 @@
     "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
     "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
     "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
-    "ci:build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" payload migrate && cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
+    "migrate:prod": "cross-env NODE_OPTIONS=--no-deprecation node --env-file=.env.prod node_modules/payload/bin.js migrate",
+    "migrate:status:prod": "cross-env NODE_OPTIONS=--no-deprecation node --env-file=.env.prod node_modules/payload/bin.js migrate:status",
+    "ci:build": "DATABASE_URI=\"${DATABASE_URI_UNPOOLED:-$DATABASE_URI}\" cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" payload migrate && cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=8000\" next build",
     "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start -p 4400"
   },
