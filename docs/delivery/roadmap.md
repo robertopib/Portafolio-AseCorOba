@@ -48,6 +48,9 @@ Last updated: 2026-07-30
 | ID | Title | Status | Agent | Risk | Depends on |
 |----|-------|--------|-------|------|------------|
 | R1 | Image uploader fix + thumbnails + backfill | in-progress | full-stack + devops | High | — |
+| R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (preview) | devops | High | — |
+| R1c | ↳ Thumbnails (imageSizes + adminThumbnail) | todo | full-stack | Medium | R1b |
+| R1d | ↳ Backfill thumbnails for 42 existing images | todo | devops | Medium | R1c |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
