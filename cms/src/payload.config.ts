@@ -68,6 +68,14 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URI || '',
     },
+    // Migrations everywhere (push OFF in all envs) so local/preview/prod behave
+    // identically and no environment ever leaves the "dev push" marker that makes
+    // `payload migrate` prompt interactively (which would hang the Vercel build).
+    // Schema change workflow: edit schema -> `pnpm migrate:create <name>` -> commit
+    // the generated file. `pnpm migrate` (run automatically in the CMS build via
+    // `ci:build`) applies pending migrations. See cms/src/migrations/.
+    push: false,
+    migrationDir: path.resolve(dirname, 'migrations'),
   }),
   sharp,
   localization: {

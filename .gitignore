@@ -7,6 +7,8 @@ dist
 cms/node_modules
 cms/.next
 cms/.env
+cms/.env.*
+!cms/.env*.example
 cms/build
 cms/dist
 
