@@ -52,6 +52,7 @@ Last updated: 2026-07-30
 | R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
 | R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (preview) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
+| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | todo | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
@@ -122,6 +123,18 @@ Governance requires lint-clean before PR, so this blocks that gate.
 **Acceptance criteria (stub):** `pnpm lint` runs and passes (or reports only
 pre-existing, documented issues) in cms + site.
 **Fold into R2** (CI gate) if convenient.
+
+### R10 — Thumbnail preview column in media library  (Low)
+**Context:** Uploads + thumbnail generation work (R1b–R1d); `thumbnailURL` resolves to
+R2 and is used in the edit view + image picker + bulk cards. But Payload 3.86's media
+LIST is a table with no image column and no grid view, so the library reads as text
+rows. To make it visually scannable, add a custom preview column.
+**Approach:** a virtual `preview` UI field on Media with `admin.components.Cell` (client
+component) rendering `<img src={row.thumbnailURL || row.url}>`; put it first via
+`admin.defaultColumns`. Registered component → `pnpm generate:importmap`. Admin-only;
+no schema, no migration, public site untouched.
+**Acceptance criteria (stub):** the Biblioteca de Imágenes list shows a small
+thumbnail per row; pixel gate n/a (admin-only); no migration.
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
