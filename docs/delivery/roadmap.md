@@ -47,10 +47,11 @@ Last updated: 2026-07-30
 
 | ID | Title | Status | Agent | Risk | Depends on |
 |----|-------|--------|-------|------|------------|
-| R1 | Image uploader fix + thumbnails + backfill | in-progress | full-stack + devops | High | — |
+| R1 | Image uploader fix + thumbnails + backfill | done (preview) | full-stack + devops | High | — |
 | R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (preview) | devops | High | — |
 | R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
-| R1d | ↳ GENERATE thumbnails (clientUploads bypasses sharp) — existing 42 + future | todo | full-stack | Medium | R1c |
+| R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (preview) | full-stack | Medium | R1c |
+| R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
@@ -113,6 +114,14 @@ thumbnail in the library; `sizes.thumbnail` populated + serves from R2; public s
 pixel-identical; a one-off/backfill path covers the existing 42.
 **Note:** the hook runs server-side on Vercel — mind the fn memory/time for large
 originals; may need to fetch + resize a bounded set. No new schema (columns exist).
+
+### R9 — Fix repo-wide lint (ESLint v9 flat config)  (Low)
+**Context:** `pnpm lint` is broken repo-wide — ESLint v9 needs `eslint.config.js`
+(flat config) and the project still has none (pre-existing, surfaced during R1d).
+Governance requires lint-clean before PR, so this blocks that gate.
+**Acceptance criteria (stub):** `pnpm lint` runs and passes (or reports only
+pre-existing, documented issues) in cms + site.
+**Fold into R2** (CI gate) if convenient.
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
