@@ -25,7 +25,7 @@ export const Media: CollectionConfig = {
       // thumbnail. See components/MediaThumbnailCell.tsx.
       name: 'preview',
       type: 'ui',
-      label: '',
+      label: 'Vista previa',
       admin: {
         components: {
           Cell: '/components/MediaThumbnailCell#MediaThumbnailCell',
