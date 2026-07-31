@@ -49,6 +49,18 @@ export const Media: CollectionConfig = {
         formatOptions: { format: 'webp', options: { quality: 70 } },
       },
     ],
-    adminThumbnail: 'thumbnail',
+    // Point the admin thumbnail straight at the R2 public URL of the generated
+    // `thumbnail` size. We do NOT use the size-name string form: with
+    // `disablePayloadAccessControl` the files live in R2, so Payload's computed
+    // `thumbnailURL` (the `/api/media/file/…` proxy) 500s. Building from the stored
+    // thumbnail filename + R2_PUBLIC_URL works for both hook- and backfill-generated
+    // sizes regardless of what `sizes.thumbnail.url` was persisted as. Runs
+    // server-side, so R2_PUBLIC_URL is available.
+    adminThumbnail: ({ doc }) => {
+      const fn = (doc as { sizes?: { thumbnail?: { filename?: string | null } } })?.sizes
+        ?.thumbnail?.filename
+      const base = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '')
+      return fn && base ? `${base}/${fn}` : null
+    },
   },
 }
