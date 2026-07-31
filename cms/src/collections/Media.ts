@@ -16,8 +16,22 @@ export const Media: CollectionConfig = {
     group: 'Portafolio',
     description:
       'Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.',
+    // Show the thumbnail preview first so the list is visually scannable (R10).
+    defaultColumns: ['preview', 'alt', 'updatedAt'],
   },
   fields: [
+    {
+      // Virtual (no DB column) preview column: a server Cell renders the R2
+      // thumbnail. See components/MediaThumbnailCell.tsx.
+      name: 'preview',
+      type: 'ui',
+      label: '',
+      admin: {
+        components: {
+          Cell: '/components/MediaThumbnailCell#MediaThumbnailCell',
+        },
+      },
+    },
     {
       name: 'alt',
       type: 'text',
