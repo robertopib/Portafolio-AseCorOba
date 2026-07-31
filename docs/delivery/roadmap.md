@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 ---
 
@@ -47,19 +47,19 @@ Last updated: 2026-07-30
 
 | ID | Title | Status | Agent | Risk | Depends on |
 |----|-------|--------|-------|------|------------|
-| R1 | Image uploader fix + thumbnails + backfill | done (preview) | full-stack + devops | High | — |
-| R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (preview) | devops | High | — |
-| R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
-| R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (preview) | full-stack | Medium | R1c |
+| R1 | Image uploader fix + thumbnails + backfill | done (PROD) | full-stack + devops | High | — |
+| R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (PROD) | devops | High | — |
+| R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (PROD) | full-stack | Medium | R1b |
+| R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (PROD) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
-| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (preview) | full-stack | Low | R1d |
+| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
-| R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | todo | devops | High | R1b |
+| R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -195,7 +195,16 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   hero/experiencia/contacto + UX/UI case study, per-category studio/role labels.
   Shipped to prod. (commits `de787bc`…`f02262e`, merge `d019791`)
 - 2026-07-30 — Automation Tier 1: Payload migrations + auto-apply on deploy +
-  two-file env; dev+prod baselined; code merged to `main` (`469d2d2`). ⚠️ CORRECTION:
-  did NOT actually deploy — the commit carried a build-breaking phantom `testdelta`
-  import, so the CMS build failed and Vercel kept the prior deploy. Being restored via
-  R8 / the R1b merge. (schema itself WAS applied to prod manually earlier.)
+  two-file env; dev+prod baselined; code merged to `main` (`469d2d2`). ⚠️ That merge
+  did NOT deploy (build-breaking phantom `testdelta` import → Vercel kept prior build).
+  ✅ RESOLVED 2026-07-31 by R8 (merge `db0109c`): phantom import removed, prod CMS
+  build green, `payload migrate` runs in `ci:build` (no-op; migrations applied via
+  direct endpoint). Migrations Tier 1 is now genuinely live.
+- 2026-07-31 — **R1 + R10 shipped to PROD** (merge `db0109c`): image uploads
+  (clientUploads direct→R2, R2 CORS, S3_BUCKET fix), media thumbnails (imageSizes +
+  self-generated via sharp hook; migration `…_add_media_image_sizes` applied to prod),
+  backfill 42/42, and the media-library thumbnail column. Verified: prod thumbs serve
+  from R2, API 200, public site pixel-identical. First real schema change through the
+  auto-migration workflow. (adminThumbnail→R2-URL fix `c8728e1` for the proxy-500.)
+- 2026-07-31 — **Delivery workflow** (this file + templates + playbook + `/next-task`
+  `/log-outcome` + session-notes) shipped (`623648a`), now proven across R1b→R10.
