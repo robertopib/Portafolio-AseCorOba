@@ -49,8 +49,8 @@ Last updated: 2026-07-30
 |----|-------|--------|-------|------|------------|
 | R1 | Image uploader fix + thumbnails + backfill | in-progress | full-stack + devops | High | — |
 | R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (preview) | devops | High | — |
-| R1c | ↳ Thumbnails (imageSizes + adminThumbnail) | todo | full-stack | Medium | R1b |
-| R1d | ↳ Backfill thumbnails for 42 existing images | todo | devops | Medium | R1c |
+| R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
+| R1d | ↳ GENERATE thumbnails (clientUploads bypasses sharp) — existing 42 + future | todo | full-stack | Medium | R1c |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
@@ -97,6 +97,22 @@ fixed by `987b58c`; `main` still has the broken import.
 prod CMS `/api/pages` served by the NEW build; `migrate` runs in `ci:build` (no-op).
 **Note:** resolved as a side effect of merging R1b (clientUploads) to `main` — verify
 explicitly, don't assume.
+
+### R1d — Generate media thumbnails  (Medium)
+**Context (locked finding from R1c):** `clientUploads` sends bytes browser→R2, so
+Payload's server never runs `sharp` — `imageSizes` columns exist but stay null on
+new uploads (traced in `generateFileData.ts` v3.86: returns before the resize gate
+when `req.file` is undefined). So R1d must **generate** thumbnails, not just backfill.
+**Recommended approach:** a Media `afterChange`/`afterOperation` hook that fetches the
+R2 original, runs `sharp` to the 400px WebP `thumbnail`, writes it to R2, and sets
+`sizes.thumbnail` — covers both the 42 existing images and all future uploads in one
+mechanism, no infra change, keeps `clientUploads`. (Alt: Cloudflare Image
+Transformations — currently OFF; infra toggle + adminThumbnail→transform URL.)
+**Acceptance criteria (stub):** new uploads AND the 42 existing images show a real
+thumbnail in the library; `sizes.thumbnail` populated + serves from R2; public site
+pixel-identical; a one-off/backfill path covers the existing 42.
+**Note:** the hook runs server-side on Vercel — mind the fn memory/time for large
+originals; may need to fetch + resize a bounded set. No new schema (columns exist).
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
