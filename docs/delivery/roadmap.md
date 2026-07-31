@@ -52,7 +52,7 @@ Last updated: 2026-07-30
 | R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
 | R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (preview) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
-| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | todo | full-stack | Low | R1d |
+| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (preview) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
@@ -99,6 +99,17 @@ fixed by `987b58c`; `main` still has the broken import.
 prod CMS `/api/pages` served by the NEW build; `migrate` runs in `ci:build` (no-op).
 **Note:** resolved as a side effect of merging R1b (clientUploads) to `main` — verify
 explicitly, don't assume.
+**Combined rollout (R8 + R1 + R10), ordered:**
+1. Pre-checks (human): prod Vercel `S3_BUCKET` has NO leading space (Production scope);
+   prod R2 CORS covers `https://cms.ase-cor-oba.site`.
+2. Phrases: `authorize production deploy` + `authorize db migration on production`.
+3. Merge `preview`→`main`, push → prod CMS `ci:build` restores the build, runs
+   `payload migrate` (applies `20260730_192249_add_media_image_sizes` to prod), deploys.
+4. Post-deploy (prod, `.env.prod`, direct endpoint, dbGuard):
+   `pnpm --dir cms payload run src/scripts/backfill-thumbnails.ts` (generate the 42
+   prod thumbnails), then `…/reset-media-list-prefs.ts` (so the preview column shows).
+5. Verify: prod `/api/pages` + `/api/media` 200; a prod media doc's `thumbnailURL` = R2
+   URL; admin library shows thumbnails; public site pixel-identical; test a real upload.
 
 ### R1d — Generate media thumbnails  (Medium)
 **Context (locked finding from R1c):** `clientUploads` sends bytes browser→R2, so
