@@ -11,6 +11,12 @@ import {
   REST_PUT,
 } from '@payloadcms/next/routes'
 
+// R1d: media create runs the generateMediaThumbnail afterChange hook, which fetches an
+// ~11–18 MB original from R2 and resizes it with sharp. Give the function headroom beyond
+// the platform default so a large upload's thumbnail completes in-request.
+// (Route-segment config; re-add if Payload ever regenerates this file.)
+export const maxDuration = 60
+
 export const GET = REST_GET(config)
 export const POST = REST_POST(config)
 export const DELETE = REST_DELETE(config)

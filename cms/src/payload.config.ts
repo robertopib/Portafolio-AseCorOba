@@ -85,6 +85,10 @@ export default buildConfig({
   },
   plugins: [
     s3Storage({
+      // Browser PUTs the file directly to R2 via a presigned URL, bypassing the
+      // ~4.5 MB Vercel serverless function body limit that 413s on our 11–18 MB
+      // source images. Requires R2 CORS to allow PUT from the admin origins.
+      clientUploads: true,
       collections: {
         // When R2_PUBLIC_URL is set, serve media DIRECTLY from R2's public URL
         // (no proxy through the serverless function — avoids the ~4.5MB Vercel
