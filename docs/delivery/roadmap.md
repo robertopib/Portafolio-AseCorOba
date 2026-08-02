@@ -54,7 +54,7 @@ Last updated: 2026-07-31
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
-| R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
+| R3 | Email adapter (forgot-password sends) + npm ergonomics | todo | full-stack/devops | High | — |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
@@ -154,9 +154,16 @@ caught before deploy.
 `payload generate:types` drift check, `pnpm build`, the pixel gate, and a
 "migrations committed / no schema drift" check; failing any blocks merge.
 
-### R3 — Automation Tier 3: email adapter + npm ergonomics  (Medium)
-**Context:** No email adapter → admin password reset can't send (had to reset via
-DB). Ops commands still need care around direct-endpoint/guard.
+### R3 — Email adapter (forgot-password) + npm ergonomics  (High)
+**Context:** No email adapter → admin **forgot-password sends nothing** (confirmed
+2026-08-02: had to reset `robertopib@gmail.com` via a guarded Local-API script against
+`.env.prod`, then delete the script). Bumped to High — the owner can't self-serve
+password resets until this lands. Ops commands still need care around
+direct-endpoint/guard.
+**Acceptance criteria (stub):** configure an email adapter (Resend or SMTP via env,
+in `payload.config.ts`) so forgot-password + admin emails send from a real address;
+verify a reset email arrives end-to-end on preview. Optionally keep a small guarded
+`reset-user-password` ops script as a fallback.
 **Acceptance criteria (stub):** password-reset email sends (Resend/SMTP via env);
 convenience scripts wrap seed/export/migrate with the direct endpoint + guard.
 
