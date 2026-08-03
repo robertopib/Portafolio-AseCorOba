@@ -62,6 +62,9 @@ Last updated: 2026-08-03
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
+| R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | todo | qa | Medium | R2 |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11 |
+| R13 | Fidelity-twin test: `fetch-content.mjs` ≡ `export-content.ts` | todo | full-stack | Medium | R11 |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -148,6 +151,48 @@ component) rendering `<img src={row.thumbnailURL || row.url}>`; put it first via
 no schema, no migration, public site untouched.
 **Acceptance criteria (stub):** the Biblioteca de Imágenes list shows a small
 thumbnail per row; pixel gate n/a (admin-only); no migration.
+
+### R11 — Project-calibrated testing standards  (Medium)
+**Context:** The repo has **zero tests and zero test tooling** (no runner, no `test`
+script, no test files, either project). `governance/docs/rules/testing-standards.md`
+is generic **submodule** boilerplate shared with other projects: 80% line coverage, a
+full unit/integration/E2E matrix, snapshot tests per presentational component —
+applied literally to ~83 mostly-presentational files with vendored shadcn it produces
+pure busywork. A project-local QA agent exists at `.claude/agents/qa.md`; this task is
+the agent authoring the calibrated companion standard.
+**Acceptance criteria (stub):** `docs/testing-standards.md` exists with the risk
+ranking, layer assignment (concrete example per layer from real files), explicit
+non-goals *with reasons*, a tooling recommendation with tradeoffs, a calibrated
+Definition of Done, CI integration + runtime budget, and a deltas-from-upstream
+table. Recommendations sequenced so item 1 ships alone. **Rules only** — no tooling
+installed, no lockfile touched, submodule not edited.
+**Locked decision:** visual regression is **settled, not open**. `pixel-parity`
+already guards the public design invariant and is immune to CMS content churn (it
+diffs merge-base vs head against the *same* committed fixtures, stores no baseline,
+and editor publishes never trigger CI). `shoot.mjs`/`diff.mjs` stay as-is. Do not
+re-litigate — see `.claude/session-notes/2026-08-03-R2.md`.
+
+### R12 — Content-resilience tests  (Medium)
+**Context:** The largest untested gap, and it is structural: CI builds the site
+against committed `content/*.json` fixtures, but production rebuilds against the
+**live CMS** via the publish hook, which never touches GitHub Actions. **The deployed
+site is never the artifact CI validated.** A 400-character heading, a portrait image
+where the layout assumes landscape, or an empty field a renderer assumes is populated
+ships to production unseen. Content changes continuously by design; public code is
+frozen (17 commits/6 months). Depends on R11 setting the layer + tooling.
+**Acceptance criteria (stub):** renderers survive hostile-but-legal content
+(over-long strings, empty optional fields, wrong-aspect images, missing `en`) without
+layout collapse; failures are loud, not silent.
+
+### R13 — Fidelity-twin test  (Medium)
+**Context:** `scripts/fetch-content.mjs` (REST, build-time) is a hand-maintained
+*line-for-line mirror* of `cms/src/scripts/export-content.ts` (Local API) — two
+implementations of one contract that must emit **byte-identical** JSON, kept in sync
+by hand and guarded only by a local-only fidelity check. A silent divergence corrupts
+every published page. High value, cheap to test.
+**Acceptance criteria (stub):** an automated check proves both paths produce identical
+output for the same CMS state, and fails on an induced divergence. Must respect the
+no-live-DB-in-CI constraint (fixture or throwaway DB, never prod/dev Neon).
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
