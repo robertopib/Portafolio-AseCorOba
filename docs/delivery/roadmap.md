@@ -53,7 +53,7 @@ Last updated: 2026-08-03
 | R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (PROD) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
-| R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
+| R2 | Automation Tier 2 — CI gate (GitHub Actions) | in-progress | devops | Medium | — |
 | R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
 | R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PROD) | devops | High | — |
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
