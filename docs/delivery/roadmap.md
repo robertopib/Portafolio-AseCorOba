@@ -31,6 +31,25 @@ Last updated: 2026-08-03
   from the portfolio's own Neon. (memory: `neon-db-separate-account`)
 - **Two env files:** `cms/.env` = dev (daily), `cms/.env.prod` = prod (`:prod`
   scripts only; git-ignored).
+- **PR-only on both branches** (as of 2026-08-03, R2). `main` *and* `preview` are
+  protected: pull request required, all **4 CI checks** required, `enforce_admins:
+  true` (no bypass, including the owner), force-push and deletion disabled.
+  **Direct pushes to `preview` are rejected** — every task now works on a feature
+  branch and opens a PR. This is what makes `pixel-parity` (a `pull_request`-only
+  job) actually gate preview work. Escape hatch if CI itself breaks:
+  `gh api -X DELETE repos/robertopib/Portafolio-AseCorOba/branches/<b>/protection/enforce_admins`.
+- **Visual regression is settled — do not re-litigate.** The CMS-churn objection
+  ("the front page changes constantly, so a baseline goes stale") does **not** apply:
+  `pixel-parity` stores no baseline, diffs merge-base vs head against the *same*
+  committed `content/*.json` fixtures, and editor publishes never trigger CI (publish
+  → Vercel deploy hook, no GitHub involvement). Editor activity generates zero pixel
+  noise. `scripts/shoot.mjs` + `scripts/diff.mjs` stay as-is. Admin UI is never
+  pixel-tested. Evidence: `.claude/session-notes/2026-08-03-R2.md`.
+- **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
+  `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
+  never connects), `payload migrate` runs only in Vercel's `ci:build`, and
+  `fetch-content.mjs` is not run in CI (committed content keeps builds
+  deterministic, so a CMS outage cannot redden a PR).
 
 ## Rules quick-ref (cite in every prompt)
 
@@ -65,6 +84,8 @@ Last updated: 2026-08-03
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | todo | qa | Medium | R2 |
 | R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11 |
 | R13 | Fidelity-twin test: `fetch-content.mjs` ≡ `export-content.ts` | todo | full-stack | Medium | R11 |
+| R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
+| R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -194,6 +215,24 @@ every published page. High value, cheap to test.
 output for the same CMS state, and fails on an induced divergence. Must respect the
 no-live-DB-in-CI constraint (fixture or throwaway DB, never prod/dev Neon).
 
+### R14 — Dead file `src/styles/globals.css`  (Low)
+**Context:** Nothing imports it. `src/main.tsx` imports only `src/styles/index.css`,
+which pulls in `fonts.css`, `tailwind.css`, `theme.css` and the slick CSS. Surfaced
+during R2: a deliberate 1px regression probe was written into `globals.css` and CI
+**correctly** stayed green, which briefly looked like a broken pixel gate. Real global
+style changes belong in `theme.css`.
+**Acceptance criteria (stub):** file deleted (or wired into `index.css` if it was
+meant to be live); pixel gate 0.000%; a note so nobody reads a green gate on a
+`globals.css` edit as evidence the gate is broken.
+
+### R15 — `pnpm/action-setup@v4` Node-20 deprecation  (Low)
+**Context:** Every CI run annotates *"Node.js 20 is deprecated … forced to run on
+Node.js 24"* for `pnpm/action-setup@v4`. Harmless today (`actions/*` are already on
+v5), but it will break when GitHub drops the Node-20 shim.
+**Acceptance criteria (stub):** annotation gone — bump the action when a v5 exists,
+or replace it with `corepack`/`packageManager`. Note neither `package.json` declares
+`packageManager`, which is why the pnpm version is pinned explicitly in the workflow.
+
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
 caught before deploy.
@@ -223,8 +262,13 @@ zero tolerance is safe and needs no committed baseline.
 PR); "schema change without a migration" is a **warning**, not a blocker, because
 schema-bearing files also carry admin-only changes — a hard version needs a real
 schema diff, which needs a live DB.
-**Human follow-up:** branch protection on `main` + `preview` requiring the 4 checks
-(GitHub does not infer this from the workflow). See the R2 session note.
+**Branch protection: DONE 2026-08-03** (same session). Both `main` and `preview`:
+PR required (0 approvals), all 4 checks required, `enforce_admins: true`, force-push
+and deletion disabled. Verified by probe — a direct push to `preview` is now
+`remote rejected … protected branch hook declined`. First apply used
+`enforce_admins: false` and the push silently went through anyway; enforcement had to
+be turned on explicitly. See Locked decisions. Cost: two empty commits on `preview`
+(`0d815df`, zero file changes) that can't be removed without relaxing the rules.
 
 ### R3 — Email adapter (forgot-password) + npm ergonomics  (High)
 **Context:** No email adapter → admin **forgot-password sends nothing** (confirmed
