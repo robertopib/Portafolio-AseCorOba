@@ -60,6 +60,16 @@ export default buildConfig({
       },
     },
   ],
+  // Absolute base URL for links Payload generates OUTSIDE a browser context —
+  // notably the forgot-password reset link in the email. Without this, Payload
+  // falls back to the request Host only if it's in the CORS/CSRF allowlist and
+  // otherwise emits an empty origin, producing a relative "/admin/reset/<token>"
+  // link that mail clients reject as an invalid address.
+  // Per-environment (see INFRASTRUCTURE.md §4); VERCEL_URL is a safety net so a
+  // missing var degrades to the deployment URL rather than a broken link.
+  serverURL:
+    process.env.PAYLOAD_SERVER_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:4400'),
   editor: lexicalEditor(),
   // Transactional email (Resend) so Payload's admin flows actually deliver —
   // notably forgot-password, which otherwise generates a reset link but sends
