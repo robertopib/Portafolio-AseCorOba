@@ -53,7 +53,7 @@ Last updated: 2026-08-03
 | R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (PROD) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
-| R2 | Automation Tier 2 — CI gate (GitHub Actions) | in-progress | devops | Medium | — |
+| R2 | Automation Tier 2 — CI gate (GitHub Actions) | done (preview) | devops | Medium | — |
 | R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
 | R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PROD) | devops | High | — |
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
@@ -155,6 +155,31 @@ caught before deploy.
 **Acceptance criteria (stub):** a GitHub Actions PR workflow runs `tsc` (cms+site),
 `payload generate:types` drift check, `pnpm build`, the pixel gate, and a
 "migrations committed / no schema drift" check; failing any blocks merge.
+**Status: done (preview)** — `.github/workflows/ci.yml`, 4 jobs, all green on
+`preview` (run `30823119081`), PR-triggered pixel gate proven on PR #2 (closed).
+Runs on PRs *and* pushes to `preview`/`main`. No secrets; CI never touches a real DB
+(placeholder unreachable `DATABASE_URI`; `payload migrate` is NOT run in CI).
+- `repo-integrity` (~15s, no install): migrations `index.ts`↔disk both ways,
+  `push: false`, two-lockfile invariants. `scripts/ci/check-migrations.mjs`,
+  `scripts/ci/check-lockfiles.mjs`.
+- `cms` (~1m): frozen `--ignore-workspace` install (mirrors `cms/vercel.json`),
+  `payload-types.ts` + admin `importMap.js` drift, `next build` (= the typecheck).
+- `site` (~30s): frozen root install + `vite build`. Fully offline —
+  `fetch-content.mjs` is not run; `content/*.json` + `public/images` are committed.
+- `pixel-parity` (~3m, PRs only): shoots merge base *and* head on the SAME runner,
+  requires 0.000%, uploads diff PNGs on failure.
+**Locked finding — the pixel gate cannot use `screenshots/baseline` in CI.** That dir
+is git-ignored (46 MB) *and* macOS-rendered. Measured Linux Chrome vs the committed
+baseline: **all 24 shots differ 0.084%–1.449% with byte-identical page dimensions** —
+pure font rasterization, so layout is portable but the 0.000% gate would fail every
+PR. Same-platform repeat runs measured **0.000%/24**, which is why head-vs-base at
+zero tolerance is safe and needs no committed baseline.
+**Deliberate non-gates:** `pnpm lint` (R9 — no ESLint flat config, would fail every
+PR); "schema change without a migration" is a **warning**, not a blocker, because
+schema-bearing files also carry admin-only changes — a hard version needs a real
+schema diff, which needs a live DB.
+**Human follow-up:** branch protection on `main` + `preview` requiring the 4 checks
+(GitHub does not infer this from the workflow). See the R2 session note.
 
 ### R3 — Email adapter (forgot-password) + npm ergonomics  (High)
 **Context:** No email adapter → admin **forgot-password sends nothing** (confirmed
