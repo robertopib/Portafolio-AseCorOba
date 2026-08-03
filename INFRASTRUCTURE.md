@@ -54,10 +54,28 @@ they are in Vercel env vars, Neon, Cloudflare, and the git-ignored `cms/.env`.
 | `R2_PUBLIC_URL` | `https://media.ase-cor-oba.site` | same |
 | `S3_ENDPOINT` / `S3_BUCKET` / `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | set | same |
 | `VERCEL_DEPLOY_HOOK_URL` | Site **`main`** deploy hook | Site **`preview`** deploy hook |
+| `PAYLOAD_SERVER_URL` | `https://cms.ase-cor-oba.site` | `https://cms-preview.ase-cor-oba.site` |
+| `RESEND_API_KEY` | set | same |
+| `EMAIL_DEFAULT_FROM_ADDRESS` | `no-reply@ase-cor-oba.site` | same |
+| `EMAIL_DEFAULT_FROM_NAME` | `AseCorOba CMS` | same |
 
 > `R2_PUBLIC_URL` makes Payload serve media straight from the R2 public/custom
 > domain (`generateFileURL` in `cms/src/payload.config.ts`), bypassing the ~4.5 MB
 > Vercel function response limit that otherwise 500s on large images.
+
+> ⚠️ **`PAYLOAD_SERVER_URL` must differ per scope** (like the Site's
+> `PAYLOAD_API_URL`) — in Vercel it has to be added **twice**, once per scope. It
+> feeds `serverURL` in `cms/src/payload.config.ts`, which is the base for links
+> Payload builds **outside** a browser context — notably the forgot-password reset
+> link. Without it, `getRequestOrigin` trusts the request `Host` only when that
+> origin is in the CORS/CSRF allowlist (we set neither) and otherwise returns `''`,
+> producing a relative `/admin/reset/<token>` link that mail clients reject as an
+> invalid address. A wrong value here silently sends prod users to preview.
+
+> The `RESEND_*`/`EMAIL_*` vars power Payload's transactional email
+> (`@payloadcms/email-resend`). The adapter reads `RESEND_API_KEY` only at **send**
+> time, so a missing value never breaks the build or boot — it fails later, as a
+> 401 on the reset email. Verify by actually sending one, not by a green deploy.
 
 ## 5. Cloudflare DNS records
 
@@ -69,11 +87,18 @@ they are in Vercel env vars, Neon, Cloudflare, and the git-ignored `cms/.env`.
 | CNAME | `preview` | `cname.vercel-dns.com` | **DNS only (grey)** |
 | CNAME | `cms-preview` | `cname.vercel-dns.com` | **DNS only (grey)** |
 | CNAME | `media` | (auto, from R2 custom-domain connect) | **Proxied (orange)** |
-| MX / TXT | — | email (SPF/DKIM) — **preserve on nameserver moves** | — |
+| MX | `send` | `feedback-smtp.<region>.amazonses.com` (priority 10) — Resend | **DNS only (grey)** |
+| TXT | `send` | `v=spf1 include:amazonses.com ~all` — Resend SPF | — |
+| TXT | `resend._domainkey` | `p=…` (DKIM key from the Resend dashboard) | — |
+| MX / TXT | `@` (apex) | any pre-existing mailbox records — **preserve on nameserver moves** | — |
 
 - **Every Vercel record must be grey-cloud (DNS only).** Orange breaks Vercel SSL/verify.
 - **`media` is the one exception — orange/proxied** (it's an R2 custom domain).
 - Apex uses Cloudflare **CNAME flattening**; a CNAME on `@` is allowed here.
+- **Resend sends from the `send` subdomain**, so its MX/SPF do **not** collide with
+  any mailbox on the apex — never delete existing apex MX/TXT to make room for them.
+  Exact values are per-domain/region: copy them from the Resend dashboard verbatim.
+  (Added 2026-08-03 for R3a; domain verified.)
 
 ## 6. Publish flow (content → live)
 
