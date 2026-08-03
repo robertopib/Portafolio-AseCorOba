@@ -1,12 +1,18 @@
 /**
  * One-off: clear saved media-LIST column preferences so the list falls back to
- * Media.admin.defaultColumns (['preview','alt','updatedAt'] — R10).
+ * Media.admin.defaultColumns (['filename','alt','updatedAt'] — R21; was
+ * ['preview','alt','updatedAt'] under R10).
  *
  * WHY: Payload's `defaultColumns` only applies to users with NO saved column
- * preference. Any admin who used the media list before R10 has a stored
- * preference (in `payload-preferences`) that omits the new `preview` column, so
- * the thumbnail column never shows for them. Deleting those preference rows makes
- * the list fall back to defaultColumns for everyone.
+ * preference. Any admin who used the media list before the change has a stored
+ * preference (in `payload-preferences`) pinning the old column order, so the new
+ * order never reaches them. Deleting those preference rows makes the list fall back
+ * to defaultColumns for everyone.
+ *
+ * NOTE (R21): the media picker DRAWER reads this same `collection-media` preference
+ * key, so a stale row also keeps the drawer's first column — its only select
+ * affordance — pointed at the wrong field. Run this if "elegir existente" still
+ * shows the old column order after a defaultColumns change.
  *
  * Run:  pnpm payload run src/scripts/reset-media-list-prefs.ts
  * Report -> /tmp/reset-media-list-prefs-report.json  (errors -> ...-error.json)
