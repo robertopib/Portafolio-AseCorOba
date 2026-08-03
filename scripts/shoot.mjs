@@ -6,13 +6,17 @@
  *   e.g. node scripts/shoot.mjs http://localhost:4173 screenshots/baseline
  *
  * Captures each route at desktop + mobile, in ES and EN (via the nav toggle).
+ *
+ * CHROME_PATH overrides the browser binary (used by the CI parity job, which
+ * runs on Linux). Unset — the local default — keeps the macOS system Chrome, so
+ * locally shot baselines stay comparable with each other.
  */
 import puppeteer from 'puppeteer-core'
 import { mkdirSync } from 'fs'
 import path from 'path'
 
 const CHROME =
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 const baseUrl = process.argv[2] || 'http://localhost:4173'
 const outDir = process.argv[3] || 'screenshots/out'
