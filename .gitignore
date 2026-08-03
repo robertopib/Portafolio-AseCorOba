@@ -17,3 +17,7 @@ screenshots
 
 # local editor settings (per-project gh account)
 .vscode/settings.json
+
+# TS incremental build cache
+cms/tsconfig.tsbuildinfo
+*.tsbuildinfo

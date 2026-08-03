@@ -1,4 +1,5 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { s3Storage } from '@payloadcms/storage-s3'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
@@ -59,7 +60,26 @@ export default buildConfig({
       },
     },
   ],
+  // Absolute base URL for links Payload generates OUTSIDE a browser context —
+  // notably the forgot-password reset link in the email. Without this, Payload
+  // falls back to the request Host only if it's in the CORS/CSRF allowlist and
+  // otherwise emits an empty origin, producing a relative "/admin/reset/<token>"
+  // link that mail clients reject as an invalid address.
+  // Per-environment (see INFRASTRUCTURE.md §4); VERCEL_URL is a safety net so a
+  // missing var degrades to the deployment URL rather than a broken link.
+  serverURL:
+    process.env.PAYLOAD_SERVER_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:4400'),
   editor: lexicalEditor(),
+  // Transactional email (Resend) so Payload's admin flows actually deliver —
+  // notably forgot-password, which otherwise generates a reset link but sends
+  // nothing (Payload logs "No email adapter provided"). All creds come from env;
+  // no secrets in code. Sending domain: ase-cor-oba.site (DNS on Cloudflare).
+  email: resendAdapter({
+    defaultFromAddress: process.env.EMAIL_DEFAULT_FROM_ADDRESS || 'no-reply@ase-cor-oba.site',
+    defaultFromName: process.env.EMAIL_DEFAULT_FROM_NAME || 'AseCorOba CMS',
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),

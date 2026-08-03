@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-07-30
+Last updated: 2026-08-03
 
 ---
 
@@ -47,19 +47,21 @@ Last updated: 2026-07-30
 
 | ID | Title | Status | Agent | Risk | Depends on |
 |----|-------|--------|-------|------|------------|
-| R1 | Image uploader fix + thumbnails + backfill | done (preview) | full-stack + devops | High | — |
-| R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (preview) | devops | High | — |
-| R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (preview) | full-stack | Medium | R1b |
-| R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (preview) | full-stack | Medium | R1c |
+| R1 | Image uploader fix + thumbnails + backfill | done (PROD) | full-stack + devops | High | — |
+| R1b | ↳ Upload fix (clientUploads + R2 CORS + S3_BUCKET) | done (PROD) | devops | High | — |
+| R1c | ↳ Thumbnails foundation (imageSizes+adminThumbnail+migration) | done (PROD) | full-stack | Medium | R1b |
+| R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (PROD) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
-| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (preview) | full-stack | Low | R1d |
+| R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
-| R3 | Automation Tier 3 — email adapter + npm ergonomics | todo | full-stack/devops | Medium | — |
+| R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
+| R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PREVIEW) | devops | High | — |
+| R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
-| R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | todo | devops | High | R1b |
+| R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -154,11 +156,63 @@ caught before deploy.
 `payload generate:types` drift check, `pnpm build`, the pixel gate, and a
 "migrations committed / no schema drift" check; failing any blocks merge.
 
-### R3 — Automation Tier 3: email adapter + npm ergonomics  (Medium)
-**Context:** No email adapter → admin password reset can't send (had to reset via
-DB). Ops commands still need care around direct-endpoint/guard.
-**Acceptance criteria (stub):** password-reset email sends (Resend/SMTP via env);
-convenience scripts wrap seed/export/migrate with the direct endpoint + guard.
+### R3 — Email adapter (forgot-password) + npm ergonomics  (High)
+**Context:** No email adapter → admin **forgot-password sends nothing** (confirmed
+2026-08-02: had to reset `robertopib@gmail.com` via a guarded Local-API script against
+`.env.prod`, then delete the script). Bumped to High — the owner can't self-serve
+password resets until this lands. Ops commands still need care around
+direct-endpoint/guard.
+**Acceptance criteria (stub):** configure an email adapter (Resend or SMTP via env,
+in `payload.config.ts`) so forgot-password + admin emails send from a real address;
+verify a reset email arrives end-to-end on preview. Optionally keep a small guarded
+`reset-user-password` ops script as a fallback.
+**Status:** the email half is **done on preview** — see **R3a** below (Resend +
+`serverURL`, verified end-to-end 2026-08-03); prod rollout still pending. The npm
+ergonomics half stays split off as **R3b**. A UX gap found while testing (no reveal
+toggle on password inputs) is logged as **R3c**.
+
+### R3a — Resend email adapter + `serverURL`  (High) — done (PREVIEW) 2026-08-03
+**Shipped:** `@payloadcms/email-resend@3.86.0` wired as `email:` in
+`cms/src/payload.config.ts`, env-driven, from `no-reply@ase-cor-oba.site`. Domain
+`ase-cor-oba.site` verified in Resend (MX/SPF on the `send` subdomain +
+`resend._domainkey` DKIM, all grey/DNS-only in Cloudflare — existing apex mail
+preserved). Confirmed end-to-end on cms-preview: email arrives, reset link works.
+No schema, no migration, public site untouched. Commits `7121be3`, `a8897da`.
+**New env vars** (Vercel `asecoroba-cms`): `RESEND_API_KEY`,
+`EMAIL_DEFAULT_FROM_ADDRESS`, `EMAIL_DEFAULT_FROM_NAME` (same in both scopes) +
+`PAYLOAD_SERVER_URL` — **differs per scope**: Preview
+`https://cms-preview.ase-cor-oba.site`, Production `https://cms.ase-cor-oba.site`.
+**Gotcha (locked finding):** the adapter alone was NOT enough — the first reset
+email's link was a *relative* `/admin/reset/<token>`, which mail clients reject as
+an invalid address. Payload's `getRequestOrigin` returns `config.serverURL` if set,
+otherwise trusts the request `Host` **only** when that origin is in the CORS/CSRF
+allowlist, else falls back to `''`. We had set neither → host-less link. **Any
+Payload deploy that sends email needs an explicit `serverURL`.**
+**Prod rollout (pending):** set all four vars in the **Production** scope, then
+merge `preview`→`main` on `authorize production deploy`. No DB migration. Retest
+forgot-password on `cms.ase-cor-oba.site`.
+
+### R3c — Show/hide toggle on admin password inputs  (Low)
+**Context:** Surfaced during R3a's reset-password test. Payload's password inputs
+have no reveal control, so the owner can't see what they're typing — awkward on the
+reset screen where a typo is only caught by the confirm field. Not configurable:
+`@payloadcms/ui`'s `PasswordInput` hardcodes `type: "password"` with no toggle prop
+(`node_modules/@payloadcms/ui/dist/fields/Password/input.js`), and
+`@payloadcms/next`'s `ResetPasswordForm` composes Payload's own `PasswordField` /
+`ConfirmPasswordField`.
+**Approach (decided):** a small client component registered via
+`admin.components.providers` in `cms/src/payload.config.ts` that adds an accessible
+reveal toggle to every password input. Covers reset + login + account + new-user in
+one place, and doesn't fork Payload internals (so it survives upgrades). Rejected
+alternative: copying `ResetPasswordForm` to swap the input — duplicates internal
+code, fixes only that one screen, breaks on upgrade.
+**Notes:** admin-only → **pixel gate n/a**, no schema, no migration. Registered
+component → run `pnpm generate:importmap` (same as R10's Cell component). Toggle
+must be a real `<button type="button">` (never submits), with `aria-label` +
+`aria-pressed`, 32×32px min touch target, and must default to hidden.
+**Acceptance criteria (stub):** every admin password field shows a reveal toggle
+that switches the input between masked/plain; keyboard-accessible and screen-reader
+labelled; defaults to masked; reset + login + account screens all work.
 
 ### R4 — Rotate shared Neon password  (Medium)
 **Context:** The project-wide `neondb_owner` password was pasted in chat during the
@@ -195,7 +249,16 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   hero/experiencia/contacto + UX/UI case study, per-category studio/role labels.
   Shipped to prod. (commits `de787bc`…`f02262e`, merge `d019791`)
 - 2026-07-30 — Automation Tier 1: Payload migrations + auto-apply on deploy +
-  two-file env; dev+prod baselined; code merged to `main` (`469d2d2`). ⚠️ CORRECTION:
-  did NOT actually deploy — the commit carried a build-breaking phantom `testdelta`
-  import, so the CMS build failed and Vercel kept the prior deploy. Being restored via
-  R8 / the R1b merge. (schema itself WAS applied to prod manually earlier.)
+  two-file env; dev+prod baselined; code merged to `main` (`469d2d2`). ⚠️ That merge
+  did NOT deploy (build-breaking phantom `testdelta` import → Vercel kept prior build).
+  ✅ RESOLVED 2026-07-31 by R8 (merge `db0109c`): phantom import removed, prod CMS
+  build green, `payload migrate` runs in `ci:build` (no-op; migrations applied via
+  direct endpoint). Migrations Tier 1 is now genuinely live.
+- 2026-07-31 — **R1 + R10 shipped to PROD** (merge `db0109c`): image uploads
+  (clientUploads direct→R2, R2 CORS, S3_BUCKET fix), media thumbnails (imageSizes +
+  self-generated via sharp hook; migration `…_add_media_image_sizes` applied to prod),
+  backfill 42/42, and the media-library thumbnail column. Verified: prod thumbs serve
+  from R2, API 200, public site pixel-identical. First real schema change through the
+  auto-migration workflow. (adminThumbnail→R2-URL fix `c8728e1` for the proxy-500.)
+- 2026-07-31 — **Delivery workflow** (this file + templates + playbook + `/next-task`
+  `/log-outcome` + session-notes) shipped (`623648a`), now proven across R1b→R10.
