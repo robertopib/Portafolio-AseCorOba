@@ -55,7 +55,7 @@ Last updated: 2026-08-03
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
-| R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PREVIEW) | devops | High | — |
+| R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PROD) | devops | High | — |
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
@@ -166,12 +166,12 @@ direct-endpoint/guard.
 in `payload.config.ts`) so forgot-password + admin emails send from a real address;
 verify a reset email arrives end-to-end on preview. Optionally keep a small guarded
 `reset-user-password` ops script as a fallback.
-**Status:** the email half is **done on preview** — see **R3a** below (Resend +
-`serverURL`, verified end-to-end 2026-08-03); prod rollout still pending. The npm
-ergonomics half stays split off as **R3b**. A UX gap found while testing (no reveal
+**Status:** the email half is **done and live in PROD** — see **R3a** below (Resend +
+`serverURL`, verified in prod 2026-08-03). The npm ergonomics half stays split off as
+**R3b** (the only thing keeping R3 open). A UX gap found while testing (no reveal
 toggle on password inputs) is logged as **R3c**.
 
-### R3a — Resend email adapter + `serverURL`  (High) — done (PREVIEW) 2026-08-03
+### R3a — Resend email adapter + `serverURL`  (High) — done (PROD) 2026-08-03
 **Shipped:** `@payloadcms/email-resend@3.86.0` wired as `email:` in
 `cms/src/payload.config.ts`, env-driven, from `no-reply@ase-cor-oba.site`. Domain
 `ase-cor-oba.site` verified in Resend (MX/SPF on the `send` subdomain +
@@ -188,9 +188,11 @@ an invalid address. Payload's `getRequestOrigin` returns `config.serverURL` if s
 otherwise trusts the request `Host` **only** when that origin is in the CORS/CSRF
 allowlist, else falls back to `''`. We had set neither → host-less link. **Any
 Payload deploy that sends email needs an explicit `serverURL`.**
-**Prod rollout (pending):** set all four vars in the **Production** scope, then
-merge `preview`→`main` on `authorize production deploy`. No DB migration. Retest
-forgot-password on `cms.ase-cor-oba.site`.
+**Prod rollout: DONE 2026-08-03** — all four vars confirmed in the Production scope
+(incl. `PAYLOAD_SERVER_URL=https://cms.ase-cor-oba.site`), merged `preview`→`main`
+(`841d736`, no-ff) on `authorize production deploy`. No DB migration. Prod `/admin`
++ `/api/pages` + public site all 200; **forgot-password verified in prod by the
+owner**. Full record: `.claude/session-notes/2026-08-03-R3a.md`.
 
 ### R3c — Show/hide toggle on admin password inputs  (Low)
 **Context:** Surfaced during R3a's reset-password test. Payload's password inputs
@@ -262,3 +264,9 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   auto-migration workflow. (adminThumbnail→R2-URL fix `c8728e1` for the proxy-500.)
 - 2026-07-31 — **Delivery workflow** (this file + templates + playbook + `/next-task`
   `/log-outcome` + session-notes) shipped (`623648a`), now proven across R1b→R10.
+- 2026-08-03 — **R3a shipped to PROD** (merge `841d736`): Payload transactional email
+  via `@payloadcms/email-resend`, domain `ase-cor-oba.site` verified in Resend, plus the
+  `serverURL` config the reset link needs to be absolute. The owner can now self-serve
+  password resets; verified in prod. First deploy with no schema change/migration.
+  **Locked finding:** any Payload deploy that sends email must set `serverURL`, or
+  generated links come out host-less and mail clients reject them.
