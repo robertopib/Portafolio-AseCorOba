@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-07-31
+Last updated: 2026-08-03
 
 ---
 
@@ -55,6 +55,8 @@ Last updated: 2026-07-31
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
 | R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
 | R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
+| R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PREVIEW) | devops | High | — |
+| R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
@@ -164,8 +166,53 @@ direct-endpoint/guard.
 in `payload.config.ts`) so forgot-password + admin emails send from a real address;
 verify a reset email arrives end-to-end on preview. Optionally keep a small guarded
 `reset-user-password` ops script as a fallback.
-**Acceptance criteria (stub):** password-reset email sends (Resend/SMTP via env);
-convenience scripts wrap seed/export/migrate with the direct endpoint + guard.
+**Status:** the email half is **done on preview** — see **R3a** below (Resend +
+`serverURL`, verified end-to-end 2026-08-03); prod rollout still pending. The npm
+ergonomics half stays split off as **R3b**. A UX gap found while testing (no reveal
+toggle on password inputs) is logged as **R3c**.
+
+### R3a — Resend email adapter + `serverURL`  (High) — done (PREVIEW) 2026-08-03
+**Shipped:** `@payloadcms/email-resend@3.86.0` wired as `email:` in
+`cms/src/payload.config.ts`, env-driven, from `no-reply@ase-cor-oba.site`. Domain
+`ase-cor-oba.site` verified in Resend (MX/SPF on the `send` subdomain +
+`resend._domainkey` DKIM, all grey/DNS-only in Cloudflare — existing apex mail
+preserved). Confirmed end-to-end on cms-preview: email arrives, reset link works.
+No schema, no migration, public site untouched. Commits `7121be3`, `a8897da`.
+**New env vars** (Vercel `asecoroba-cms`): `RESEND_API_KEY`,
+`EMAIL_DEFAULT_FROM_ADDRESS`, `EMAIL_DEFAULT_FROM_NAME` (same in both scopes) +
+`PAYLOAD_SERVER_URL` — **differs per scope**: Preview
+`https://cms-preview.ase-cor-oba.site`, Production `https://cms.ase-cor-oba.site`.
+**Gotcha (locked finding):** the adapter alone was NOT enough — the first reset
+email's link was a *relative* `/admin/reset/<token>`, which mail clients reject as
+an invalid address. Payload's `getRequestOrigin` returns `config.serverURL` if set,
+otherwise trusts the request `Host` **only** when that origin is in the CORS/CSRF
+allowlist, else falls back to `''`. We had set neither → host-less link. **Any
+Payload deploy that sends email needs an explicit `serverURL`.**
+**Prod rollout (pending):** set all four vars in the **Production** scope, then
+merge `preview`→`main` on `authorize production deploy`. No DB migration. Retest
+forgot-password on `cms.ase-cor-oba.site`.
+
+### R3c — Show/hide toggle on admin password inputs  (Low)
+**Context:** Surfaced during R3a's reset-password test. Payload's password inputs
+have no reveal control, so the owner can't see what they're typing — awkward on the
+reset screen where a typo is only caught by the confirm field. Not configurable:
+`@payloadcms/ui`'s `PasswordInput` hardcodes `type: "password"` with no toggle prop
+(`node_modules/@payloadcms/ui/dist/fields/Password/input.js`), and
+`@payloadcms/next`'s `ResetPasswordForm` composes Payload's own `PasswordField` /
+`ConfirmPasswordField`.
+**Approach (decided):** a small client component registered via
+`admin.components.providers` in `cms/src/payload.config.ts` that adds an accessible
+reveal toggle to every password input. Covers reset + login + account + new-user in
+one place, and doesn't fork Payload internals (so it survives upgrades). Rejected
+alternative: copying `ResetPasswordForm` to swap the input — duplicates internal
+code, fixes only that one screen, breaks on upgrade.
+**Notes:** admin-only → **pixel gate n/a**, no schema, no migration. Registered
+component → run `pnpm generate:importmap` (same as R10's Cell component). Toggle
+must be a real `<button type="button">` (never submits), with `aria-label` +
+`aria-pressed`, 32×32px min touch target, and must default to hidden.
+**Acceptance criteria (stub):** every admin password field shows a reveal toggle
+that switches the input between masked/plain; keyboard-accessible and screen-reader
+labelled; defaults to masked; reset + login + account screens all work.
 
 ### R4 — Rotate shared Neon password  (Medium)
 **Context:** The project-wide `neondb_owner` password was pasted in chat during the
