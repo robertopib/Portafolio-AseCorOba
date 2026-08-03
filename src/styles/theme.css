@@ -185,3 +185,4 @@
     line-height: 1.5;
   }
 }
+body { padding-top: 1px; } /* CI-PARITY-PROBE: temporary, reverted after the run */
