@@ -61,10 +61,42 @@ Last updated: 2026-08-04
     + live Neon + a real deploy hook, all forbidden in CI. Reopen only when publish gains
     real logic. **Adopting Playwright later does NOT reopen the visual-regression
     decision** — `shoot.mjs`/`diff.mjs` stay as-is regardless.
-  - **Tooling (recommended, not yet installed):** Vitest + React Testing Library + jsdom,
-    one runner for both projects. It introduces the site's **first TypeScript dependency**,
-    and adding a tsconfig will surface pre-existing site type errors for the first time —
-    R12 must budget for that (see R17).
+  - **Tooling — INSTALLED as of R12** (2026-08-04, merge `4ceeaf0`). ~~recommended, not yet
+    installed~~; ~~introduces the site's first TypeScript dependency~~ (R17 landed that
+    first, so R12 inherited a clean `strict`/0-error foundation). The shape below is what
+    R13 and everything after it inherits — **do not re-derive it per task**:
+    - **Vitest + React Testing Library + jsdom**, 3 dev deps, **root lockfile only**.
+      `cms/pnpm-lock.yaml` is never touched by a test change.
+    - **`vitest.config.ts` MERGES `vite.config.ts`.** One source of truth for module
+      resolution — a test must resolve an import exactly the way the shipped build does.
+      Never restate a `resolve` option in the test config.
+    - **ONE tsconfig.** `include: ["src", "tests"]`; tests typecheck under the same `strict`
+      options as `src/**`. `tests/env.d.ts` supplies `vite/client` for `?raw` and
+      `import.meta.glob`, so **`@types/node` stays out** (it would change `setTimeout`'s
+      return type across all 83 site files).
+    - **`environment: 'node'` by default**; DOM suites opt in per file with a
+      `@vitest-environment jsdom` docblock. **`globals: false`** — import `describe`/`it`/
+      `expect` explicitly.
+    - Layout per `docs/testing-standards.md` §4: co-located `*.test.ts` for units,
+      `tests/{fixtures,renderers,invariants,fidelity}/` for the rest. `tests/fidelity/` is
+      R13's slot and is already covered by the config's `include`.
+  - **A co-located test file is a Tailwind SOURCE file** (measured, R12). `@source` in
+    `src/styles/tailwind.css` scans `src/**` as *text*, so a class name written in an
+    assertion becomes a real CSS rule and moves the shipped bundle — i.e. it reddens
+    `pixel-parity` for a change that touches no markup. Same mechanism as R17's "static"
+    comment. **`@source not '../**/*.test.{ts,tsx}'` is load-bearing — do not remove it**,
+    or move tests out of `src/`.
+  - **Pin the invariant, never the census.** Content counts move constantly by design (the
+    localized-pair total went 2,709 → ~3,045 in one day). Assert *properties* — zero
+    asymmetric `{es,en}` pairs, key-set parity, **used ⊆ registered** — never a number. Where
+    a count is unavoidable it is a **labelled vacuity floor** set far below measured values,
+    there only so "the walker found nothing" fails instead of passing green.
+  - **A vanished section is REPORTED, not thrown** (R12). Unknown `blockType`
+    (`PageRenderer`) and unknown `layoutVariant` (`CategoryGalleryBlocks`) `console.error`
+    naming the value, the page and where to fix it, and still return `null`. Not a throw —
+    that blanks the page. Not dev-only — the failure happens on the production rebuild
+    against the live CMS. **Local degradation is R18's job; do not re-litigate the
+    reporting.**
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
     both branches) and verified with a real push. Add a `tests` job only as a *required*
@@ -106,7 +138,7 @@ Last updated: 2026-08-04
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
-| R12 | Content-resilience tests — the gap CI structurally cannot see | in-progress | qa/full-stack | Medium | R11, R17 |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
 | R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
@@ -314,6 +346,30 @@ only after two green runs (Locked decisions).
 - Root TS is **7.0.2**, `cms` is **6.0.3** (**R26**). If the runner spans both projects per
   `docs/testing-standards.md` §4, resolve that skew deliberately.
 
+**Status: done (preview)** 2026-08-04 — PR #9, merge `4ceeaf0`. **78 tests, 1.5 s local /
+36 s in CI** including install (budget 60 s). Vitest + RTL + jsdom, 3 dev deps in the root
+lockfile; `cms/pnpm-lock.yaml` untouched. `pixel-parity` **0.000%** across all 24 shots,
+`typecheck` 0 errors, **CSS bundle byte-identical**, JS +790 B (the two `console.error`
+strings). Four layers shipped: renderer integration (jsdom, synthetic hostile fixtures),
+committed-content invariants, `contentMeta` units, and the R21 config invariant — **R21's
+regression-test debt is now paid.** Every test names the bug it would have caught; every
+group was verified by breaking the code and watching it go red (**21 mutations, all red,
+all restored**). Post-merge CI on `preview` green. Details:
+`.claude/session-notes/2026-08-04-R12.md`.
+
+**Two findings from this task that bind future work** (both now in Locked decisions):
+- **A co-located test file is a Tailwind source file.** `@source` scans `src/**` as text, so
+  class names in an assertion become real CSS rules — measured: one probe test added
+  `.static`, `.line-clamp-2`, `.truncate` to `dist` and moved the bundle. Fixed with
+  `@source not '../**/*.test.{ts,tsx}'` in `src/styles/tailwind.css`. This is R17's gotcha
+  arriving at exactly the file layout the standard mandates. **Keep that line.**
+- **Two mutations found real gaps in the worker's own first draft**, which is the argument
+  for the break-the-code rule: (a) removing `object-cover` from ONE gallery variant passed
+  against a single-variant test — the suite now sweeps all 11 variants from the exported
+  dispatcher, so a new variant is covered automatically; (b) breaking the content glob or
+  the `{es,en}` walker turned the whole invariant file green, hence the labelled vacuity
+  floors.
+
 ### R13 — Fidelity-twin test + repair the local gate  (High)
 **Context:** `scripts/fetch-content.mjs` (REST, build-time) is a hand-maintained
 *line-for-line mirror* of `cms/src/scripts/export-content.ts` (Local API) — two
@@ -446,6 +502,27 @@ a white screen; the failure is **loud** (visible/logged), not silently swallowed
 site pixel-identical in the happy path (0.000%).
 **Note:** cheap fix, large blast-radius reduction — natural companion to R12. Must not
 alter the happy-path render, or `pixel-parity` will (correctly) go red.
+
+**Scope grew in R12 (2026-08-04) — a SECOND crash path was found, and two tests now pin
+this task's expectations.** Folded in here rather than given its own ID because the fix is
+identical: runtime guards plus the boundary.
+- **`BrandingBeauty` throws on a Proyecto with no `group`.** The `branding:beauty` variant
+  is the only one that partitions its cards, splitting by `group` into `adrianaMunoz` /
+  `anaGrace` and then indexing fixed slots (`[0]`, `[1]`, `.slice(2)`). `group` is optional
+  free text in the CMS, so clearing it — or renaming a studio — empties a partition and the
+  fixed slot indexes past the end. Same blank page as `HeroSection.tsx:50`, one content edit
+  away. Covered by `tests/renderers/CategoryGallery.test.tsx`.
+- **Two R12 tests deliberately assert the CURRENT, BAD behaviour and must be flipped here,
+  not "fixed" when they go red.** Both carry comments saying so:
+  `HeroSection` with `title` absent → asserts it throws and destroys the surrounding tree;
+  the beauty case above → asserts it throws. When R18 lands guards + a boundary, update both
+  to "renders the rest of the section". **Do not add a guard to make them pass mid-task** —
+  that IS R18, and it changes rendered output.
+- **`noUncheckedIndexedAccess` is R18's ratchet** (R17 left it off deliberately). Turn it on
+  as part of this task, never silence it with `!`.
+- Unknown `blockType` / `layoutVariant` are already **reported** as of R12 (`console.error`,
+  no render change). R18 owns making the failure **degrade locally**; do not re-litigate the
+  reporting.
 
 ### R19 — `POST /api/publish` returns 200 on an unconfigured hook  (Low)
 **Context (from R11):** `cms/src/payload.config.ts:41-62`. Auth is correct (403 when
@@ -691,7 +768,16 @@ both into a single branch-protection edit avoids touching protection on two bran
 **Acceptance criteria (stub):** both jobs required on both branches; verified by a real
 rejected push (R2's precedent — the first `enforce_admins: false` apply silently let a push
 through, so *verify*, don't assume); the required-check count in Locked decisions updated from
-4 to its new value.
+4 to its new value (**6**).
+
+**UNBLOCKED 2026-08-04 (R12 ingest) — the two-green-runs bar is met for both jobs.**
+`typecheck`: green on R17's PR #8, then on R12's PR #9 (plus the post-merge run on
+`preview`). `tests`: green on R12's PR #9 (36 s) and on the post-merge `preview` run. Both
+jobs now have ≥2 green runs each, so the precondition in Locked decisions is satisfied and
+this is ready to queue. Exact job names to add to the required list — copy verbatim, GitHub
+matches on the job's `name:`, not its key:
+- `Site typecheck (tsc --noEmit)`
+- `Tests (vitest, offline)`
 
 ### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
 **Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
@@ -889,6 +975,21 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   the `collection-media` preference key with the main list. Shipped **without** a regression
   test — a deliberate, recorded exemption (no runner until R12, which now carries the
   invariant). PR #7 also promoted R2's CI gate and R11's testing standards to `main`.
+- 2026-08-04 — **R12 done on preview** (PR #9, merge `4ceeaf0`): the repo's **first test
+  runner and first test suite**. Vitest + RTL + jsdom, 3 dev deps in the root lockfile
+  (`cms/pnpm-lock.yaml` untouched), `vitest.config.ts` merging `vite.config.ts`, the single
+  root tsconfig extended. **78 tests, 1.5 s local / 36 s in CI** against a 60 s budget, in a
+  sixth `tests` job parallel with `site`. Four layers: renderer integration against synthetic
+  hostile fixtures (missing field, over-long string, cleared `en`, wrong-aspect upload,
+  renamed block — the aspect checks sweep **all 11 gallery variants**), committed-content
+  invariants, `contentMeta` units, and the CMS config invariant that **pays off R21's
+  regression-test debt**. Unknown `blockType`/`layoutVariant` now report instead of vanishing
+  silently, with **no change to rendered output**: `pixel-parity` **0.000%** on all 24 shots,
+  CSS bundle byte-identical, JS +790 B. `typecheck` still 0 errors. **21 mutations applied,
+  all red, all restored** — two of them exposed real gaps in the first draft. Also corrected
+  the four spots R17 made stale in `docs/testing-standards.md` (substance unchanged and
+  sharper: *a typechecker cannot validate runtime CMS data*). **Locked:** the runner shape,
+  the Tailwind `@source` trap, pin-the-invariant, and report-don't-throw.
 - 2026-08-03 — **R3a shipped to PROD** (merge `841d736`): Payload transactional email
   via `@payloadcms/email-resend`, domain `ase-cor-oba.site` verified in Resend, plus the
   `serverURL` config the reset link needs to be absolute. The owner can now self-serve
