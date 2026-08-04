@@ -63,8 +63,19 @@
     //   setTimeout's return type across all 83 site files. `vite build` already
     //   proves that file works.
   },
-  // Only what ships. Tests are not here yet — R12 adds the runner and will
-  // extend this config for it.
-  "include": ["src"],
+  // What ships, plus the tests (roadmap R12 — this is the extension R17 left
+  // room for; there is deliberately still only ONE tsconfig for the site).
+  //
+  // Test files are typechecked under the SAME strict options as src/**, which is
+  // the point: a test that asserts a renderer's contract is worth nothing if its
+  // own fixture has drifted from the shape the renderer declares.
+  //
+  // tests/ needs no separate config: `tests/env.d.ts` pulls in vite/client for
+  // the `?raw` and `import.meta.glob` typings the invariant suite uses instead of
+  // node:fs (adding @types/node would change setTimeout's return type across all
+  // 83 site files — see the note above).
+  "include": ["src", "tests"],
+  // vitest.config.ts is excluded for the same reason vite.config.ts is: it is a
+  // Node-context build file, and `vitest run` proves it works.
   "exclude": ["node_modules", "dist"]
 }

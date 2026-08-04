@@ -24,20 +24,37 @@ discredit the whole effort before it earns trust.
 
 ### The thesis
 
-**The deployed site is never the artifact CI validated, and the site has no type checker.**
-Those two facts compound, and everything below follows from them.
+**The deployed site is never the artifact CI validated, and no type checker can close
+that gap.** Those two facts compound, and everything below follows from them.
 
 | Fact | Evidence |
 |---|---|
 | CI builds the site from **committed fixtures** and deliberately never runs `fetch-content.mjs` | `.github/workflows/ci.yml:133-137`, `:154-161` |
 | Production rebuilds against the **live CMS**, triggered by a publish hook that never touches GitHub Actions | `cms/src/hooks/triggerDeploy.ts:23-28` (no GitHub reference), `INFRASTRUCTURE.md:103-113` |
-| **The site has no TypeScript dependency and no `tsconfig.json`.** Only `cms/tsconfig.json` exists. `vite build` is the entire static gate. | `package.json` (no `typescript`), `.github/workflows/ci.yml:157-158` |
+| **The site's types are real but cannot see CMS data.** `tsc --noEmit` runs `strict` at 0 errors as its own CI job — and validates nothing about what the CMS actually emits, because that is a runtime value. | root `tsconfig.json`, `.github/workflows/ci.yml` `typecheck` job, `src/app/PageRenderer.tsx:225-232` |
 | **No error boundary anywhere in `src/`.** | `grep -rn "ErrorBoundary\|componentDidCatch" src/` → no matches |
 
-The third row is the one people get wrong. `src/app/components/HeroSection.tsx:6-14`
-declares a `HeroContent` type with required `title`, `subtitle`, `body`, `cta1`, `cta2`.
-Nothing enforces it — esbuild strips the annotation and moves on. The types that *look*
-like they guard content shape are **decorative**.
+> **Updated 2026-08-04 (R12), correcting this section as written on 2026-08-03.** Row 3 used
+> to read "the site has no TypeScript dependency and no `tsconfig.json`". R17 landed one:
+> full `strict`, 0 errors, `typescript` + React-18 `@types/*`, a working `@/*` alias and a
+> green (not yet required) `typecheck` job. **The conclusion did not change, it got
+> sharper** — see below.
+
+The third row is the one people get wrong, and it got a new way to be wrong when R17
+landed. `src/app/components/HeroSection.tsx:6-14` declares a `HeroContent` type with
+required `title`, `subtitle`, `body`, `cta1`, `cta2`. Those annotations are now genuinely
+checked — but only against the *other TypeScript* that references them. The content they
+describe arrives as JSON from a live CMS at build time, so **a type cannot tell you whether
+the field is actually there.** `PageRenderer.tsx:225-232` states the same limit at the seam
+where it bites: there is no compile-time relationship between a `blockType` string and the
+shape of the content the CMS emits for it, so the registry lookup is an unprovable cast,
+left with a comment pointing at R12's runtime check.
+
+The practical rule is unchanged from the first draft, only its reason is: **never cite a
+type annotation as evidence that a CMS field is present at runtime.** Before R17 that was
+because nothing checked the annotation. Now it is because the annotation describes data the
+checker never sees. A typechecker cannot validate runtime CMS data — which is exactly why
+R12 exists.
 
 Combine that with row 4 and the failure mode is severe: `HeroSection.tsx:50` does
 `home.hero.title[language]` with no guard. A `title` missing from a CMS publish throws a
@@ -64,7 +81,7 @@ code is effectively frozen (17 commits in 6 months). So test what changes.
 | Missing required field | `src/app/components/HeroSection.tsx:50` — `home.hero.title[language]`, unguarded | Blank page (no error boundary) |
 | Over-long text | **No `line-clamp` or `truncate` in any project-owned component** — they appear only in vendored `ui/alert.tsx`, `ui/sidebar.tsx`, `ui/select.tsx` | A 400-char heading reflows unbounded and pushes the layout apart |
 | Wrong-aspect image | **22 fixed-aspect containers with `overflow-hidden`**, e.g. `src/app/components/Marketing360.tsx:76`, `src/app/blocks/BrandingBlocks.tsx:194` | A portrait upload is centre-cropped with no warning |
-| Renamed block type | `src/app/PageRenderer.tsx:206-209` — unknown `blockType` returns `null` | **A whole section vanishes from the live page with zero signal** |
+| Renamed block type | `src/app/PageRenderer.tsx:240-265` — an unknown `blockType` renders nothing | **A whole section vanishes from the live page.** Since R12 it is at least reported (`console.error`); the section is still gone. A second, identical path sits one layer down at `CategoryGalleryBlocks.tsx`'s variant dispatcher. |
 
 Two more silent-degradation paths belong to risk 4:
 - `src/app/context/LanguageContext.tsx:26-27` — `translations[language][key] || key` renders
@@ -72,10 +89,30 @@ Two more silent-degradation paths belong to risk 4:
 - `cms/src/payload.config.ts:101-105` — `fallback: true`, so a missing `en` value serves
   Spanish instead of failing.
 
-**Measured baseline (2026-08-03), which is exactly what a test should pin:** across
-`content/*.json` there are **2,709** localized `{es,en}` pairs; **0** have `es` populated
-with `en` empty; 56 have both empty; `content/ui.json` has **73/73** key parity. The
-invariant holds today. Nothing guards it tomorrow.
+**Measured baseline — and a correction about what to do with it.**
+
+| Measured | 2026-08-03 (R11) | 2026-08-04 (R12) |
+|---|---|---|
+| Localized `{es,en}` pairs across `content/**` | 2,709 | **~3,045** (14 files) |
+| Pairs with `es` populated and `en` empty | **0** | **0** |
+| Pairs with both empty | 56 | 59 |
+| `content/ui.json` key parity | 73/73 | **73/73** |
+
+The first draft of this section called the census "exactly what a test should pin". **That
+was wrong, and R12 corrects it.** The pair count moved 12% in a single day of ordinary
+editing, and it will move again on the next legitimate `fetch-content` commit. A test
+asserting `pairs === 3045` is guaranteed to go red for a good reason while catching no risk
+whatsoever — and the second time that happens, someone deletes it.
+
+**Pin the invariant, never the census.** What did *not* move, and is what
+`tests/invariants/content-shape.test.ts` actually asserts: **zero** asymmetric pairs, and
+identical `ui.json` key sets. Counts appear in that suite only as **vacuity floors** — set
+far below the measured values, labelled as such, and there purely so that "the walker found
+nothing" fails instead of passing. If a count is ever worth pinning for its own sake, say
+why in a comment next to it.
+
+(Exact pair totals depend on how a `{es,en}` leaf is defined — the suite counts objects
+with exactly those two keys and no nested value. Another reason not to assert on them.)
 
 ### Risk 2 in detail — the existing fidelity gate is 90% decorative
 
@@ -160,9 +197,10 @@ square.
 *Bugs it would catch:*
 - `HeroSection.tsx:50` throws on missing `title` → asserts the page still renders, or fails
   **loudly and locally** instead of blanking the whole document.
-- `PageRenderer.tsx:206-209` silently drops an unknown `blockType` → asserts that an
-  unrecognized block is *reported*, not swallowed. Today, renaming a CMS block deletes a
-  section from production with no signal anywhere.
+- `PageRenderer.tsx:240-265` drops an unknown `blockType` → asserts that an unrecognized
+  block is *reported*, not swallowed. Before R12, renaming a CMS block deleted a section
+  from production with no signal anywhere. (Line refs moved in R17 and again in R12; they
+  were `:206-209` when this was written. Verify before citing.)
 - `LanguageContext.tsx:26-27` renders a raw key on a missing UI string.
 
 **Integration (node, no DOM) — the fidelity twin**
@@ -178,7 +216,11 @@ published page and the local gate reports `allMatch` regardless.
 
 Assert over `content/*.json`: every localized node has both `es` and `en` keys; no node has
 `es` populated with `en` empty; `ui.json`'s `es`/`en` key sets are identical; every
-`blockType` in `pages.json` exists in the `blockRegistry` at `PageRenderer.tsx:45-94`.
+`blockType` in `pages.json` exists in the `blockRegistry` at `PageRenderer.tsx:71-120`
+(`:45-94` when this was written, `:65-114` after R17 — verify before citing), and every
+`layoutVariant` exists in the `VARIANTS` dispatcher in `CategoryGalleryBlocks.tsx`.
+Assert **used ⊆ registered** only: spare registry entries are blocks an editor can place
+and nobody has, so the reverse direction fails on day one.
 
 *Bug it would catch:* the block-registry mismatch above, at the point where content lands in
 the repo rather than after it has shipped. Deterministic in CI — `content/*.json` changes
@@ -237,7 +279,7 @@ R12's first step, and it is a lockfile change — treat it as such.
 |---|---|
 | **Why Vitest over Jest** | Market standard for Vite projects and the only one that reuses the build config already in the repo: `vite.config.ts:13-18` aliases `@` → `src/`, and both packages are `"type": "module"`. Jest needs a parallel transform + ESM + alias configuration that then drifts from `vite.config.ts` — a second source of truth for how modules resolve. |
 | **Why RTL** | The queries assert what a visitor sees, which is what risk 1 is about. Its explicit anti-snapshot stance matches §3. |
-| **Cost, stated plainly** | The site has **no TypeScript dependency today** (§1). Vitest brings the first one, plus `@testing-library/react` and `jsdom` — ~3 direct dev deps in the **root** lockfile. `scripts/ci/check-lockfiles.mjs` enforces two-lockfile invariants; verify it tolerates the additions before committing. Adding a `tsconfig.json` for the tests also, for the first time, makes type errors *visible* in the site project — expect pre-existing ones to surface. Budget for that; don't let it derail R12. |
+| **Cost, stated plainly** | 3 direct dev deps in the **root** lockfile: `vitest`, `@testing-library/react`, `jsdom`. `scripts/ci/check-lockfiles.mjs` enforces two-lockfile invariants; verify it tolerates the additions before committing (R12 did — `cms/pnpm-lock.yaml` untouched). **Corrected 2026-08-04:** this row used to read "the site has no TypeScript dependency today; Vitest brings the first one, and adding a tsconfig will surface pre-existing type errors — budget for that". R17 landed the typechecker first, so R12 inherited `typescript`, React-18 `@types/*` and a `strict` config already at 0 errors. There was no pile of errors to absorb. **Extend the single root `tsconfig.json` for the tests; do not add a second one.** |
 | **Alternative considered** | `node:test` + `node --experimental-strip-types`: zero dependencies, and sufficient for the fidelity twin and the invariant check. But it has no DOM, so it cannot do the renderer layer that closes the *largest* gap — and running two runners costs more than the deps it saves. **Pick Vitest for both.** |
 
 ### CMS: same runner, two scopes
@@ -265,12 +307,30 @@ Upstream's layout (`:79-95`) assumes a `src/features/**` structure this repo doe
 Use instead:
 
 ```
-src/app/blocks/contentMeta.test.ts        # co-located unit tests, next to the source
-tests/fixtures/hostile-content.ts         # synthetic hostile-but-legal content
-tests/invariants/content-shape.test.ts    # invariant checks over content/*.json
-tests/fidelity/twin-equivalence.test.ts   # R13
-cms/src/**/*.test.ts                      # co-located CMS unit tests
+src/app/blocks/contentMeta.test.ts          # co-located unit tests, next to the source
+tests/env.d.ts                              # vite/client types for the suites (no @types/node)
+tests/fixtures/hostile-content.ts           # synthetic hostile-but-legal content
+tests/renderers/render-helpers.tsx          # router + language providers, and nothing else
+tests/renderers/*.test.tsx                  # jsdom integration layer
+tests/invariants/content-shape.test.ts      # invariant checks over content/*.json
+tests/invariants/media-admin-columns.test.ts# CMS config invariants (source-text, no CMS deps)
+tests/fidelity/twin-equivalence.test.ts     # R13
+cms/src/**/*.test.ts                        # co-located CMS unit tests
 ```
+
+**A co-located test file is a Tailwind source file** (R12, measured). `@source` in
+`src/styles/tailwind.css` scans `src/**` as text, so class names written in an assertion
+become real CSS rules and move the shipped bundle — i.e. they redden `pixel-parity` for a
+change that touches no markup. `@source not '../**/*.test.{ts,tsx}'` excludes them; with it
+the bundle is byte-identical. Keep that line, or keep tests out of `src/`. See §8.
+
+**Do not import CMS source from a root test.** `cms/` is a separate project with its own
+lockfile, enforced by `scripts/ci/check-lockfiles.mjs`; anything reaching `payload`,
+`sharp` or `@aws-sdk/*` will neither resolve nor typecheck from the root. A CMS *config*
+invariant can still be asserted by reading the file as source text (`?raw`) — see
+`tests/invariants/media-admin-columns.test.ts`, which guards the R21 outage that way. When
+doing that, assert that the parse itself succeeded, or the test passes vacuously the first
+time someone reformats the config.
 
 Naming: `[filename].test.ts(x)`, matching upstream `:12`. **Note the conflict:** upstream
 `governance/docs/rules/coding-standards.md:7` mandates `kebab-case.tsx` for components,
@@ -313,6 +373,8 @@ this project's history most obviously validates:
 ### Every PR, test-bearing or not — unchanged project gates
 
 - [ ] All 4 required CI checks green (`repo-integrity`, `cms`, `site`, `pixel-parity`).
+      `typecheck` (R17) and `tests` (R12) also run but are **not required yet** — roadmap
+      R25 promotes both in one branch-protection edit.
 - [ ] Public render unchanged unless intended → `pixel-parity` at **0.000%**.
 - [ ] Schema change → migration committed and imported in `cms/src/migrations/index.ts`.
 - [ ] `pnpm lint` is **not** a gate (R9 — no ESLint flat config exists). Don't make it one
@@ -328,7 +390,9 @@ No coverage threshold (§3). No snapshot requirement (§3). No loading-state che
 
 ## 6. How it plugs into CI
 
-**A fifth job in `.github/workflows/ci.yml`.** Not folded into `site`: a test failure and a
+**Its own job in `.github/workflows/ci.yml`** — the sixth, as of R12 (`repo-integrity`,
+`cms`, `site`, `typecheck`, `tests`, `pixel-parity`; this said "a fifth job" before R17
+added `typecheck`). Not folded into `site`: a test failure and a
 build failure should be distinguishable at a glance, and the existing `site` job (`:138-161`)
 mirrors Vercel's build exactly — keep it that way.
 
@@ -393,9 +457,23 @@ For a human deciding what to promote into the governance submodule. **Nothing in
 
 ## 8. Gotchas learned (don't relearn these)
 
-- **The site's TypeScript is decorative.** No root `tsconfig.json`, no `typescript`
-  dependency. Types in `src/**` are stripped, never checked. Never cite a type annotation as
-  evidence that a field is guaranteed present.
+- **A type annotation is never evidence that a CMS field is present.** *(Rewritten
+  2026-08-04. This used to read "the site's TypeScript is decorative — no root
+  `tsconfig.json`, no `typescript` dependency, types are stripped and never checked". R17
+  made the types real: `strict`, 0 errors, its own CI job.)* The rule survived the fix,
+  because the reason was never really the missing checker: content arrives as JSON from a
+  live CMS at build time, so no amount of static checking can tell you whether a field
+  exists. `PageRenderer.tsx:225-232` marks the seam — a `blockType` string has no
+  compile-time relationship to the shape of its content. Runtime checks, not types.
+- **A prose comment in `src/` can move the stylesheet.** Tailwind v4's
+  `@source '../**/*.{js,ts,jsx,tsx}'` (`src/styles/tailwind.css`) scans those files as
+  TEXT, so any class-shaped token anywhere in one — including inside a comment — becomes a
+  real CSS rule. R17 wrote the word "static" in a comment and emitted
+  `.static{position:static}`, moving the CSS bundle. R12 measured the same thing from a
+  co-located test file: one probe naming `line-clamp-2 truncate static` in an assertion
+  added three rules to `dist`. If `pixel-parity` reddens on a change that touches no
+  markup, this is why. Test files are excluded via `@source not '../**/*.test.{ts,tsx}'`;
+  keep that line, or move tests out of `src/`.
 - **A missing content field blanks the whole page**, it does not degrade one section. No
   error boundary exists anywhere in `src/`.
 - **`export-content.ts` reports `match: true` for 90.2% of content bytes without comparing
