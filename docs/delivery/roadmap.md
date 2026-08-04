@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-03
+Last updated: 2026-08-04
 
 ---
 
@@ -61,10 +61,42 @@ Last updated: 2026-08-03
     + live Neon + a real deploy hook, all forbidden in CI. Reopen only when publish gains
     real logic. **Adopting Playwright later does NOT reopen the visual-regression
     decision** — `shoot.mjs`/`diff.mjs` stay as-is regardless.
-  - **Tooling (recommended, not yet installed):** Vitest + React Testing Library + jsdom,
-    one runner for both projects. It introduces the site's **first TypeScript dependency**,
-    and adding a tsconfig will surface pre-existing site type errors for the first time —
-    R12 must budget for that (see R17).
+  - **Tooling — INSTALLED as of R12** (2026-08-04, merge `4ceeaf0`). ~~recommended, not yet
+    installed~~; ~~introduces the site's first TypeScript dependency~~ (R17 landed that
+    first, so R12 inherited a clean `strict`/0-error foundation). The shape below is what
+    R13 and everything after it inherits — **do not re-derive it per task**:
+    - **Vitest + React Testing Library + jsdom**, 3 dev deps, **root lockfile only**.
+      `cms/pnpm-lock.yaml` is never touched by a test change.
+    - **`vitest.config.ts` MERGES `vite.config.ts`.** One source of truth for module
+      resolution — a test must resolve an import exactly the way the shipped build does.
+      Never restate a `resolve` option in the test config.
+    - **ONE tsconfig.** `include: ["src", "tests"]`; tests typecheck under the same `strict`
+      options as `src/**`. `tests/env.d.ts` supplies `vite/client` for `?raw` and
+      `import.meta.glob`, so **`@types/node` stays out** (it would change `setTimeout`'s
+      return type across all 83 site files).
+    - **`environment: 'node'` by default**; DOM suites opt in per file with a
+      `@vitest-environment jsdom` docblock. **`globals: false`** — import `describe`/`it`/
+      `expect` explicitly.
+    - Layout per `docs/testing-standards.md` §4: co-located `*.test.ts` for units,
+      `tests/{fixtures,renderers,invariants,fidelity}/` for the rest. `tests/fidelity/` is
+      R13's slot and is already covered by the config's `include`.
+  - **A co-located test file is a Tailwind SOURCE file** (measured, R12). `@source` in
+    `src/styles/tailwind.css` scans `src/**` as *text*, so a class name written in an
+    assertion becomes a real CSS rule and moves the shipped bundle — i.e. it reddens
+    `pixel-parity` for a change that touches no markup. Same mechanism as R17's "static"
+    comment. **`@source not '../**/*.test.{ts,tsx}'` is load-bearing — do not remove it**,
+    or move tests out of `src/`.
+  - **Pin the invariant, never the census.** Content counts move constantly by design (the
+    localized-pair total went 2,709 → ~3,045 in one day). Assert *properties* — zero
+    asymmetric `{es,en}` pairs, key-set parity, **used ⊆ registered** — never a number. Where
+    a count is unavoidable it is a **labelled vacuity floor** set far below measured values,
+    there only so "the walker found nothing" fails instead of passing green.
+  - **A vanished section is REPORTED, not thrown** (R12). Unknown `blockType`
+    (`PageRenderer`) and unknown `layoutVariant` (`CategoryGalleryBlocks`) `console.error`
+    naming the value, the page and where to fix it, and still return `null`. Not a throw —
+    that blanks the page. Not dev-only — the failure happens on the production rebuild
+    against the live CMS. **Local degradation is R18's job; do not re-litigate the
+    reporting.**
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
     both branches) and verified with a real push. Add a `tests` job only as a *required*
@@ -106,15 +138,21 @@ Last updated: 2026-08-03
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
-| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11 |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
 | R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
-| R17 | Site has **no typechecker at all** (no root tsconfig, no `typescript` dep) | todo | devops | Medium | — |
+| R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
+| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | todo | devops | Low | R17, R12 |
+| R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
+| R21 | Media picker unusable — "elegir existente" can't select (R10 regression) | done (PROD) | full-stack | High | R10 |
+| R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
+| R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
+| R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -201,6 +239,10 @@ component) rendering `<img src={row.thumbnailURL || row.url}>`; put it first via
 no schema, no migration, public site untouched.
 **Acceptance criteria (stub):** the Biblioteca de Imágenes list shows a small
 thumbnail per row; pixel gate n/a (admin-only); no migration.
+**⚠️ Shipped a High regression → R21.** Putting the custom `preview` Cell **first** in
+`defaultColumns` took over the drawer's linked column, which is the only cell that carries
+`onSelect` — so "elegir existente" became unusable and reached prod. Lesson for any future
+custom Cell: **never make it column 0** unless it wires selection itself.
 
 ### R11 — Project-calibrated testing standards  (Medium)
 **Context:** The repo has **zero tests and zero test tooling** (no runner, no `test`
@@ -243,23 +285,90 @@ frozen (17 commits/6 months).
 decisions. Integration (jsdom, **synthetic** fixtures — never live CMS data) for the
 renderers, plus a node invariant check over committed `content/*.json`. Runner: Vitest +
 RTL + jsdom.
-**R11 sharpened why this is invisible** (all verified): the site has **no typechecker at
-all** — no root `tsconfig.json`, no `typescript` dep — so the `HeroContent` type at
-`src/app/components/HeroSection.tsx:6-14` is decorative; and there is **no error boundary
-anywhere in `src/`**, so `HeroSection.tsx:50` indexing `title[language]` unguarded means
-one missing field **blanks the whole page**. Also: no `line-clamp`/`truncate` in any
-project-owned component, 22 fixed-aspect `overflow-hidden` containers, and
-`PageRenderer.tsx:206-209` silently drops an unknown `blockType` (a renamed CMS block
-deletes a live section with zero signal).
-**Measured baseline to pin:** 2,709 localized `{es,en}` pairs, **0** with `es` populated
-and `en` empty, `ui.json` at 73/73 key parity.
+**R11 sharpened why this is invisible** (all verified, ~~no typechecker~~ **superseded by
+R17 — see below**): there is **no error boundary anywhere in `src/`**, so
+`HeroSection.tsx:50` indexing `title[language]` unguarded means one missing field **blanks
+the whole page**. Also: no `line-clamp`/`truncate` in any project-owned component, 22
+fixed-aspect `overflow-hidden` containers, and `PageRenderer.tsx` silently drops an unknown
+`blockType` (a renamed CMS block deletes a live section with zero signal).
+**⚠️ `docs/testing-standards.md` is partly STALE as of R17 — the worker must not trust it
+blindly.** It was written 2026-08-03, before the typechecker existed. Wrong now: §1's fact
+table row 3 ("no TypeScript dependency and no `tsconfig.json`"), §1's "the types are
+decorative" paragraph, §4's tooling-cost row ("Vitest brings the first TypeScript
+dependency"), and §8's first gotcha. **Still true and still the point:** types cannot
+validate *runtime* CMS data — `PageRenderer.tsx:230-232` says so explicitly, in a comment
+R17 left pointing at this task. R12 should correct those four spots as part of the work.
+**Line refs shifted in R17** — re-verified 2026-08-04 against `origin/preview`: the block
+registry is `PageRenderer.tsx:65-114` (was `:45-94`), and the unknown-`blockType` drop is
+now `:233-237` (was `:206-209`). `HeroSection.tsx:50` and `LanguageContext.tsx:26` are
+unchanged.
+**Measured baseline — ⚠️ re-measured 2026-08-04 and it MOVED.** The R11 figure was 2,709
+localized `{es,en}` pairs / 56 both-empty; it is now **3,050 pairs / 59 both-empty** across
+14 content files. What did **not** move: **0** pairs with `es` populated and `en` empty, and
+`ui.json` still at **73/73** with identical key sets. **Pin the invariant, never the census.**
+A test asserting `pairs === 3050` is guaranteed to redden on the next legitimate
+`fetch-content` commit while catching no risk whatsoever. Assert: zero asymmetric pairs,
+`ui.json` key-set equality, and every `blockType` present in the registry.
+**Block-registry invariant re-verified 2026-08-04:** 28 registry entries, 20 `blockType`s
+used in `pages.json`, **0 used-but-unregistered** (nothing is silently vanishing today), 8
+registered-but-unused. Assert the *used ⊆ registered* direction only — the 8 unused entries
+are legitimate (blocks available to editors but not currently placed), so asserting the
+reverse would fail immediately.
 **Acceptance criteria (stub):** renderers survive hostile-but-legal content
 (over-long strings, empty optional fields, wrong-aspect images, missing `en`) without
-layout collapse; failures are loud, not silent.
+layout collapse; failures are loud, not silent. **Plus the R21 debt:** a config invariant
+asserting `Media.admin.defaultColumns[0]` names a field with **no custom `Cell`** (or that
+the Cell wires `onSelect`) — R21 shipped a prod fix without a regression test because no
+runner existed; this is where that test lands. Cheap, no admin rendering.
 **Sequencing note:** installing Vitest is a **root lockfile change** — confirm
-`scripts/ci/check-lockfiles.mjs` tolerates it, and expect first-time site type errors to
-surface (R17). Budget for that; don't let it derail the task. Add the `tests` CI job here
-but make it a *required* check only after two green runs (Locked decisions).
+`scripts/ci/check-lockfiles.mjs` tolerates it. ~~expect first-time site type errors~~ —
+**resolved: R17 landed first and R12 now inherits a clean foundation** (2026-08-04): root
+`tsconfig.json` (full `strict`, **0 errors**), `typescript` + React-18 `@types/*`, `react` +
+`react-dom` promoted to **direct** dependencies, a working `@/*` alias, and a green
+`typecheck` CI job. The feared "surprise pile" never materialised — it was 29 errors from 2
+root causes, all fixed at source. Add the `tests` CI job here, but make it a *required* check
+only after two green runs (Locked decisions).
+**Inherited constraints from R17 — read before touching config:**
+- **Extend `tsconfig.json`, do not add a second one.** R17 wrote it expecting exactly this,
+  with `include: ["src"]` and a comment saying R12 extends it.
+- **`noUncheckedIndexedAccess` is the named ratchet, deliberately off.** It flags every
+  `content.x[language]` read (e.g. `HeroSection.tsx:50`) — real risk, but the fix is runtime
+  guards + an error boundary, i.e. **R18** work that changes behaviour. Turn it on when R18
+  lands, not here, and never silence it with `!`.
+- **`pnpm.overrides` pins `@types/react` 18.3.31 / `@types/react-dom` 18.3.7.** Do not remove
+  them: an incremental install otherwise leaves a stray `@types/react@19` in pnpm's hoisted
+  peer dir and produces ~200 phantom TS2786 errors from duplicate `ReactNode`. The R17 worker
+  hit this for real.
+- **A prose comment in `src/` can move the stylesheet** — Tailwind v4's
+  `@source '../**/*.{js,ts,jsx,tsx}'` extracts candidates from comment text; the word
+  "static" emitted a stray `.static{position:static}` rule and changed the CSS bundle. If
+  `pixel-parity` reddens on a comment-only change, this is why.
+- Root TS is **7.0.2**, `cms` is **6.0.3** (**R26**). If the runner spans both projects per
+  `docs/testing-standards.md` §4, resolve that skew deliberately.
+
+**Status: done (preview)** 2026-08-04 — PR #9, merge `4ceeaf0`. **78 tests, 1.5 s local /
+36 s in CI** including install (budget 60 s). Vitest + RTL + jsdom, 3 dev deps in the root
+lockfile; `cms/pnpm-lock.yaml` untouched. `pixel-parity` **0.000%** across all 24 shots,
+`typecheck` 0 errors, **CSS bundle byte-identical**, JS +790 B (the two `console.error`
+strings). Four layers shipped: renderer integration (jsdom, synthetic hostile fixtures),
+committed-content invariants, `contentMeta` units, and the R21 config invariant — **R21's
+regression-test debt is now paid.** Every test names the bug it would have caught; every
+group was verified by breaking the code and watching it go red (**21 mutations, all red,
+all restored**). Post-merge CI on `preview` green. Details:
+`.claude/session-notes/2026-08-04-R12.md`.
+
+**Two findings from this task that bind future work** (both now in Locked decisions):
+- **A co-located test file is a Tailwind source file.** `@source` scans `src/**` as text, so
+  class names in an assertion become real CSS rules — measured: one probe test added
+  `.static`, `.line-clamp-2`, `.truncate` to `dist` and moved the bundle. Fixed with
+  `@source not '../**/*.test.{ts,tsx}'` in `src/styles/tailwind.css`. This is R17's gotcha
+  arriving at exactly the file layout the standard mandates. **Keep that line.**
+- **Two mutations found real gaps in the worker's own first draft**, which is the argument
+  for the break-the-code rule: (a) removing `object-cover` from ONE gallery variant passed
+  against a single-variant test — the suite now sweeps all 11 variants from the exported
+  dispatcher, so a new variant is covered automatically; (b) breaking the content glob or
+  the `{es,en}` walker turned the whole invariant file green, hence the labelled vacuity
+  floors.
 
 ### R13 — Fidelity-twin test + repair the local gate  (High)
 **Context:** `scripts/fetch-content.mjs` (REST, build-time) is a hand-maintained
@@ -288,6 +397,12 @@ automated check proves both paths produce identical output for the same CMS stat
 fails on an **induced** divergence. Must respect the no-live-DB-in-CI constraint (fixture
 or throwaway DB, never prod/dev Neon).
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
+**Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
+exporters** — it predates the per-category studio/role label feature, so the next
+`fetch-content` run introduces `studioLabelVisible`/`roleLabelVisible` keys. Output stays
+identical unless an editor sets a label, but it means **a committed fixture currently
+disagrees with what both twins would emit** — directly relevant to R13's equivalence test,
+which must not mistake this for induced divergence.
 
 ### R14 — Dead file `src/styles/globals.css`  (Low)
 **Context:** Nothing imports it. `src/main.tsx` imports only `src/styles/index.css`,
@@ -332,6 +447,50 @@ don't add a check that reddens every PR for pre-existing reasons).
 **Note:** R12 will add a tsconfig for the test runner anyway, so land this **first or
 together** — otherwise R12 inherits a surprise pile of type errors mid-task.
 
+**Sequencing resolved 2026-08-04 — R17 is now a hard dependency of R12** (prompt 1 of 2),
+because the conductor finally *measured* the "surprise pile" instead of speculating about
+it. Probe: the CMS's own `tsc` run against `src/**` with a throwaway config (nothing
+written to the repo, deleted after).
+- **Under naive strict config: 655 errors.** Misleading — 629 of them (TS7026 / TS7016 /
+  TS7053) are the *absence of React types*, not defects.
+- **With React types resolvable: 33 errors, in exactly 3 files, with 3 root causes.** Not a
+  pile. A bounded, one-session task:
+  - `src/app/PageRenderer.tsx` — **19**, all one structural pattern: the block-registry map
+    is typed `ComponentType<{ content?: unknown }>` and each concrete block component has a
+    narrower `content` prop, so every entry is a variance error. One fix, not 19.
+  - `src/app/blocks/CategoryGalleryBlocks.tsx` — **11**: `studioLabel` / `roleLabel` read at
+    `:697`, `:706`, `:884`, `:893`, `:1061`, `:1070`, `:1161`, `:1170` but absent from the
+    `IntroContent` type (`:47-57`) — **and absent from `content/categories.json` entirely
+    (0 occurrences of either)**. Plus one `Cannot find namespace 'JSX'`.
+  - `src/main.tsx` — **3**, all config-shaped: `react-dom/client` types, a `.tsx` import
+    extension (needs `allowImportingTsExtensions`), and a CSS side-effect import (needs a
+    `*.css` module declaration).
+- **Also found, and a real blocker for R12:** the root `package.json` declares **no
+  `typescript`, no `@types/react`, no `@types/react-dom` — and does not declare `react` or
+  `react-dom` as direct dependencies at all** (both resolve only transitively; pnpm
+  hoists them, `react@18.3.1`). RTL + Vitest cannot be configured correctly on top of that,
+  which is precisely why R12 must not inherit this.
+- **Version trap:** `cms/node_modules/@types/react` is **19.2.14** while the site runs
+  **react@18.3.1**. Do not reuse the CMS's types — install v18-matching ones at the root.
+**~~The `studioLabel`/`roleLabel` finding is a live defect~~ — CONDUCTOR ERROR, corrected by
+the R17 worker.** I claimed those branches were "permanently dead, failing silently" on the
+strength of `grep studioLabel content/categories.json` → 0. That inference was wrong, and the
+grep was too narrow. **They render on the live site today.** Verified at ingest: the CMS
+defines both fields (`cms/src/collections/Categories.ts:108`, `:119`); both exporters emit
+them via `putLabel`; the shared fallbacks live in **`content/ui.json`**
+(`es.home.studioLabel` = "Branding corporativo de:", `es.home.roleLabel` = "Mi rol", plus
+`en`); and `fieldVisible` **defaults to true when `<name>Visible` is absent**
+(`src/app/blocks/contentMeta.ts:22-25`), so the branch renders the fallback. Resolution: the
+fields are **intended**, and were added to `IntroContent`. Lesson: absence from one fixture is
+not absence from the render path — the `fieldVisible` + `ui.json` fallback pattern means a
+field can be live while appearing nowhere in the obvious content file.
+
+**Status: done (preview)** 2026-08-04 — PR #8, squashed to `preview` as `03d5e84`. Full
+`strict`, **0 errors**, achieved by fixing all 29 at source rather than suppressing. All 5 CI
+jobs green (verified via `gh pr checks 8`), pixel-parity 0.000%/24, **build output
+byte-identical** (same content hashes). No prod deploy — correctly stopped at preview.
+Details in `.claude/session-notes/2026-08-04-R17.md`.
+
 ### R18 — No error boundary in `src/`  (Medium)
 **Context (from R11):** `grep -rn "ErrorBoundary\|componentDidCatch" src/` returns nothing.
 Combined with R17 (types unenforced) and `src/app/components/HeroSection.tsx:50` indexing
@@ -343,6 +502,27 @@ a white screen; the failure is **loud** (visible/logged), not silently swallowed
 site pixel-identical in the happy path (0.000%).
 **Note:** cheap fix, large blast-radius reduction — natural companion to R12. Must not
 alter the happy-path render, or `pixel-parity` will (correctly) go red.
+
+**Scope grew in R12 (2026-08-04) — a SECOND crash path was found, and two tests now pin
+this task's expectations.** Folded in here rather than given its own ID because the fix is
+identical: runtime guards plus the boundary.
+- **`BrandingBeauty` throws on a Proyecto with no `group`.** The `branding:beauty` variant
+  is the only one that partitions its cards, splitting by `group` into `adrianaMunoz` /
+  `anaGrace` and then indexing fixed slots (`[0]`, `[1]`, `.slice(2)`). `group` is optional
+  free text in the CMS, so clearing it — or renaming a studio — empties a partition and the
+  fixed slot indexes past the end. Same blank page as `HeroSection.tsx:50`, one content edit
+  away. Covered by `tests/renderers/CategoryGallery.test.tsx`.
+- **Two R12 tests deliberately assert the CURRENT, BAD behaviour and must be flipped here,
+  not "fixed" when they go red.** Both carry comments saying so:
+  `HeroSection` with `title` absent → asserts it throws and destroys the surrounding tree;
+  the beauty case above → asserts it throws. When R18 lands guards + a boundary, update both
+  to "renders the rest of the section". **Do not add a guard to make them pass mid-task** —
+  that IS R18, and it changes rendered output.
+- **`noUncheckedIndexedAccess` is R18's ratchet** (R17 left it off deliberately). Turn it on
+  as part of this task, never silence it with `!`.
+- Unknown `blockType` / `layoutVariant` are already **reported** as of R12 (`console.error`,
+  no render change). R18 owns making the failure **degrade locally**; do not re-litigate the
+  reporting.
 
 ### R19 — `POST /api/publish` returns 200 on an unconfigured hook  (Low)
 **Context (from R11):** `cms/src/payload.config.ts:41-62`. Auth is correct (403 when
@@ -381,6 +561,235 @@ gitlink is bumped here.
 **⚠️ This is the one item that legitimately edits the submodule** — it is shared with other
 projects, so changes affect them. Same caveat as R7. Never edit it from a task that isn't
 this one.
+
+### R21 — Media picker can't select an image (R10 regression, live in prod)  (High)
+**Symptom (owner, 2026-08-03):** on a Proyecto's **Imagen** field, "elegir existente"
+opens the Biblioteca de Imágenes drawer, but **no row can be chosen** — there is no
+clickable cell, no checkbox, nothing. The only way to attach an image is "crear nuevo",
+which re-uploads a duplicate 11–18 MB original to R2 every time. So the media library is
+effectively write-only: 43 images exist and none can be reused.
+
+**Root cause — verified in source, all line refs in `cms/node_modules`:**
+- The **first active column is the row's click target**:
+  `isLinkedColumn: enableLinkedCell && colIndex === activeColumnsIndices[0]`
+  (`@payloadcms/ui/dist/providers/TableColumns/buildColumnState/index.js:141`).
+- In a list **drawer**, that cell is the *only* select affordance, and the wiring exists
+  **only inside `RenderDefaultCell`** — it reads `useListDrawerContext()` and attaches
+  `onClick → onSelect({ collectionSlug, doc, docID })`
+  (`.../TableColumns/RenderDefaultCell/index.js`). The handler is **never passed to a
+  custom Cell**: in `renderCell.js`, `cellServerProps.onClick` is
+  `baseCellClientProps.onClick` — always `undefined`.
+- `renderCell` resolves a custom Cell via `RenderCustomComponent`, which returns the
+  custom component and **never renders the `RenderDefaultCell` fallback**
+  (`elements/RenderCustomComponent/index.js`: falls back only when `CustomComponent ===
+  undefined`).
+- **R10** set `defaultColumns: ['preview', 'alt', 'updatedAt']`
+  (`cms/src/collections/Media.ts:20`), putting our `MediaThumbnailCell` — a bare `<img>`
+  with no `onClick` (`cms/src/components/MediaThumbnailCell.tsx`) — in the linked slot.
+  Result: **no selectable cell in any row.**
+- **No checkbox fallback exists here:** `enableRowSelections: hasMany`
+  (`fields/Upload/Input.js:587`), and Payload's own comment at `:301` is *"only hasMany
+  can bulk select."* `Projects.image` is single-valued, so row checkboxes are
+  deliberately off — this is not a flag we can flip. See **R22**.
+
+**Blast radius:** `main` carries the same `defaultColumns`, so **production is affected**.
+`image` on Proyectos (`cms/src/collections/Projects.ts:104-112`) is the **only** upload
+field in the schema, so this is the single path for attaching any portfolio image.
+
+**Fix options (worker decides; record the tradeoff in the outcome):**
+- **(a) Reorder — recommended.** `defaultColumns: ['alt', 'preview', 'updatedAt']`. `alt`
+  becomes the linked cell (a real `DefaultCell`, so `onSelect` is wired again); the
+  thumbnail moves to column 2 and stays visible. One line, no new component,
+  upgrade-safe. Cost: walks back R10's *thumbnail-first* layout, not the thumbnail itself.
+- **(b) Client wrapper, thumbnail stays first.** Server Cell computes the R2 `src` (it
+  must stay server-side — `R2_PUBLIC_URL` is server-only, see the `MediaThumbnailCell`
+  header) and hands it to a client child that calls `useListDrawerContext()` to wire
+  `onSelect`, falling back to a doc link outside a drawer. **Cost: `useListDrawerContext`
+  is not reachable from a public subpath** — `@payloadcms/ui` exports only
+  `./elements/*` → `elements/*/index.js`, and `ListDrawer/index.d.ts` does **not**
+  re-export it (it lives in `Provider.js`). Requires a deep `dist/` import that breaks
+  silently on upgrade — the exact failure mode R3c's approach was chosen to avoid.
+
+**Acceptance criteria:** (1) in the Imagen field, "elegir existente" → clicking a row
+selects that image and closes the drawer, and the Proyecto saves with it; (2) the
+thumbnail column still renders (R10's intent preserved); (3) the main media list view
+still navigates to the doc on click; (4) verified on **cms-preview** by actually
+attaching an existing image to a real Proyecto, then rolled to prod; (5) public site
+pixel-identical — 0.000%.
+
+**Status: done (PROD)** 2026-08-04 — commit `c60b83f`, PR #6 → `preview` (`7298825`),
+PR #7 → `main` (`8e48d81`) on `authorize production deploy`. Verified by the owner on both
+preview and prod. All 5 criteria met; pixel-parity 0.000%/24; no schema, no migration, no
+lockfile change, nothing under `src/`.
+**Fix shipped = option (a), but with `filename`, not the suggested `alt` — and it beat the
+stated tradeoff.** `defaultColumns: ['filename', 'alt', 'updatedAt']`. On an upload
+collection `filename` is not a plain text cell: `cellComponents` has **no `text` key**, so
+`DefaultCellComponent` is falsy and `DefaultCell` falls through to its `FileCell` branch
+(`elements/Table/DefaultCell/index.js:115-123`), which renders a `Thumbnail` **plus** the
+name. That `CellComponent` is then wrapped in `WrapElement`, which becomes a
+`<button type="button">` whenever `onClick` is present (`:73-82`). **So the thumbnail
+itself is the click target** — R10's thumbnail-first layout was preserved rather than
+walked back, which was option (a)'s only cost. Conductor re-verified this chain in source.
+`alt` was equally viable (44/44 populated, so no empty-placeholder risk) but would have
+demoted the thumbnail. Option (b) rejected: the deep `dist/` import isn't worth an outcome
+(a) already achieves. The `preview` UI field stays **defined but out of the default
+layout** — still offered by the column selector, and keeping it registered left
+`importMap.js` byte-identical.
+**Locked finding — never put a custom Cell in column 0** of any collection reachable from a
+picker. The drawer's only select affordance is the first column, and its wiring lives in
+`RenderDefaultCell`, which is skipped for custom Cells. Now recorded as a comment in
+`cms/src/collections/Media.ts` at the config itself.
+**Locked finding — saved column preferences override `defaultColumns`, and the picker
+drawer shares the `collection-media` preference key with the main list.** A stale
+preference row silently defeats any `defaultColumns` change. Not hit this time (verified
+`upsertPreferences` strips undefined, and the client persists columns only on explicit user
+action), but it is a live trap for any future column work — and the reason
+`reset-media-list-prefs.ts` exists. Its docstring was corrected in the same commit.
+**⚠️ PR #7 promoted 13 commits, not just this fix** — it also carried R2's CI gate, R11's
+testing standards, the `qa` agent and session notes to `main`. All docs/CI/tooling with
+zero `src/`, `content/` or migration changes, so the public output was unaffected; flagged
+to the owner before merging. **Consequence: `main` now has CI and the testing standard.**
+**Notes:** admin-only, **no schema, no migration**. If a component is added/changed, run
+`pnpm generate:importmap` (R10/R3c precedent) — CI checks `importMap.js` drift and will
+redden the PR otherwise.
+**Regression-test exemption (deliberate, per R11):** the locked standard makes "a bug fix
+ships a regression test that fails without the fix" non-negotiable, but **no runner is
+installed yet** (that's R12) and admin UI is never pixel-tested. Do **not** install Vitest
+here — a prod content-editing blocker must not wait on tooling. Instead R12 must add the
+cheap config invariant that would have caught this: assert `Media.admin.defaultColumns[0]`
+resolves to a field with **no custom `Cell`** (or, if option (b) ships, that the Cell wires
+`onSelect`). Tracked in R12's acceptance criteria — this debt is recorded, not skipped.
+
+### R22 — Media picker ergonomics: `alt` in the drawer  (Low)
+**Context (owner request during R21 triage, 2026-08-03; rescoped after R21 shipped).**
+Requested: an explicit checkbox/radio control, multiple selection, and editing `alt` from
+inside the picker. **R21 largely settled the affordance half** — `FileCell` puts the
+thumbnail *inside* the select button, so the click target is now a 44px image plus its
+filename, not an invisible text cell. Re-evaluate whether anything further is needed before
+building. What remains, verified:
+- **Radio/checkbox per row:** still no built-in for single-value upload fields
+  (`enableRowSelections: hasMany`, `fields/Upload/Input.js:587`). Achievable only as a
+  custom column rendering a visible "Seleccionar" control — which lands in the same
+  `useListDrawerContext` deep-import problem as R21 option (b), **and a custom Cell must
+  not be column 0** (R21's locked finding). Given the thumbnail is now the button, this is
+  probably not worth the upgrade risk — try discoverability first (hover/cursor styling, a
+  hint line, `admin.description`) and only then consider a control.
+- **Multiple selection: not applicable to the current schema.** `Projects.image` is one
+  image per card and the public renderer consumes one. Native bulk select (`onBulkSelect`,
+  `Input.js:588`) switches on automatically **if a field is `hasMany: true`** — so this
+  comes for free the day a gallery-type field is added, and until then has no target.
+  Making `image` itself `hasMany` is a **content-model change**: migration + public
+  renderer + both fidelity twins (R13). Out of scope; do not do it as a picker fix.
+- **`alt` editing:** already possible **after** selection — `RelationshipContent/index.js:142`
+  renders an Edit button opening a DocumentDrawer on the media doc. Real gaps: it's not
+  discoverable, and there's no way to fix a bad `alt` *while choosing*. `alt` is
+  **localized**, so any in-drawer editor writes only the active locale — that must be
+  explicit in the UI or it silently creates es/en drift (the exact class of bug R12's
+  2,709-pair baseline exists to catch).
+**Acceptance criteria (stub):** selecting an existing image is *visibly* selectable
+without reading docs; `alt` is viewable and correctable from the choosing flow (or one
+documented click away); no deep `dist/` imports without recording the upgrade risk; if
+`hasMany` is ever wanted, it's a separate item with a migration. Admin-only — pixel gate
+n/a, no schema.
+**Do first:** ship R21. This item is polish on top and must not delay the prod fix.
+
+### R23 — Content model: a Proyecto is not a project (CMS-only regroup, Option A)  (High)
+**Raised by the owner 2026-08-04 while verifying R21.** Full analysis, with live-data
+evidence and two costed options: **`docs/delivery/analysis-projects-vs-photos.md`** (142
+lines — read it before writing the task prompt; it is the spec).
+**The problem:** one `Projects` row encodes **three unrelated concerns** — which asset,
+which project it belongs to, and where it appears. A portfolio's unit of work is a project
+containing many images; here the unit is a single image card, so a real project cannot be
+represented at all. Measured on live `cms-preview`, category 54 `fotografia-producto`:
+**18 Proyecto records for 12 distinct images.**
+- **(a) A project is a naming convention, not an entity.** "Set Regalo Vinte-Vinte" is one
+  shoot with 7 views, bound together only by a **human-typed `internalTitle` prefix**.
+  Nothing enforces it; renaming the project means editing 7 rows.
+- **(b) The same photo is duplicated per placement.** Every photo shown on both home and
+  the category page exists **twice** — one `placement: 'home'` row and one
+  `placement: 'page'` row pointing at the same media ID. `placement` has a `'both'` option
+  (`cms/src/collections/Projects.ts:68-78`), but home shows a different subset/order than
+  the page, so the data was duplicated instead. Fixing one photo's `alt` means remembering
+  two places.
+**Why it looks like this (not an accident):** the CMS was reverse-engineered from committed
+JSON whose shape is a flat card list — `content/sections/photography.json` is literally
+`page.projects[] = {image, alt, category}`, mapped straight into a lightbox grid by
+`src/app/pages/ProductPhotographyProjects.tsx:10-15`. So `Projects` models **the rendered
+grid**, not the portfolio. Two existing features are already workarounds for the missing
+parent level: `group` (free-text, hand-rolled one-level grouping for branding's four
+sub-groups, read at `export-content.ts:753`) and `type: 'caseStudy'` — **the one Proyecto of
+58 that IS a real project**, with a slug, detail page and body. The model can host a real
+project; it just isn't available to the other 57.
+**Scope = Option A only.** Introduce a real parent (`Proyecto` → ordered `images[]`) and
+make `export-content.ts` **flatten back to byte-identical `content/sections/*.json`**, so
+public renderers don't change and `pixel-parity` stays **0.000%**. `placement` moves to the
+parent, collapsing the duplication; where home and page genuinely differ, that becomes
+explicit parent fields instead of duplicate rows. `group` retained as-is to avoid widening
+scope. **Option B (detail pages) is R24 — do not blend them.**
+**Acceptance criteria (stub):** the 7-view shoot is ONE editable record; no photo exists
+twice for placement; committed `content/*.json` is **byte-identical** before/after the
+migration (this is the whole safety argument — prove it, don't assert it); pixel gate
+0.000%; both fidelity twins still agree (R13).
+**Cost / risk:** a real migration — new table for image rows, backfill 58 Proyectos →
+parents + children, **grouping photography's 7-view sets by their `internalTitle` prefix
+needs a one-off mapping the owner must eyeball** (a typo'd prefix silently splits a
+project). Touches `export-content.ts` **and** `fetch-content.mjs`.
+**Sequencing (why it depends on R12 + R13):** it rewrites the exporter that produces every
+committed fixture, and R13 owns both twins — doing this first would mean rewriting that
+logic twice and losing R13's induced-divergence check as evidence. R12's content-resilience
+tests should exist first so the restructure has a net. **Order: R12 → R13 → R23 → decide R24.**
+
+### R24 — Project detail pages (Option B): a deliberate public redesign  (Medium)
+**Context:** the other half of `docs/delivery/analysis-projects-vs-photos.md` — what the
+owner actually described as "how a portfolio works". Category page shows project **covers**;
+each project gets `/proyectos/:cat/:slug` with its own gallery, reusing the case-study route
+pattern that already exists (the one real project of 58 proves the pattern works).
+**⚠️ This is the one item that intentionally breaks the pixel gate.** It is a public
+redesign, so `pixel-parity` goes red **by intent** — the locked 0.000% invariant must be
+**explicitly suspended for that PR and re-baselined**, with the owner's sign-off. That makes
+it categorically different from every item shipped so far. It also can't be validated by the
+existing gate, so it wants R12's tests in place first.
+**Not a data-model fix — a design project.** Needs real design decisions: cover-grid layout,
+project-page template, and what happens to the current lightbox. Scope it **with the owner
+as a design decision** after R23 has given it a sane model to render.
+**Acceptance criteria:** deliberately not stubbed — this needs a design brief first, not an
+implementation plan. Do not emit a worker prompt for this until the owner has made the
+design call.
+**Does NOT reopen the page-builder** (locked non-goal): R23/R24 add a *content* hierarchy
+and routes, not layout editing.
+
+### R25 — Promote `typecheck` + `tests` to required checks  (Low)
+**Context (from R17, 2026-08-04):** the `typecheck` job exists and is green, but **gates
+nothing** — per Locked decisions a new job is only made *required* after two green runs, and
+branch protection must be updated by hand (`gh api`, **both** `main` and `preview`) and
+verified with a real push. R17 deliberately left it non-required with one green run.
+**Do this once, not twice:** R12 will add a `tests` job with the same requirement. Batching
+both into a single branch-protection edit avoids touching protection on two branches twice.
+**Acceptance criteria (stub):** both jobs required on both branches; verified by a real
+rejected push (R2's precedent — the first `enforce_admins: false` apply silently let a push
+through, so *verify*, don't assume); the required-check count in Locked decisions updated from
+4 to its new value (**6**).
+
+**UNBLOCKED 2026-08-04 (R12 ingest) — the two-green-runs bar is met for both jobs.**
+`typecheck`: green on R17's PR #8, then on R12's PR #9 (plus the post-merge run on
+`preview`). `tests`: green on R12's PR #9 (36 s) and on the post-merge `preview` run. Both
+jobs now have ≥2 green runs each, so the precondition in Locked decisions is satisfied and
+this is ready to queue. Exact job names to add to the required list — copy verbatim, GitHub
+matches on the job's `name:`, not its key:
+- `Site typecheck (tsc --noEmit)`
+- `Tests (vitest, offline)`
+
+### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
+**Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
+while `cms/` runs `6.0.3` — **two different TypeScript majors in one repo**. Harmless today
+because the two projects have separate lockfiles, separate configs and separate CI jobs, and
+both pass. Two reasons it is worth a deliberate decision rather than drift:
+1. `docs/testing-standards.md` §4 recommends **one runner for both projects** (R12). A single
+   Vitest config spanning both would sit on top of a TS major skew.
+2. TS 7 is the native port and removed options the older config may still rely on — R17
+   already hit one (`baseUrl` removed in 7, noted in `tsconfig.json`).
+**Acceptance criteria (stub):** a recorded decision — align both on one major, or document
+why the skew is deliberate and safe. No behaviour change expected either way.
 
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
@@ -497,6 +906,10 @@ GitHub Actions + rsync / `.github/workflows/deploy.yml`; reality is Vercel + Neo
 R2 (see INFRASTRUCTURE.md), and that workflow file doesn't exist.
 **Acceptance criteria (stub):** the section reflects the current stack and points to
 INFRASTRUCTURE.md / RELEASE.md.
+**Re-confirmed by R21** (2026-08-04) as a live defect, independently: the cited
+`.github/workflows/deploy.yml` **does not exist** and deployment is Vercel-on-push. Logged
+there as a "new" finding — it is this item; no duplicate created. Two workers have now
+tripped over it, so it costs more than its Low rating suggests.
 
 ### R7 — Fill governance placeholders  (Low)
 **Context:** `governance/docs/rules/domain-vocabulary.md` and root
@@ -537,6 +950,46 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   writing it**, none fixed there: the fidelity gate reports `match: true` for **90.2% of
   committed content bytes without comparing them** (→ R13, bumped to High), plus R16–R19.
   Upstream-promotion candidates → R20.
+- 2026-08-04 — **R17 done on preview** (PR #8, squash `03d5e84`): the site got its first
+  typechecker. Root `tsconfig.json` at **full `strict` with 0 errors**, `typescript` +
+  React-18 `@types/*`, and `react`/`react-dom` **promoted from transitive-only to real
+  dependencies** — they were used by 83 files while declared nowhere. 29 pre-existing errors
+  found, all 29 fixed at source (19 were one variance pattern in `PageRenderer.tsx`'s block
+  registry); **build output byte-identical**, pixel-parity 0.000%. New non-required
+  `typecheck` CI job (5 jobs now). The "surprise pile of type errors" that had twice deferred
+  this item was measured and turned out to be 2 root causes. **Conductor error corrected
+  here:** my claim that `studioLabel`/`roleLabel` were dead branches was wrong — they render
+  live via `ui.json` fallbacks and `fieldVisible`'s default-true; I had grepped one fixture
+  and over-inferred. Follow-ups: **R25** (required checks), **R26** (TS major skew), stale
+  `content/pages.json` → R13.
+- 2026-08-04 — **R21 shipped to PROD** (`c60b83f`, PR #6 → `7298825`, PR #7 → `8e48d81`):
+  the media picker's "elegir existente" drawer had **no clickable row**, so the library was
+  write-only — 44 images and none reusable. An R10 regression that reached production: a
+  custom Cell in column 0 took over the drawer's linked cell, and the `onSelect` wiring
+  lives only in `RenderDefaultCell`, which is skipped for custom Cells. Fixed by making
+  `filename` column 0 — on an upload collection that renders via `FileCell` (thumbnail +
+  name) *inside* the select button, so the thumbnail became the click target and R10's
+  layout survived. Admin-only: no schema, no migration, no lockfile, nothing under `src/`.
+  **Locked findings:** (1) never put a custom Cell in column 0 of a picker-reachable
+  collection; (2) saved column preferences override `defaultColumns`, and the drawer shares
+  the `collection-media` preference key with the main list. Shipped **without** a regression
+  test — a deliberate, recorded exemption (no runner until R12, which now carries the
+  invariant). PR #7 also promoted R2's CI gate and R11's testing standards to `main`.
+- 2026-08-04 — **R12 done on preview** (PR #9, merge `4ceeaf0`): the repo's **first test
+  runner and first test suite**. Vitest + RTL + jsdom, 3 dev deps in the root lockfile
+  (`cms/pnpm-lock.yaml` untouched), `vitest.config.ts` merging `vite.config.ts`, the single
+  root tsconfig extended. **78 tests, 1.5 s local / 36 s in CI** against a 60 s budget, in a
+  sixth `tests` job parallel with `site`. Four layers: renderer integration against synthetic
+  hostile fixtures (missing field, over-long string, cleared `en`, wrong-aspect upload,
+  renamed block — the aspect checks sweep **all 11 gallery variants**), committed-content
+  invariants, `contentMeta` units, and the CMS config invariant that **pays off R21's
+  regression-test debt**. Unknown `blockType`/`layoutVariant` now report instead of vanishing
+  silently, with **no change to rendered output**: `pixel-parity` **0.000%** on all 24 shots,
+  CSS bundle byte-identical, JS +790 B. `typecheck` still 0 errors. **21 mutations applied,
+  all red, all restored** — two of them exposed real gaps in the first draft. Also corrected
+  the four spots R17 made stale in `docs/testing-standards.md` (substance unchanged and
+  sharper: *a typechecker cannot validate runtime CMS data*). **Locked:** the runner shape,
+  the Tailwind `@source` trap, pin-the-invariant, and report-don't-throw.
 - 2026-08-03 — **R3a shipped to PROD** (merge `841d736`): Payload transactional email
   via `@payloadcms/email-resend`, domain `ase-cor-oba.site` verified in Resend, plus the
   `serverURL` config the reset link needs to be absolute. The owner can now self-serve
