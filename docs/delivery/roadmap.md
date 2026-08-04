@@ -106,7 +106,7 @@ Last updated: 2026-08-04
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
-| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11, **R17** |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | in-progress | qa/full-stack | Medium | R11, R17 |
 | R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
@@ -253,16 +253,35 @@ frozen (17 commits/6 months).
 decisions. Integration (jsdom, **synthetic** fixtures — never live CMS data) for the
 renderers, plus a node invariant check over committed `content/*.json`. Runner: Vitest +
 RTL + jsdom.
-**R11 sharpened why this is invisible** (all verified): the site has **no typechecker at
-all** — no root `tsconfig.json`, no `typescript` dep — so the `HeroContent` type at
-`src/app/components/HeroSection.tsx:6-14` is decorative; and there is **no error boundary
-anywhere in `src/`**, so `HeroSection.tsx:50` indexing `title[language]` unguarded means
-one missing field **blanks the whole page**. Also: no `line-clamp`/`truncate` in any
-project-owned component, 22 fixed-aspect `overflow-hidden` containers, and
-`PageRenderer.tsx:206-209` silently drops an unknown `blockType` (a renamed CMS block
-deletes a live section with zero signal).
-**Measured baseline to pin:** 2,709 localized `{es,en}` pairs, **0** with `es` populated
-and `en` empty, `ui.json` at 73/73 key parity.
+**R11 sharpened why this is invisible** (all verified, ~~no typechecker~~ **superseded by
+R17 — see below**): there is **no error boundary anywhere in `src/`**, so
+`HeroSection.tsx:50` indexing `title[language]` unguarded means one missing field **blanks
+the whole page**. Also: no `line-clamp`/`truncate` in any project-owned component, 22
+fixed-aspect `overflow-hidden` containers, and `PageRenderer.tsx` silently drops an unknown
+`blockType` (a renamed CMS block deletes a live section with zero signal).
+**⚠️ `docs/testing-standards.md` is partly STALE as of R17 — the worker must not trust it
+blindly.** It was written 2026-08-03, before the typechecker existed. Wrong now: §1's fact
+table row 3 ("no TypeScript dependency and no `tsconfig.json`"), §1's "the types are
+decorative" paragraph, §4's tooling-cost row ("Vitest brings the first TypeScript
+dependency"), and §8's first gotcha. **Still true and still the point:** types cannot
+validate *runtime* CMS data — `PageRenderer.tsx:230-232` says so explicitly, in a comment
+R17 left pointing at this task. R12 should correct those four spots as part of the work.
+**Line refs shifted in R17** — re-verified 2026-08-04 against `origin/preview`: the block
+registry is `PageRenderer.tsx:65-114` (was `:45-94`), and the unknown-`blockType` drop is
+now `:233-237` (was `:206-209`). `HeroSection.tsx:50` and `LanguageContext.tsx:26` are
+unchanged.
+**Measured baseline — ⚠️ re-measured 2026-08-04 and it MOVED.** The R11 figure was 2,709
+localized `{es,en}` pairs / 56 both-empty; it is now **3,050 pairs / 59 both-empty** across
+14 content files. What did **not** move: **0** pairs with `es` populated and `en` empty, and
+`ui.json` still at **73/73** with identical key sets. **Pin the invariant, never the census.**
+A test asserting `pairs === 3050` is guaranteed to redden on the next legitimate
+`fetch-content` commit while catching no risk whatsoever. Assert: zero asymmetric pairs,
+`ui.json` key-set equality, and every `blockType` present in the registry.
+**Block-registry invariant re-verified 2026-08-04:** 28 registry entries, 20 `blockType`s
+used in `pages.json`, **0 used-but-unregistered** (nothing is silently vanishing today), 8
+registered-but-unused. Assert the *used ⊆ registered* direction only — the 8 unused entries
+are legitimate (blocks available to editors but not currently placed), so asserting the
+reverse would fail immediately.
 **Acceptance criteria (stub):** renderers survive hostile-but-legal content
 (over-long strings, empty optional fields, wrong-aspect images, missing `en`) without
 layout collapse; failures are loud, not silent. **Plus the R21 debt:** a config invariant
