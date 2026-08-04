@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-03
+Last updated: 2026-08-04
 
 ---
 
@@ -115,6 +115,10 @@ Last updated: 2026-08-03
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
+| R21 | Media picker unusable — "elegir existente" can't select (R10 regression) | done (PROD) | full-stack | High | R10 |
+| R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
+| R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
+| R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -201,6 +205,10 @@ component) rendering `<img src={row.thumbnailURL || row.url}>`; put it first via
 no schema, no migration, public site untouched.
 **Acceptance criteria (stub):** the Biblioteca de Imágenes list shows a small
 thumbnail per row; pixel gate n/a (admin-only); no migration.
+**⚠️ Shipped a High regression → R21.** Putting the custom `preview` Cell **first** in
+`defaultColumns` took over the drawer's linked column, which is the only cell that carries
+`onSelect` — so "elegir existente" became unusable and reached prod. Lesson for any future
+custom Cell: **never make it column 0** unless it wires selection itself.
 
 ### R11 — Project-calibrated testing standards  (Medium)
 **Context:** The repo has **zero tests and zero test tooling** (no runner, no `test`
@@ -255,7 +263,10 @@ deletes a live section with zero signal).
 and `en` empty, `ui.json` at 73/73 key parity.
 **Acceptance criteria (stub):** renderers survive hostile-but-legal content
 (over-long strings, empty optional fields, wrong-aspect images, missing `en`) without
-layout collapse; failures are loud, not silent.
+layout collapse; failures are loud, not silent. **Plus the R21 debt:** a config invariant
+asserting `Media.admin.defaultColumns[0]` names a field with **no custom `Cell`** (or that
+the Cell wires `onSelect`) — R21 shipped a prod fix without a regression test because no
+runner existed; this is where that test lands. Cheap, no admin rendering.
 **Sequencing note:** installing Vitest is a **root lockfile change** — confirm
 `scripts/ci/check-lockfiles.mjs` tolerates it, and expect first-time site type errors to
 surface (R17). Budget for that; don't let it derail the task. Add the `tests` CI job here
@@ -382,6 +393,202 @@ gitlink is bumped here.
 projects, so changes affect them. Same caveat as R7. Never edit it from a task that isn't
 this one.
 
+### R21 — Media picker can't select an image (R10 regression, live in prod)  (High)
+**Symptom (owner, 2026-08-03):** on a Proyecto's **Imagen** field, "elegir existente"
+opens the Biblioteca de Imágenes drawer, but **no row can be chosen** — there is no
+clickable cell, no checkbox, nothing. The only way to attach an image is "crear nuevo",
+which re-uploads a duplicate 11–18 MB original to R2 every time. So the media library is
+effectively write-only: 43 images exist and none can be reused.
+
+**Root cause — verified in source, all line refs in `cms/node_modules`:**
+- The **first active column is the row's click target**:
+  `isLinkedColumn: enableLinkedCell && colIndex === activeColumnsIndices[0]`
+  (`@payloadcms/ui/dist/providers/TableColumns/buildColumnState/index.js:141`).
+- In a list **drawer**, that cell is the *only* select affordance, and the wiring exists
+  **only inside `RenderDefaultCell`** — it reads `useListDrawerContext()` and attaches
+  `onClick → onSelect({ collectionSlug, doc, docID })`
+  (`.../TableColumns/RenderDefaultCell/index.js`). The handler is **never passed to a
+  custom Cell**: in `renderCell.js`, `cellServerProps.onClick` is
+  `baseCellClientProps.onClick` — always `undefined`.
+- `renderCell` resolves a custom Cell via `RenderCustomComponent`, which returns the
+  custom component and **never renders the `RenderDefaultCell` fallback**
+  (`elements/RenderCustomComponent/index.js`: falls back only when `CustomComponent ===
+  undefined`).
+- **R10** set `defaultColumns: ['preview', 'alt', 'updatedAt']`
+  (`cms/src/collections/Media.ts:20`), putting our `MediaThumbnailCell` — a bare `<img>`
+  with no `onClick` (`cms/src/components/MediaThumbnailCell.tsx`) — in the linked slot.
+  Result: **no selectable cell in any row.**
+- **No checkbox fallback exists here:** `enableRowSelections: hasMany`
+  (`fields/Upload/Input.js:587`), and Payload's own comment at `:301` is *"only hasMany
+  can bulk select."* `Projects.image` is single-valued, so row checkboxes are
+  deliberately off — this is not a flag we can flip. See **R22**.
+
+**Blast radius:** `main` carries the same `defaultColumns`, so **production is affected**.
+`image` on Proyectos (`cms/src/collections/Projects.ts:104-112`) is the **only** upload
+field in the schema, so this is the single path for attaching any portfolio image.
+
+**Fix options (worker decides; record the tradeoff in the outcome):**
+- **(a) Reorder — recommended.** `defaultColumns: ['alt', 'preview', 'updatedAt']`. `alt`
+  becomes the linked cell (a real `DefaultCell`, so `onSelect` is wired again); the
+  thumbnail moves to column 2 and stays visible. One line, no new component,
+  upgrade-safe. Cost: walks back R10's *thumbnail-first* layout, not the thumbnail itself.
+- **(b) Client wrapper, thumbnail stays first.** Server Cell computes the R2 `src` (it
+  must stay server-side — `R2_PUBLIC_URL` is server-only, see the `MediaThumbnailCell`
+  header) and hands it to a client child that calls `useListDrawerContext()` to wire
+  `onSelect`, falling back to a doc link outside a drawer. **Cost: `useListDrawerContext`
+  is not reachable from a public subpath** — `@payloadcms/ui` exports only
+  `./elements/*` → `elements/*/index.js`, and `ListDrawer/index.d.ts` does **not**
+  re-export it (it lives in `Provider.js`). Requires a deep `dist/` import that breaks
+  silently on upgrade — the exact failure mode R3c's approach was chosen to avoid.
+
+**Acceptance criteria:** (1) in the Imagen field, "elegir existente" → clicking a row
+selects that image and closes the drawer, and the Proyecto saves with it; (2) the
+thumbnail column still renders (R10's intent preserved); (3) the main media list view
+still navigates to the doc on click; (4) verified on **cms-preview** by actually
+attaching an existing image to a real Proyecto, then rolled to prod; (5) public site
+pixel-identical — 0.000%.
+
+**Status: done (PROD)** 2026-08-04 — commit `c60b83f`, PR #6 → `preview` (`7298825`),
+PR #7 → `main` (`8e48d81`) on `authorize production deploy`. Verified by the owner on both
+preview and prod. All 5 criteria met; pixel-parity 0.000%/24; no schema, no migration, no
+lockfile change, nothing under `src/`.
+**Fix shipped = option (a), but with `filename`, not the suggested `alt` — and it beat the
+stated tradeoff.** `defaultColumns: ['filename', 'alt', 'updatedAt']`. On an upload
+collection `filename` is not a plain text cell: `cellComponents` has **no `text` key**, so
+`DefaultCellComponent` is falsy and `DefaultCell` falls through to its `FileCell` branch
+(`elements/Table/DefaultCell/index.js:115-123`), which renders a `Thumbnail` **plus** the
+name. That `CellComponent` is then wrapped in `WrapElement`, which becomes a
+`<button type="button">` whenever `onClick` is present (`:73-82`). **So the thumbnail
+itself is the click target** — R10's thumbnail-first layout was preserved rather than
+walked back, which was option (a)'s only cost. Conductor re-verified this chain in source.
+`alt` was equally viable (44/44 populated, so no empty-placeholder risk) but would have
+demoted the thumbnail. Option (b) rejected: the deep `dist/` import isn't worth an outcome
+(a) already achieves. The `preview` UI field stays **defined but out of the default
+layout** — still offered by the column selector, and keeping it registered left
+`importMap.js` byte-identical.
+**Locked finding — never put a custom Cell in column 0** of any collection reachable from a
+picker. The drawer's only select affordance is the first column, and its wiring lives in
+`RenderDefaultCell`, which is skipped for custom Cells. Now recorded as a comment in
+`cms/src/collections/Media.ts` at the config itself.
+**Locked finding — saved column preferences override `defaultColumns`, and the picker
+drawer shares the `collection-media` preference key with the main list.** A stale
+preference row silently defeats any `defaultColumns` change. Not hit this time (verified
+`upsertPreferences` strips undefined, and the client persists columns only on explicit user
+action), but it is a live trap for any future column work — and the reason
+`reset-media-list-prefs.ts` exists. Its docstring was corrected in the same commit.
+**⚠️ PR #7 promoted 13 commits, not just this fix** — it also carried R2's CI gate, R11's
+testing standards, the `qa` agent and session notes to `main`. All docs/CI/tooling with
+zero `src/`, `content/` or migration changes, so the public output was unaffected; flagged
+to the owner before merging. **Consequence: `main` now has CI and the testing standard.**
+**Notes:** admin-only, **no schema, no migration**. If a component is added/changed, run
+`pnpm generate:importmap` (R10/R3c precedent) — CI checks `importMap.js` drift and will
+redden the PR otherwise.
+**Regression-test exemption (deliberate, per R11):** the locked standard makes "a bug fix
+ships a regression test that fails without the fix" non-negotiable, but **no runner is
+installed yet** (that's R12) and admin UI is never pixel-tested. Do **not** install Vitest
+here — a prod content-editing blocker must not wait on tooling. Instead R12 must add the
+cheap config invariant that would have caught this: assert `Media.admin.defaultColumns[0]`
+resolves to a field with **no custom `Cell`** (or, if option (b) ships, that the Cell wires
+`onSelect`). Tracked in R12's acceptance criteria — this debt is recorded, not skipped.
+
+### R22 — Media picker ergonomics: `alt` in the drawer  (Low)
+**Context (owner request during R21 triage, 2026-08-03; rescoped after R21 shipped).**
+Requested: an explicit checkbox/radio control, multiple selection, and editing `alt` from
+inside the picker. **R21 largely settled the affordance half** — `FileCell` puts the
+thumbnail *inside* the select button, so the click target is now a 44px image plus its
+filename, not an invisible text cell. Re-evaluate whether anything further is needed before
+building. What remains, verified:
+- **Radio/checkbox per row:** still no built-in for single-value upload fields
+  (`enableRowSelections: hasMany`, `fields/Upload/Input.js:587`). Achievable only as a
+  custom column rendering a visible "Seleccionar" control — which lands in the same
+  `useListDrawerContext` deep-import problem as R21 option (b), **and a custom Cell must
+  not be column 0** (R21's locked finding). Given the thumbnail is now the button, this is
+  probably not worth the upgrade risk — try discoverability first (hover/cursor styling, a
+  hint line, `admin.description`) and only then consider a control.
+- **Multiple selection: not applicable to the current schema.** `Projects.image` is one
+  image per card and the public renderer consumes one. Native bulk select (`onBulkSelect`,
+  `Input.js:588`) switches on automatically **if a field is `hasMany: true`** — so this
+  comes for free the day a gallery-type field is added, and until then has no target.
+  Making `image` itself `hasMany` is a **content-model change**: migration + public
+  renderer + both fidelity twins (R13). Out of scope; do not do it as a picker fix.
+- **`alt` editing:** already possible **after** selection — `RelationshipContent/index.js:142`
+  renders an Edit button opening a DocumentDrawer on the media doc. Real gaps: it's not
+  discoverable, and there's no way to fix a bad `alt` *while choosing*. `alt` is
+  **localized**, so any in-drawer editor writes only the active locale — that must be
+  explicit in the UI or it silently creates es/en drift (the exact class of bug R12's
+  2,709-pair baseline exists to catch).
+**Acceptance criteria (stub):** selecting an existing image is *visibly* selectable
+without reading docs; `alt` is viewable and correctable from the choosing flow (or one
+documented click away); no deep `dist/` imports without recording the upgrade risk; if
+`hasMany` is ever wanted, it's a separate item with a migration. Admin-only — pixel gate
+n/a, no schema.
+**Do first:** ship R21. This item is polish on top and must not delay the prod fix.
+
+### R23 — Content model: a Proyecto is not a project (CMS-only regroup, Option A)  (High)
+**Raised by the owner 2026-08-04 while verifying R21.** Full analysis, with live-data
+evidence and two costed options: **`docs/delivery/analysis-projects-vs-photos.md`** (142
+lines — read it before writing the task prompt; it is the spec).
+**The problem:** one `Projects` row encodes **three unrelated concerns** — which asset,
+which project it belongs to, and where it appears. A portfolio's unit of work is a project
+containing many images; here the unit is a single image card, so a real project cannot be
+represented at all. Measured on live `cms-preview`, category 54 `fotografia-producto`:
+**18 Proyecto records for 12 distinct images.**
+- **(a) A project is a naming convention, not an entity.** "Set Regalo Vinte-Vinte" is one
+  shoot with 7 views, bound together only by a **human-typed `internalTitle` prefix**.
+  Nothing enforces it; renaming the project means editing 7 rows.
+- **(b) The same photo is duplicated per placement.** Every photo shown on both home and
+  the category page exists **twice** — one `placement: 'home'` row and one
+  `placement: 'page'` row pointing at the same media ID. `placement` has a `'both'` option
+  (`cms/src/collections/Projects.ts:68-78`), but home shows a different subset/order than
+  the page, so the data was duplicated instead. Fixing one photo's `alt` means remembering
+  two places.
+**Why it looks like this (not an accident):** the CMS was reverse-engineered from committed
+JSON whose shape is a flat card list — `content/sections/photography.json` is literally
+`page.projects[] = {image, alt, category}`, mapped straight into a lightbox grid by
+`src/app/pages/ProductPhotographyProjects.tsx:10-15`. So `Projects` models **the rendered
+grid**, not the portfolio. Two existing features are already workarounds for the missing
+parent level: `group` (free-text, hand-rolled one-level grouping for branding's four
+sub-groups, read at `export-content.ts:753`) and `type: 'caseStudy'` — **the one Proyecto of
+58 that IS a real project**, with a slug, detail page and body. The model can host a real
+project; it just isn't available to the other 57.
+**Scope = Option A only.** Introduce a real parent (`Proyecto` → ordered `images[]`) and
+make `export-content.ts` **flatten back to byte-identical `content/sections/*.json`**, so
+public renderers don't change and `pixel-parity` stays **0.000%**. `placement` moves to the
+parent, collapsing the duplication; where home and page genuinely differ, that becomes
+explicit parent fields instead of duplicate rows. `group` retained as-is to avoid widening
+scope. **Option B (detail pages) is R24 — do not blend them.**
+**Acceptance criteria (stub):** the 7-view shoot is ONE editable record; no photo exists
+twice for placement; committed `content/*.json` is **byte-identical** before/after the
+migration (this is the whole safety argument — prove it, don't assert it); pixel gate
+0.000%; both fidelity twins still agree (R13).
+**Cost / risk:** a real migration — new table for image rows, backfill 58 Proyectos →
+parents + children, **grouping photography's 7-view sets by their `internalTitle` prefix
+needs a one-off mapping the owner must eyeball** (a typo'd prefix silently splits a
+project). Touches `export-content.ts` **and** `fetch-content.mjs`.
+**Sequencing (why it depends on R12 + R13):** it rewrites the exporter that produces every
+committed fixture, and R13 owns both twins — doing this first would mean rewriting that
+logic twice and losing R13's induced-divergence check as evidence. R12's content-resilience
+tests should exist first so the restructure has a net. **Order: R12 → R13 → R23 → decide R24.**
+
+### R24 — Project detail pages (Option B): a deliberate public redesign  (Medium)
+**Context:** the other half of `docs/delivery/analysis-projects-vs-photos.md` — what the
+owner actually described as "how a portfolio works". Category page shows project **covers**;
+each project gets `/proyectos/:cat/:slug` with its own gallery, reusing the case-study route
+pattern that already exists (the one real project of 58 proves the pattern works).
+**⚠️ This is the one item that intentionally breaks the pixel gate.** It is a public
+redesign, so `pixel-parity` goes red **by intent** — the locked 0.000% invariant must be
+**explicitly suspended for that PR and re-baselined**, with the owner's sign-off. That makes
+it categorically different from every item shipped so far. It also can't be validated by the
+existing gate, so it wants R12's tests in place first.
+**Not a data-model fix — a design project.** Needs real design decisions: cover-grid layout,
+project-page template, and what happens to the current lightbox. Scope it **with the owner
+as a design decision** after R23 has given it a sane model to render.
+**Acceptance criteria:** deliberately not stubbed — this needs a design brief first, not an
+implementation plan. Do not emit a worker prompt for this until the owner has made the
+design call.
+**Does NOT reopen the page-builder** (locked non-goal): R23/R24 add a *content* hierarchy
+and routes, not layout editing.
+
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
 caught before deploy.
@@ -497,6 +704,10 @@ GitHub Actions + rsync / `.github/workflows/deploy.yml`; reality is Vercel + Neo
 R2 (see INFRASTRUCTURE.md), and that workflow file doesn't exist.
 **Acceptance criteria (stub):** the section reflects the current stack and points to
 INFRASTRUCTURE.md / RELEASE.md.
+**Re-confirmed by R21** (2026-08-04) as a live defect, independently: the cited
+`.github/workflows/deploy.yml` **does not exist** and deployment is Vercel-on-push. Logged
+there as a "new" finding — it is this item; no duplicate created. Two workers have now
+tripped over it, so it costs more than its Low rating suggests.
 
 ### R7 — Fill governance placeholders  (Low)
 **Context:** `governance/docs/rules/domain-vocabulary.md` and root
@@ -537,6 +748,19 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   writing it**, none fixed there: the fidelity gate reports `match: true` for **90.2% of
   committed content bytes without comparing them** (→ R13, bumped to High), plus R16–R19.
   Upstream-promotion candidates → R20.
+- 2026-08-04 — **R21 shipped to PROD** (`c60b83f`, PR #6 → `7298825`, PR #7 → `8e48d81`):
+  the media picker's "elegir existente" drawer had **no clickable row**, so the library was
+  write-only — 44 images and none reusable. An R10 regression that reached production: a
+  custom Cell in column 0 took over the drawer's linked cell, and the `onSelect` wiring
+  lives only in `RenderDefaultCell`, which is skipped for custom Cells. Fixed by making
+  `filename` column 0 — on an upload collection that renders via `FileCell` (thumbnail +
+  name) *inside* the select button, so the thumbnail became the click target and R10's
+  layout survived. Admin-only: no schema, no migration, no lockfile, nothing under `src/`.
+  **Locked findings:** (1) never put a custom Cell in column 0 of a picker-reachable
+  collection; (2) saved column preferences override `defaultColumns`, and the drawer shares
+  the `collection-media` preference key with the main list. Shipped **without** a regression
+  test — a deliberate, recorded exemption (no runner until R12, which now carries the
+  invariant). PR #7 also promoted R2's CI gate and R11's testing standards to `main`.
 - 2026-08-03 — **R3a shipped to PROD** (merge `841d736`): Payload transactional email
   via `@payloadcms/email-resend`, domain `ase-cor-oba.site` verified in Resend, plus the
   `serverURL` config the reset link needs to be absolute. The owner can now self-serve
