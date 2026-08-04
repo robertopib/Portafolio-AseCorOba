@@ -61,8 +61,14 @@ type BlockComponent = ComponentType<{ content?: unknown }>;
  * self-sourced). The project pages are decomposed into their real sub-sections
  * as blocks, each extracted verbatim from the original page component, so the
  * design stays pixel-identical while the CMS controls composition.
+ *
+ * EXPORTED for the content invariant test (tests/invariants/content-shape.test.ts,
+ * roadmap R12), which asserts that every `blockType` present in
+ * content/pages.json has an entry here. The reverse does NOT hold and must not be
+ * asserted: entries with no current placement are legitimate — they are blocks
+ * available to an editor but not used on any page today.
  */
-const blockRegistry: Record<string, RegisteredBlock> = {
+export const blockRegistry: Record<string, RegisteredBlock> = {
   // Home
   hero: HeroSection,
   brandingPreview: CorporateBranding,
@@ -232,7 +238,29 @@ export function PageRenderer({ slug }: { slug: string }) {
     // invisible to the typechecker and will only show up at render.
     const Component = blockRegistry[block.blockType] as BlockComponent | undefined;
     if (!Component) {
-      // Unknown block type: skip rather than break the whole page.
+      // Unknown block type: still skip rather than break the whole page — but
+      // SAY SO. Until roadmap R12 this branch returned null in silence, so
+      // renaming a block in the CMS deleted a live section from production with
+      // zero signal anywhere: no build failure (CI builds committed fixtures, and
+      // an absent registry key is not a type error — see the cast note above), no
+      // console output, no visual cue. A whole section simply stopped existing.
+      //
+      // Deliberately console.error and NOT a throw: throwing here would unmount
+      // the tree and blank the page, which is a behaviour change and the wrong
+      // trade for one missing section. An error boundary that degrades locally is
+      // roadmap R18. Deliberately NOT dev-only either — the failure happens on
+      // the PRODUCTION rebuild against the live CMS, which is the one environment
+      // a dev-only warning cannot reach.
+      //
+      // This costs no rendered output (the return value is unchanged, so
+      // pixel-parity stays at 0.000%), and content-shape.test.ts catches the same
+      // mismatch earlier, at the point content lands in the repo.
+      console.error(
+        `[PageRenderer] Unknown blockType "${block.blockType}" on page "${slug}" ` +
+          `(block ${index}) is not in the block registry — this section is NOT ` +
+          `being rendered. A CMS block was probably renamed or removed without ` +
+          `updating blockRegistry in src/app/PageRenderer.tsx.`,
+      );
       return null;
     }
 
