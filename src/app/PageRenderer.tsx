@@ -34,6 +34,26 @@ import { useScrollRestoration } from "./hooks/useScrollRestoration";
 import pagesData from "../../content/pages.json";
 
 /**
+ * The registry's view of a block component.
+ *
+ * Every block declares its OWN `content` prop type, and those types are all
+ * different, so the registry cannot name a single one. It stores the weakest
+ * thing that is true of all of them: something callable that does not require
+ * a `content` of any particular shape. In practice this accepts every block —
+ * those with an optional typed `content` prop, and the home sections that take
+ * no props at all and self-source their content — while still REJECTING a
+ * component that needs some other prop. Widening back to the real, opaque
+ * `content` happens once, at the lookup in PageRenderer below.
+ */
+type RegisteredBlock = ComponentType<{ content?: never }>;
+
+/**
+ * The same component as the renderer calls it: `content` is opaque, because its
+ * shape is per-blockType and is validated by the block's own prop type.
+ */
+type BlockComponent = ComponentType<{ content?: unknown }>;
+
+/**
  * Block registry: maps a CMS `blockType` to the ORIGINAL front-end component or
  * to a block renderer that reproduces a page sub-section's markup VERBATIM.
  *
@@ -42,7 +62,7 @@ import pagesData from "../../content/pages.json";
  * as blocks, each extracted verbatim from the original page component, so the
  * design stays pixel-identical while the CMS controls composition.
  */
-const blockRegistry: Record<string, ComponentType<{ content?: unknown }>> = {
+const blockRegistry: Record<string, RegisteredBlock> = {
   // Home
   hero: HeroSection,
   brandingPreview: CorporateBranding,
@@ -202,7 +222,15 @@ export function PageRenderer({ slug }: { slug: string }) {
   }
 
   const content = page.blocks.map((block, index) => {
-    const Component = blockRegistry[block.blockType];
+    // REASON for the cast: this is the one point where the registry's
+    // deliberately-weak entry type is widened back to "takes the opaque content
+    // the CMS emitted for this blockType". It cannot be proven — there is no
+    // compile-time relationship between a `blockType` string and the shape of
+    // its JSON — so it is asserted, once, here, instead of with an `any` per
+    // registry entry. R12 adds the runtime validation this stands in for; if a
+    // block's `content` prop and its CMS block ever disagree, that mismatch is
+    // invisible to the typechecker and will only show up at render.
+    const Component = blockRegistry[block.blockType] as BlockComponent | undefined;
     if (!Component) {
       // Unknown block type: skip rather than break the whole page.
       return null;
