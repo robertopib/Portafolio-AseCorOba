@@ -31,9 +31,14 @@ Last updated: 2026-08-04
   from the portfolio's own Neon. (memory: `neon-db-separate-account`)
 - **Two env files:** `cms/.env` = dev (daily), `cms/.env.prod` = prod (`:prod`
   scripts only; git-ignored).
-- **PR-only on both branches** (as of 2026-08-03, R2). `main` *and* `preview` are
-  protected: pull request required, all **4 CI checks** required, `enforce_admins:
-  true` (no bypass, including the owner), force-push and deletion disabled.
+- **PR-only on both branches** (as of 2026-08-03, R2; check list widened 2026-08-04, R25).
+  `main` *and* `preview` are protected: pull request required, all **6 CI checks**
+  required, `enforce_admins: true` (no bypass, including the owner), force-push and
+  deletion disabled. The six, spelled as GitHub matches them (the job's `name:`, not its
+  YAML key — a typo here silently protects nothing):
+  `Repo integrity (migrations, lockfiles)`, `CMS (frozen install, type drift, build)`,
+  `Site (frozen install, build)`, `Site typecheck (tsc --noEmit)`,
+  `Tests (vitest, offline)`, `Pixel parity (head vs merge base, 0.000%)`.
   **Direct pushes to `preview` are rejected** — every task now works on a feature
   branch and opens a PR. This is what makes `pixel-parity` (a `pull_request`-only
   job) actually gate preview work. Escape hatch if CI itself breaks:
