@@ -16,13 +16,24 @@ export const Media: CollectionConfig = {
     group: 'Portafolio',
     description:
       'Todas las imágenes subidas. Sube aquí una imagen antes de usarla en un proyecto.',
-    // Show the thumbnail preview first so the list is visually scannable (R10).
-    defaultColumns: ['preview', 'alt', 'updatedAt'],
+    // The FIRST column is the row's click target, and inside a list drawer it is the
+    // ONLY select affordance: the onClick→onSelect wiring lives in Payload's
+    // RenderDefaultCell, which is skipped for any field carrying a custom Cell.
+    // R10 put `preview` (custom Cell, no onClick) first, which made "elegir existente"
+    // impossible to click — the media library became write-only (R21).
+    // `filename` is a real field, so it renders through DefaultCell → FileCell, which
+    // draws a thumbnail AND sits inside the select button: still scannable (R10's
+    // intent), and selectable again.
+    // NEVER put a custom-Cell field first here.
+    defaultColumns: ['filename', 'alt', 'updatedAt'],
   },
   fields: [
     {
       // Virtual (no DB column) preview column: a server Cell renders the R2
       // thumbnail. See components/MediaThumbnailCell.tsx.
+      // Kept defined but deliberately NOT in defaultColumns — as a custom Cell it
+      // cannot be column 0 (see the note above), and FileCell already shows a
+      // thumbnail there. Still available from the list's column selector.
       name: 'preview',
       type: 'ui',
       label: 'Vista previa',
