@@ -43,13 +43,25 @@ export type GalleryCard = {
   group?: string | null;
 };
 
-/** Intro content (same shape a PortfolioIntro block carries) for home variants. */
+/**
+ * Intro content (same shape a PortfolioIntro block carries) for home variants.
+ *
+ * `studioLabel` / `roleLabel` are the per-category EDITABLE captions added by
+ * `feat(cms): per-category editable + hideable studio/role labels` — see
+ * `cms/src/collections/Categories.ts` and the `putLabel(...)` calls both
+ * exporters make. They are optional: when the Categoría leaves them unset, the
+ * renderers below fall back to the shared `home.studioLabel` / `home.roleLabel`
+ * strings in `content/ui.json`, which is what the live site shows today.
+ * `content/pages.json` predates the feature and carries neither key yet.
+ */
 type IntroContent = {
   sectionHeading?: LocalizedText;
   heading?: LocalizedText;
   tagline?: LocalizedText;
   description?: LocalizedText;
+  studioLabel?: LocalizedText;
   studioName?: string;
+  roleLabel?: LocalizedText;
   roleDescription?: LocalizedText;
   cta?: LocalizedText;
   sketchImage?: string;

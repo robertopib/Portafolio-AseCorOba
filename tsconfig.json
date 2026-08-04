@@ -1,0 +1,70 @@
+{
+  // TypeScript config for the SITE (the Vite SPA under src/). The CMS has its
+  // own, Next.js-flavoured config at cms/tsconfig.json — the two are separate
+  // projects with separate lockfiles and must stay that way.
+  //
+  // Before this file existed, `vite build` was the site's entire static gate and
+  // esbuild stripped every type annotation without checking it, so all types
+  // under src/** were decorative (roadmap R17). This config exists to make them
+  // real; `pnpm typecheck` runs it. It emits nothing — Vite/esbuild still owns
+  // the build, so nothing here can change the shipped bundle.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "esnext",
+    // Vite bundles, so resolve the way a bundler does (honours "exports",
+    // no extension rewriting). Same choice as cms/tsconfig.json.
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    // Typecheck only. esbuild does the emitting; tsc must never write output.
+    "noEmit": true,
+
+    // src/main.tsx imports "./app/App.tsx" WITH the extension, which Vite
+    // resolves fine. TS only permits that when it is not emitting (noEmit above).
+    "allowImportingTsExtensions": true,
+    // The renderers import content/*.json directly (e.g. PageRenderer.tsx
+    // imports ../../content/pages.json, 528 KB).
+    "resolveJsonModule": true,
+    // React 18 and React 19 type packages both exist in the pnpm store (the CMS
+    // is on 19, this project on 18). Don't typecheck inside dependencies.
+    "skipLibCheck": true,
+
+    // Must mirror the alias in vite.config.ts, or an import that resolves at
+    // build time would fail to typecheck (and vice versa). No src/ file uses
+    // "@/" today; the mapping is here so it can be relied on.
+    // (No "baseUrl": TypeScript 7 removed it; paths are resolved relative to
+    // this file, which is what vite.config.ts's path.resolve(__dirname) does.)
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
+    // Full strict. The measured pre-existing error inventory was 33 errors from
+    // 3 root causes, all fixed in the same change as this file, so strict lands
+    // at zero rather than becoming a standing pile of suppressions.
+    "strict": true
+
+    // DELIBERATELY NOT ENABLED (each has a named owner — do not turn these on
+    // casually, they are not free):
+    //
+    // - noUnusedLocals / noUnusedParameters: that is a linter's job, and ESLint
+    //   is broken repo-wide for want of a flat config (roadmap R9). Enabling
+    //   them here would smuggle a lint gate in through the type gate.
+    //
+    // - noUncheckedIndexedAccess: would flag every `content.x[language]` read,
+    //   e.g. HeroSection.tsx:50. Those unguarded reads are a REAL risk, but the
+    //   fix is runtime guards + an error boundary, which is roadmap R18/R12
+    //   work and changes rendered behaviour. This is the ratchet to turn on once
+    //   R18 lands, not something to silence with `!`.
+    //
+    // - @types/node, and therefore vite.config.ts is outside "include": typing
+    //   its __dirname/path usage needs Node globals, which would also change
+    //   setTimeout's return type across all 83 site files. `vite build` already
+    //   proves that file works.
+  },
+  // Only what ships. Tests are not here yet — R12 adds the runner and will
+  // extend this config for it.
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

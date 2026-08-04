@@ -161,6 +161,51 @@ jobs:
         run: test -f dist/index.html && test -d dist/assets
 
   # ---------------------------------------------------------------------------
+  # Site typecheck (roadmap R17). Until this existed the site had no TypeScript
+  # dependency and no tsconfig.json, so every type under src/** was decorative:
+  # esbuild strips annotations without checking them, and `site` above passes on
+  # code that could not possibly compile.
+  #
+  # Kept as its OWN job rather than a step in `site` on purpose:
+  #   * a type error and a build error are different classes of failure and
+  #     should be distinguishable at a glance in the checks list;
+  #   * `site` exists to mirror the asecoroba-site Vercel build EXACTLY, and
+  #     Vercel does not run tsc. Do not fold this into it.
+  #
+  # Runs in parallel with `site`, so it adds no wall clock to the pipeline
+  # (~10 s of tsc). Offline: no secrets, no DATABASE_URI, no live CMS, and
+  # content/*.json is read only as committed fixtures.
+  #
+  # NOT YET A REQUIRED CHECK. GitHub does not infer required checks from a
+  # workflow — this gates nothing until the branch-protection required-checks
+  # list is updated by hand on BOTH main and preview (both enforce_admins: true)
+  # and verified with a real push. Per the roadmap's locked decision that should
+  # happen only after two green runs; batch it with R12's `tests` job so
+  # protection is touched once.
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Site typecheck (tsc --noEmit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+  # ---------------------------------------------------------------------------
   # Pixel parity — the public site must stay pixel-identical.
   #
   # This does NOT diff against screenshots/baseline: that directory is git-ignored
