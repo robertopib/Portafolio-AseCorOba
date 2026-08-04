@@ -106,12 +106,14 @@ Last updated: 2026-08-04
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
-| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11 |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11, **R17** |
 | R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
-| R17 | Site has **no typechecker at all** (no root tsconfig, no `typescript` dep) | todo | devops | Medium | — |
+| R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
+| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | todo | devops | Low | R17, R12 |
+| R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -268,9 +270,30 @@ asserting `Media.admin.defaultColumns[0]` names a field with **no custom `Cell`*
 the Cell wires `onSelect`) — R21 shipped a prod fix without a regression test because no
 runner existed; this is where that test lands. Cheap, no admin rendering.
 **Sequencing note:** installing Vitest is a **root lockfile change** — confirm
-`scripts/ci/check-lockfiles.mjs` tolerates it, and expect first-time site type errors to
-surface (R17). Budget for that; don't let it derail the task. Add the `tests` CI job here
-but make it a *required* check only after two green runs (Locked decisions).
+`scripts/ci/check-lockfiles.mjs` tolerates it. ~~expect first-time site type errors~~ —
+**resolved: R17 landed first and R12 now inherits a clean foundation** (2026-08-04): root
+`tsconfig.json` (full `strict`, **0 errors**), `typescript` + React-18 `@types/*`, `react` +
+`react-dom` promoted to **direct** dependencies, a working `@/*` alias, and a green
+`typecheck` CI job. The feared "surprise pile" never materialised — it was 29 errors from 2
+root causes, all fixed at source. Add the `tests` CI job here, but make it a *required* check
+only after two green runs (Locked decisions).
+**Inherited constraints from R17 — read before touching config:**
+- **Extend `tsconfig.json`, do not add a second one.** R17 wrote it expecting exactly this,
+  with `include: ["src"]` and a comment saying R12 extends it.
+- **`noUncheckedIndexedAccess` is the named ratchet, deliberately off.** It flags every
+  `content.x[language]` read (e.g. `HeroSection.tsx:50`) — real risk, but the fix is runtime
+  guards + an error boundary, i.e. **R18** work that changes behaviour. Turn it on when R18
+  lands, not here, and never silence it with `!`.
+- **`pnpm.overrides` pins `@types/react` 18.3.31 / `@types/react-dom` 18.3.7.** Do not remove
+  them: an incremental install otherwise leaves a stray `@types/react@19` in pnpm's hoisted
+  peer dir and produces ~200 phantom TS2786 errors from duplicate `ReactNode`. The R17 worker
+  hit this for real.
+- **A prose comment in `src/` can move the stylesheet** — Tailwind v4's
+  `@source '../**/*.{js,ts,jsx,tsx}'` extracts candidates from comment text; the word
+  "static" emitted a stray `.static{position:static}` rule and changed the CSS bundle. If
+  `pixel-parity` reddens on a comment-only change, this is why.
+- Root TS is **7.0.2**, `cms` is **6.0.3** (**R26**). If the runner spans both projects per
+  `docs/testing-standards.md` §4, resolve that skew deliberately.
 
 ### R13 — Fidelity-twin test + repair the local gate  (High)
 **Context:** `scripts/fetch-content.mjs` (REST, build-time) is a hand-maintained
@@ -299,6 +322,12 @@ automated check proves both paths produce identical output for the same CMS stat
 fails on an **induced** divergence. Must respect the no-live-DB-in-CI constraint (fixture
 or throwaway DB, never prod/dev Neon).
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
+**Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
+exporters** — it predates the per-category studio/role label feature, so the next
+`fetch-content` run introduces `studioLabelVisible`/`roleLabelVisible` keys. Output stays
+identical unless an editor sets a label, but it means **a committed fixture currently
+disagrees with what both twins would emit** — directly relevant to R13's equivalence test,
+which must not mistake this for induced divergence.
 
 ### R14 — Dead file `src/styles/globals.css`  (Low)
 **Context:** Nothing imports it. `src/main.tsx` imports only `src/styles/index.css`,
@@ -342,6 +371,50 @@ explicitly whether it becomes a CI gate (mind the ~2-minute budget and the R9 pr
 don't add a check that reddens every PR for pre-existing reasons).
 **Note:** R12 will add a tsconfig for the test runner anyway, so land this **first or
 together** — otherwise R12 inherits a surprise pile of type errors mid-task.
+
+**Sequencing resolved 2026-08-04 — R17 is now a hard dependency of R12** (prompt 1 of 2),
+because the conductor finally *measured* the "surprise pile" instead of speculating about
+it. Probe: the CMS's own `tsc` run against `src/**` with a throwaway config (nothing
+written to the repo, deleted after).
+- **Under naive strict config: 655 errors.** Misleading — 629 of them (TS7026 / TS7016 /
+  TS7053) are the *absence of React types*, not defects.
+- **With React types resolvable: 33 errors, in exactly 3 files, with 3 root causes.** Not a
+  pile. A bounded, one-session task:
+  - `src/app/PageRenderer.tsx` — **19**, all one structural pattern: the block-registry map
+    is typed `ComponentType<{ content?: unknown }>` and each concrete block component has a
+    narrower `content` prop, so every entry is a variance error. One fix, not 19.
+  - `src/app/blocks/CategoryGalleryBlocks.tsx` — **11**: `studioLabel` / `roleLabel` read at
+    `:697`, `:706`, `:884`, `:893`, `:1061`, `:1070`, `:1161`, `:1170` but absent from the
+    `IntroContent` type (`:47-57`) — **and absent from `content/categories.json` entirely
+    (0 occurrences of either)**. Plus one `Cannot find namespace 'JSX'`.
+  - `src/main.tsx` — **3**, all config-shaped: `react-dom/client` types, a `.tsx` import
+    extension (needs `allowImportingTsExtensions`), and a CSS side-effect import (needs a
+    `*.css` module declaration).
+- **Also found, and a real blocker for R12:** the root `package.json` declares **no
+  `typescript`, no `@types/react`, no `@types/react-dom` — and does not declare `react` or
+  `react-dom` as direct dependencies at all** (both resolve only transitively; pnpm
+  hoists them, `react@18.3.1`). RTL + Vitest cannot be configured correctly on top of that,
+  which is precisely why R12 must not inherit this.
+- **Version trap:** `cms/node_modules/@types/react` is **19.2.14** while the site runs
+  **react@18.3.1**. Do not reuse the CMS's types — install v18-matching ones at the root.
+**~~The `studioLabel`/`roleLabel` finding is a live defect~~ — CONDUCTOR ERROR, corrected by
+the R17 worker.** I claimed those branches were "permanently dead, failing silently" on the
+strength of `grep studioLabel content/categories.json` → 0. That inference was wrong, and the
+grep was too narrow. **They render on the live site today.** Verified at ingest: the CMS
+defines both fields (`cms/src/collections/Categories.ts:108`, `:119`); both exporters emit
+them via `putLabel`; the shared fallbacks live in **`content/ui.json`**
+(`es.home.studioLabel` = "Branding corporativo de:", `es.home.roleLabel` = "Mi rol", plus
+`en`); and `fieldVisible` **defaults to true when `<name>Visible` is absent**
+(`src/app/blocks/contentMeta.ts:22-25`), so the branch renders the fallback. Resolution: the
+fields are **intended**, and were added to `IntroContent`. Lesson: absence from one fixture is
+not absence from the render path — the `fieldVisible` + `ui.json` fallback pattern means a
+field can be live while appearing nowhere in the obvious content file.
+
+**Status: done (preview)** 2026-08-04 — PR #8, squashed to `preview` as `03d5e84`. Full
+`strict`, **0 errors**, achieved by fixing all 29 at source rather than suppressing. All 5 CI
+jobs green (verified via `gh pr checks 8`), pixel-parity 0.000%/24, **build output
+byte-identical** (same content hashes). No prod deploy — correctly stopped at preview.
+Details in `.claude/session-notes/2026-08-04-R17.md`.
 
 ### R18 — No error boundary in `src/`  (Medium)
 **Context (from R11):** `grep -rn "ErrorBoundary\|componentDidCatch" src/` returns nothing.
@@ -589,6 +662,30 @@ design call.
 **Does NOT reopen the page-builder** (locked non-goal): R23/R24 add a *content* hierarchy
 and routes, not layout editing.
 
+### R25 — Promote `typecheck` + `tests` to required checks  (Low)
+**Context (from R17, 2026-08-04):** the `typecheck` job exists and is green, but **gates
+nothing** — per Locked decisions a new job is only made *required* after two green runs, and
+branch protection must be updated by hand (`gh api`, **both** `main` and `preview`) and
+verified with a real push. R17 deliberately left it non-required with one green run.
+**Do this once, not twice:** R12 will add a `tests` job with the same requirement. Batching
+both into a single branch-protection edit avoids touching protection on two branches twice.
+**Acceptance criteria (stub):** both jobs required on both branches; verified by a real
+rejected push (R2's precedent — the first `enforce_admins: false` apply silently let a push
+through, so *verify*, don't assume); the required-check count in Locked decisions updated from
+4 to its new value.
+
+### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
+**Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
+while `cms/` runs `6.0.3` — **two different TypeScript majors in one repo**. Harmless today
+because the two projects have separate lockfiles, separate configs and separate CI jobs, and
+both pass. Two reasons it is worth a deliberate decision rather than drift:
+1. `docs/testing-standards.md` §4 recommends **one runner for both projects** (R12). A single
+   Vitest config spanning both would sit on top of a TS major skew.
+2. TS 7 is the native port and removed options the older config may still rely on — R17
+   already hit one (`baseUrl` removed in 7, noted in `tsconfig.json`).
+**Acceptance criteria (stub):** a recorded decision — align both on one major, or document
+why the skew is deliberate and safe. No behaviour change expected either way.
+
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
 caught before deploy.
@@ -748,6 +845,18 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   writing it**, none fixed there: the fidelity gate reports `match: true` for **90.2% of
   committed content bytes without comparing them** (→ R13, bumped to High), plus R16–R19.
   Upstream-promotion candidates → R20.
+- 2026-08-04 — **R17 done on preview** (PR #8, squash `03d5e84`): the site got its first
+  typechecker. Root `tsconfig.json` at **full `strict` with 0 errors**, `typescript` +
+  React-18 `@types/*`, and `react`/`react-dom` **promoted from transitive-only to real
+  dependencies** — they were used by 83 files while declared nowhere. 29 pre-existing errors
+  found, all 29 fixed at source (19 were one variance pattern in `PageRenderer.tsx`'s block
+  registry); **build output byte-identical**, pixel-parity 0.000%. New non-required
+  `typecheck` CI job (5 jobs now). The "surprise pile of type errors" that had twice deferred
+  this item was measured and turned out to be 2 root causes. **Conductor error corrected
+  here:** my claim that `studioLabel`/`roleLabel` were dead branches was wrong — they render
+  live via `ui.json` fallbacks and `fieldVisible`'s default-true; I had grepped one fixture
+  and over-inferred. Follow-ups: **R25** (required checks), **R26** (TS major skew), stale
+  `content/pages.json` → R13.
 - 2026-08-04 — **R21 shipped to PROD** (`c60b83f`, PR #6 → `7298825`, PR #7 → `8e48d81`):
   the media picker's "elegir existente" drawer had **no clickable row**, so the library was
   write-only — 44 images and none reusable. An R10 regression that reached production: a
