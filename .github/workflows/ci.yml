@@ -1,0 +1,289 @@
+# CI gate — block bad merges before they reach preview or production.
+#
+# Roadmap R2. Every check here maps to a regression this project actually shipped:
+#   * migrations / lockfiles → a committed index.ts imported a deleted migration,
+#     the CMS build failed, and Vercel silently served a stale deploy for days (R8).
+#   * install integrity      → a root `pnpm add` updated the WRONG lockfile; Vercel
+#     installs the CMS with `--frozen-lockfile --ignore-workspace` and would have failed.
+#   * type drift             → committed cms/src/payload-types.ts can drift from the schema.
+#   * pixel parity           → the public site must stay pixel-identical; until now the
+#     0.000% gate was only ever run by hand.
+#
+# Deliberately NOT gated: `pnpm lint`. ESLint v9 needs a flat config and this repo
+# has none, so lint is broken repo-wide — tracked as roadmap R9. Adding it here
+# would fail every PR for a pre-existing reason.
+#
+# No secrets are needed or referenced. The CMS build and type generation run
+# against a deliberately unreachable placeholder DATABASE_URI: Payload only needs
+# the variable to be parseable to build the config, it never opens a connection
+# during `next build` or `generate:types` (verified). Nothing in CI touches a real
+# database, so `payload migrate` (which Vercel runs via `ci:build`) is NOT run here.
+name: CI
+
+on:
+  pull_request:
+    branches: [preview, main]
+  push:
+    branches: [preview, main]
+  workflow_dispatch:
+
+# A newer push to the same branch/PR makes the in-flight run obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # cms/package.json engines: node >=24.15.0
+  NODE_VERSION: '24.15.0'
+  # Both lockfiles are lockfileVersion 9.0, written by pnpm 9.
+  PNPM_VERSION: '9.15.9'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Fast structural checks. No install, no build — fails in seconds so a broken
+  # migrations index or a crossed lockfile doesn't wait on a 5-minute build.
+  # ---------------------------------------------------------------------------
+  repo-integrity:
+    name: Repo integrity (migrations, lockfiles)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # Full history so the migration/schema advisory can diff the merge base.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Migrations integrity
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/ci/check-migrations.mjs
+
+      - name: Lockfile invariants
+        run: node scripts/ci/check-lockfiles.mjs
+
+  # ---------------------------------------------------------------------------
+  # CMS: mirrors how Vercel builds the `asecoroba-cms` project.
+  # ---------------------------------------------------------------------------
+  cms:
+    name: CMS (frozen install, type drift, build)
+    runs-on: ubuntu-latest
+    env:
+      # Placeholder credentials. Unreachable on purpose — see the header note.
+      DATABASE_URI: postgres://ci:ci@127.0.0.1:5432/ci_placeholder
+      PAYLOAD_SECRET: ci-placeholder-not-a-real-secret
+      S3_BUCKET: ci-placeholder
+      S3_ENDPOINT: https://ci.invalid
+      S3_ACCESS_KEY_ID: ci-placeholder
+      S3_SECRET_ACCESS_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: cms/pnpm-lock.yaml
+
+      # Exactly Vercel's installCommand for the CMS project (cms/vercel.json).
+      # --ignore-workspace is what keeps cms/pnpm-lock.yaml authoritative; frozen
+      # is what catches a lockfile that doesn't match cms/package.json.
+      - name: Install (frozen, ignore-workspace)
+        working-directory: cms
+        run: pnpm install --frozen-lockfile --ignore-workspace
+
+      - name: Type drift — payload-types.ts is up to date
+        working-directory: cms
+        run: |
+          pnpm run generate:types
+          if ! git diff --exit-code --stat -- src/payload-types.ts; then
+            echo "::error title=Type drift::cms/src/payload-types.ts is stale. Run 'pnpm --dir cms generate:types' and commit the result."
+            git --no-pager diff -- src/payload-types.ts | head -100
+            exit 1
+          fi
+          echo "payload-types.ts up to date ✓"
+
+      - name: Import-map drift — admin importMap.js is up to date
+        working-directory: cms
+        run: |
+          pnpm run generate:importmap
+          if ! git diff --exit-code --stat -- 'src/app/(payload)/admin/importMap.js'; then
+            echo "::error title=Import-map drift::admin importMap.js is stale. Run 'pnpm --dir cms generate:importmap' and commit the result."
+            git --no-pager diff -- 'src/app/(payload)/admin/importMap.js'
+            exit 1
+          fi
+          echo "importMap.js up to date ✓"
+
+      # `next build` runs TypeScript with no ignoreBuildErrors, so this is the
+      # typecheck as well as the build. This is the step that would have caught
+      # the phantom-migration-import incident (R8).
+      - name: Build (next build — includes TS checking)
+        working-directory: cms
+        run: pnpm run build
+
+  # ---------------------------------------------------------------------------
+  # Front-end: mirrors the `asecoroba-site` Vercel project. `scripts/fetch-content.mjs`
+  # is deliberately NOT run — it needs the live CMS. content/*.json and
+  # public/images are committed, so the build is fully offline and deterministic.
+  # ---------------------------------------------------------------------------
+  site:
+    name: Site (frozen install, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Assert build output exists
+        run: test -f dist/index.html && test -d dist/assets
+
+  # ---------------------------------------------------------------------------
+  # Pixel parity — the public site must stay pixel-identical.
+  #
+  # This does NOT diff against screenshots/baseline: that directory is git-ignored
+  # (46 MB of locally-shot PNGs) and, being rendered by macOS Chrome, does not
+  # reproduce on a Linux runner. Measured: all 24 baseline shots differ from Linux
+  # Chrome by 0.084%–1.449% with byte-identical page dimensions, i.e. pure font
+  # rasterization against a 0.000% gate. See the R2 outcome note.
+  #
+  # Instead it shoots the merge base and the PR head on the SAME runner with the
+  # SAME browser and diffs those. Cross-platform rasterization cancels out, no
+  # baseline needs committing, and the question asked is the one that matters for
+  # a PR: "does this change alter a single rendered pixel?" Repeat runs on one
+  # platform were measured at 0.000% across all 24 shots, so 0 tolerance is safe.
+  # ---------------------------------------------------------------------------
+  pixel-parity:
+    name: Pixel parity (head vs merge base, 0.000%)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Resolve Chrome
+        id: chrome
+        run: |
+          BIN="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium-browser || command -v chromium || true)"
+          if [ -z "$BIN" ]; then
+            echo "::error title=Pixel parity::No Chrome binary on the runner."
+            exit 1
+          fi
+          echo "path=$BIN" >> "$GITHUB_OUTPUT"
+          "$BIN" --version
+
+      - name: Install (frozen)
+        run: pnpm install --frozen-lockfile
+
+      # ---- Build the PR head -------------------------------------------------
+      - name: Build head
+        run: |
+          pnpm build
+          mv dist /tmp/dist-head
+
+      # ---- Build the merge base in a worktree, so HEAD's scripts stay in place.
+      # A base that doesn't build is reported as a warning, not a failure: the PR
+      # may be the fix, and the head build is gated by the `site` job regardless.
+      - name: Build merge base
+        id: base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git worktree add /tmp/base "$BASE_SHA"
+          cd /tmp/base
+          if ! pnpm install --frozen-lockfile; then
+            echo "::warning title=Pixel parity::Merge base $BASE_SHA failed to install; skipping the parity diff."
+            echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if ! pnpm build; then
+            echo "::warning title=Pixel parity::Merge base $BASE_SHA failed to build; skipping the parity diff."
+            echo "ok=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          mv dist /tmp/dist-base
+          echo "ok=true" >> "$GITHUB_OUTPUT"
+
+      # ---- Shoot both, always with HEAD's scripts/shoot.mjs -----------------
+      - name: Shoot merge base
+        if: steps.base.outputs.ok == 'true'
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.path }}
+        run: |
+          rm -rf dist && cp -R /tmp/dist-base dist
+          pnpm exec vite preview --port 4173 --strictPort >/tmp/preview-base.log 2>&1 &
+          PREVIEW_PID=$!
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:4173/ && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://localhost:4173/ || { cat /tmp/preview-base.log; exit 1; }
+          node scripts/shoot.mjs http://localhost:4173 screenshots/ci-base
+          kill "$PREVIEW_PID"
+
+      - name: Shoot head
+        if: steps.base.outputs.ok == 'true'
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.path }}
+        run: |
+          rm -rf dist && cp -R /tmp/dist-head dist
+          pnpm exec vite preview --port 4173 --strictPort >/tmp/preview-head.log 2>&1 &
+          PREVIEW_PID=$!
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:4173/ && break
+            sleep 1
+          done
+          curl -sf -o /dev/null http://localhost:4173/ || { cat /tmp/preview-head.log; exit 1; }
+          node scripts/shoot.mjs http://localhost:4173 screenshots/ci-head
+          kill "$PREVIEW_PID"
+
+      - name: Diff (0.000% required)
+        if: steps.base.outputs.ok == 'true'
+        run: |
+          if ! node scripts/diff.mjs screenshots/ci-base screenshots/ci-head; then
+            echo "::error title=Pixel parity::This change alters the rendered public site. The design guarantee is 0.000% (see INFRASTRUCTURE.md §1). If the change is intentional, say so on the PR and re-shoot the local baseline."
+            exit 1
+          fi
+
+      - name: Upload diff artifacts
+        if: failure() && steps.base.outputs.ok == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: pixel-parity-diff
+          path: |
+            screenshots/diff
+            screenshots/ci-base
+            screenshots/ci-head
+          retention-days: 7
+          if-no-files-found: ignore

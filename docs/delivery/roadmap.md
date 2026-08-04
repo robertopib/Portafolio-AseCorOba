@@ -31,6 +31,49 @@ Last updated: 2026-08-03
   from the portfolio's own Neon. (memory: `neon-db-separate-account`)
 - **Two env files:** `cms/.env` = dev (daily), `cms/.env.prod` = prod (`:prod`
   scripts only; git-ignored).
+- **PR-only on both branches** (as of 2026-08-03, R2). `main` *and* `preview` are
+  protected: pull request required, all **4 CI checks** required, `enforce_admins:
+  true` (no bypass, including the owner), force-push and deletion disabled.
+  **Direct pushes to `preview` are rejected** — every task now works on a feature
+  branch and opens a PR. This is what makes `pixel-parity` (a `pull_request`-only
+  job) actually gate preview work. Escape hatch if CI itself breaks:
+  `gh api -X DELETE repos/robertopib/Portafolio-AseCorOba/branches/<b>/protection/enforce_admins`.
+- **Visual regression is settled — do not re-litigate.** The CMS-churn objection
+  ("the front page changes constantly, so a baseline goes stale") does **not** apply:
+  `pixel-parity` stores no baseline, diffs merge-base vs head against the *same*
+  committed `content/*.json` fixtures, and editor publishes never trigger CI (publish
+  → Vercel deploy hook, no GitHub involvement). Editor activity generates zero pixel
+  noise. `scripts/shoot.mjs` + `scripts/diff.mjs` stay as-is. Admin UI is never
+  pixel-tested. Evidence: `.claude/session-notes/2026-08-03-R2.md`.
+- **Testing standard = `docs/testing-standards.md`** (as of 2026-08-03, R11). The
+  upstream `governance/docs/rules/testing-standards.md` is generic submodule boilerplate
+  shared with other projects and is **not binding here**; where the two disagree the
+  project file wins, and its §7 deltas table records every departure. Binding
+  consequences:
+  - **No coverage-percentage target, ever.** The upstream 80% rule is dropped: 48 of the
+    site's 83 files (58%) are vendored shadcn, so a ratio is cheapest to satisfy by
+    rendering static markup — it rewards the tests the standard forbids and says nothing
+    about content shape or twin drift. Required coverage is by **named risk category**
+    (§2); the ratio is never measured. Also dropped: snapshot-per-presentational-component,
+    loading-state verification (no async UI exists), and the code-type layer matrix.
+  - **Kept non-negotiable:** a bug fix ships a regression test that fails without the fix.
+  - **E2E is deferred, not omitted** — the only true end-to-end flow (publish) needs auth
+    + live Neon + a real deploy hook, all forbidden in CI. Reopen only when publish gains
+    real logic. **Adopting Playwright later does NOT reopen the visual-regression
+    decision** — `shoot.mjs`/`diff.mjs` stay as-is regardless.
+  - **Tooling (recommended, not yet installed):** Vitest + React Testing Library + jsdom,
+    one runner for both projects. It introduces the site's **first TypeScript dependency**,
+    and adding a tsconfig will surface pre-existing site type errors for the first time —
+    R12 must budget for that (see R17).
+  - **Payload Local API integration tests are local-only, never in CI.**
+  - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
+    both branches) and verified with a real push. Add a `tests` job only as a *required*
+    check after two green runs.
+- **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
+  `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
+  never connects), `payload migrate` runs only in Vercel's `ci:build`, and
+  `fetch-content.mjs` is not run in CI (committed content keeps builds
+  deterministic, so a CMS outage cannot redden a PR).
 
 ## Rules quick-ref (cite in every prompt)
 
@@ -53,7 +96,7 @@ Last updated: 2026-08-03
 | R1d | ↳ GENERATE thumbnails (sharp hook + backfill) — 43/43 done | done (PROD) | full-stack | Medium | R1c |
 | R9 | ESLint v9 flat-config missing → `pnpm lint` broken repo-wide | todo | devops | Low | — |
 | R10 | Thumbnail preview COLUMN in the media library list (custom Cell) | done (PROD) | full-stack | Low | R1d |
-| R2 | Automation Tier 2 — CI gate (GitHub Actions) | todo | devops | Medium | — |
+| R2 | Automation Tier 2 — CI gate (GitHub Actions) | done (preview) | devops | Medium | — |
 | R3 | Email adapter (forgot-password sends) [+ npm ergonomics = R3b] | in-progress | full-stack/devops | High | — |
 | R3a | ↳ Resend adapter + `serverURL` (reset email sends + link works) | done (PROD) | devops | High | — |
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
@@ -62,6 +105,16 @@ Last updated: 2026-08-03
 | R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
+| R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
+| R12 | Content-resilience tests — the gap CI structurally cannot see | todo | qa/full-stack | Medium | R11 |
+| R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
+| R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
+| R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
+| R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
+| R17 | Site has **no typechecker at all** (no root tsconfig, no `typescript` dep) | todo | devops | Medium | — |
+| R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
+| R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
+| R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -149,12 +202,222 @@ no schema, no migration, public site untouched.
 **Acceptance criteria (stub):** the Biblioteca de Imágenes list shows a small
 thumbnail per row; pixel gate n/a (admin-only); no migration.
 
+### R11 — Project-calibrated testing standards  (Medium)
+**Context:** The repo has **zero tests and zero test tooling** (no runner, no `test`
+script, no test files, either project). `governance/docs/rules/testing-standards.md`
+is generic **submodule** boilerplate shared with other projects: 80% line coverage, a
+full unit/integration/E2E matrix, snapshot tests per presentational component —
+applied literally to ~83 mostly-presentational files with vendored shadcn it produces
+pure busywork. A project-local QA agent exists at `.claude/agents/qa.md`; this task is
+the agent authoring the calibrated companion standard.
+**Acceptance criteria (stub):** `docs/testing-standards.md` exists with the risk
+ranking, layer assignment (concrete example per layer from real files), explicit
+non-goals *with reasons*, a tooling recommendation with tradeoffs, a calibrated
+Definition of Done, CI integration + runtime budget, and a deltas-from-upstream
+table. Recommendations sequenced so item 1 ships alone. **Rules only** — no tooling
+installed, no lockfile touched, submodule not edited.
+**Locked decision:** visual regression is **settled, not open**. `pixel-parity`
+already guards the public design invariant and is immune to CMS content churn (it
+diffs merge-base vs head against the *same* committed fixtures, stores no baseline,
+and editor publishes never trigger CI). `shoot.mjs`/`diff.mjs` stay as-is. Do not
+re-litigate — see `.claude/session-notes/2026-08-03-R2.md`.
+**Status: done (preview)** 2026-08-03 — `docs/testing-standards.md`, 426 lines, 7
+sections + a gotchas section. Commit `77a08a9`, PR #4 → merge `b0ecb43`. Docs-only:
+one added file, submodule untouched (SHA still `e85041e`), no lockfile/CI change, no
+runner installed. All 4 required checks green; `pixel-parity` 0.000%. The rules it
+locked are now in **Locked decisions** above. Full record:
+`.claude/session-notes/2026-08-03-R11.md`.
+**Five defects found while writing it** (each verified in source, none fixed here —
+this was a rules-only task): the fidelity-gate blind spot (folded into **R13**), plus
+**R16**–**R19**. R11 also produced a list of upstream-promotion candidates → **R20**.
+
+### R12 — Content-resilience tests  (Medium)
+**Context:** The largest untested gap, and it is structural: CI builds the site
+against committed `content/*.json` fixtures, but production rebuilds against the
+**live CMS** via the publish hook, which never touches GitHub Actions. **The deployed
+site is never the artifact CI validated.** A 400-character heading, a portrait image
+where the layout assumes landscape, or an empty field a renderer assumes is populated
+ships to production unseen. Content changes continuously by design; public code is
+frozen (17 commits/6 months).
+**Layer + tooling: SETTLED by R11** — see `docs/testing-standards.md` §2/§4 and Locked
+decisions. Integration (jsdom, **synthetic** fixtures — never live CMS data) for the
+renderers, plus a node invariant check over committed `content/*.json`. Runner: Vitest +
+RTL + jsdom.
+**R11 sharpened why this is invisible** (all verified): the site has **no typechecker at
+all** — no root `tsconfig.json`, no `typescript` dep — so the `HeroContent` type at
+`src/app/components/HeroSection.tsx:6-14` is decorative; and there is **no error boundary
+anywhere in `src/`**, so `HeroSection.tsx:50` indexing `title[language]` unguarded means
+one missing field **blanks the whole page**. Also: no `line-clamp`/`truncate` in any
+project-owned component, 22 fixed-aspect `overflow-hidden` containers, and
+`PageRenderer.tsx:206-209` silently drops an unknown `blockType` (a renamed CMS block
+deletes a live section with zero signal).
+**Measured baseline to pin:** 2,709 localized `{es,en}` pairs, **0** with `es` populated
+and `en` empty, `ui.json` at 73/73 key parity.
+**Acceptance criteria (stub):** renderers survive hostile-but-legal content
+(over-long strings, empty optional fields, wrong-aspect images, missing `en`) without
+layout collapse; failures are loud, not silent.
+**Sequencing note:** installing Vitest is a **root lockfile change** — confirm
+`scripts/ci/check-lockfiles.mjs` tolerates it, and expect first-time site type errors to
+surface (R17). Budget for that; don't let it derail the task. Add the `tests` CI job here
+but make it a *required* check only after two green runs (Locked decisions).
+
+### R13 — Fidelity-twin test + repair the local gate  (High)
+**Context:** `scripts/fetch-content.mjs` (REST, build-time) is a hand-maintained
+*line-for-line mirror* of `cms/src/scripts/export-content.ts` (Local API) — two
+implementations of one contract that must emit **byte-identical** JSON, kept in sync
+by hand. A silent divergence corrupts every published page.
+**⚠️ Bumped Medium→High by R11: the existing local gate is ~90% decorative.** Verified,
+with line refs:
+- The **REST twin diffs everything** — all files go through `emit()`
+  (`scripts/fetch-content.mjs:154-162`) and are deep-diffed against `git HEAD`
+  (`:1058-1084`).
+- The **Local-API twin does not.** `emit()` diffs only what it routes
+  (`export-content.ts:104-109`), but `pages.json` (`:653-657`), `categories.json`
+  (`:689-694`) and `case-studies.json` (`:1011-1016`) are written **straight into
+  `content/`** with a hardcoded `report[…] = { match: true, diffs: [] }`.
+  **Measured: 598,916 of 664,086 committed content bytes = 90.2% reported as matching
+  without ever being compared.**
+- **Neither gate can fail anything.** `fetch-content.mjs:1084` logs `allMatch` and
+  continues; `export-content.ts:1026-1031` catches every error, writes
+  `/tmp/export-error.json`, and calls `process.exit(0)`.
+So this is not "add drift detection to a working gate" — **the gate must be repaired as
+part of the task.** A green fidelity report is currently weak evidence.
+**Acceptance criteria (stub):** (a) the three un-diffed files are actually compared and
+the hardcoded `match: true` is gone; (b) both gates exit non-zero on mismatch; (c) an
+automated check proves both paths produce identical output for the same CMS state and
+fails on an **induced** divergence. Must respect the no-live-DB-in-CI constraint (fixture
+or throwaway DB, never prod/dev Neon).
+**Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
+
+### R14 — Dead file `src/styles/globals.css`  (Low)
+**Context:** Nothing imports it. `src/main.tsx` imports only `src/styles/index.css`,
+which pulls in `fonts.css`, `tailwind.css`, `theme.css` and the slick CSS. Surfaced
+during R2: a deliberate 1px regression probe was written into `globals.css` and CI
+**correctly** stayed green, which briefly looked like a broken pixel gate. Real global
+style changes belong in `theme.css`.
+**Acceptance criteria (stub):** file deleted (or wired into `index.css` if it was
+meant to be live); pixel gate 0.000%; a note so nobody reads a green gate on a
+`globals.css` edit as evidence the gate is broken.
+
+### R15 — `pnpm/action-setup@v4` Node-20 deprecation  (Low)
+**Context:** Every CI run annotates *"Node.js 20 is deprecated … forced to run on
+Node.js 24"* for `pnpm/action-setup@v4`. Harmless today (`actions/*` are already on
+v5), but it will break when GitHub drops the Node-20 shim.
+**Acceptance criteria (stub):** annotation gone — bump the action when a v5 exists,
+or replace it with `corepack`/`packageManager`. Note neither `package.json` declares
+`packageManager`, which is why the pnpm version is pinned explicitly in the workflow.
+
+### R16 — `export-content.ts` header contradicts its behaviour  (Low)
+**Context (from R11):** the header at `cms/src/scripts/export-content.ts:1-10` states it
+"Does NOT modify the committed content/\*.json (source of truth)". Lines 653, 689 and 1011
+write `pages.json`, `categories.json` and `case-studies.json` **directly into
+`CONTENT_DIR`**. Anyone trusting the comment will run the export believing it is read-only
+and silently overwrite the source of truth.
+**Acceptance criteria (stub):** header matches actual behaviour (or the writes are
+redirected to `OUT_DIR` like every other file — decide which is intended).
+**Fold into R13** — same file, same reader, and R13 already rewrites that logic.
+
+### R17 — Site has no typechecker at all  (Medium)
+**Context (from R11):** there is **no root `tsconfig.json`** (only `cms/tsconfig.json`) and
+**no `typescript` dependency** in the root `package.json`. `vite build` is the entire static
+gate (`.github/workflows/ci.yml:157-158`) and esbuild strips types without checking them.
+Consequence: every type in `src/**` is decorative. The `HeroContent` type at
+`src/app/components/HeroSection.tsx:6-14` declares `title`/`subtitle`/`body`/`cta1`/`cta2`
+required and **nothing enforces it** — which is precisely the guard R12's risk-1 work
+needs. Never cite a type annotation in `src/` as evidence a field is present.
+**Acceptance criteria (stub):** a root `tsconfig.json` + `typescript` dev dep; `tsc
+--noEmit` runs and either passes or reports only pre-existing, documented errors; decide
+explicitly whether it becomes a CI gate (mind the ~2-minute budget and the R9 precedent —
+don't add a check that reddens every PR for pre-existing reasons).
+**Note:** R12 will add a tsconfig for the test runner anyway, so land this **first or
+together** — otherwise R12 inherits a surprise pile of type errors mid-task.
+
+### R18 — No error boundary in `src/`  (Medium)
+**Context (from R11):** `grep -rn "ErrorBoundary\|componentDidCatch" src/` returns nothing.
+Combined with R17 (types unenforced) and `src/app/components/HeroSection.tsx:50` indexing
+`home.hero.title[language]` unguarded, a single field missing from a CMS publish throws at
+render, React unmounts the tree, and the visitor gets a **blank page** — not a degraded
+section. This is the blast radius that makes R12's risk 1 severe rather than cosmetic.
+**Acceptance criteria (stub):** a render error degrades to a contained fallback instead of
+a white screen; the failure is **loud** (visible/logged), not silently swallowed; public
+site pixel-identical in the happy path (0.000%).
+**Note:** cheap fix, large blast-radius reduction — natural companion to R12. Must not
+alter the happy-path render, or `pixel-parity` will (correctly) go red.
+
+### R19 — `POST /api/publish` returns 200 on an unconfigured hook  (Low)
+**Context (from R11):** `cms/src/payload.config.ts:41-62`. Auth is correct (403 when
+`!req.user`, `:48-50`), but a missing/wrong `VERCEL_DEPLOY_HOOK_URL` makes
+`pingDeployHook` return `{ ok: false, reason: 'no-hook' }`
+(`cms/src/hooks/triggerDeploy.ts:24-25`) which the endpoint returns with **status 200**
+(`:52-55`, deliberately). Editor sees success; nothing rebuilds. Same shape as the R3a
+bug — an env var whose absence produces a green-looking result.
+**Acceptance criteria (stub):** the editor can tell publish failed. Either
+`PublishButton.tsx` surfaces `reason` distinctly, or the status reflects it — plus the
+~20-line handler unit test proposed in `docs/testing-standards.md` §2 item 3 (403
+unauthenticated, `no-hook` surfaced). Assert on the body, never the status.
+**Note:** decide deliberately whether to keep 200. The current comment argues it's a valid
+editor-facing state, not a server error — that's defensible; the gap is the **UI**, not
+necessarily the status code.
+
+### R20 — Promote R11's testing deltas upstream  (Low)
+**Context (from R11):** `docs/testing-standards.md` §7 is a 10-row deltas table written so
+a human can decide what belongs in the shared `governance/` submodule. Candidates, ranked:
+1. **Strongest** — replace the flat 80% coverage rule with risk-category requirements, or
+   sanction "no coverage target on predominantly presentational codebases" as an explicit
+   deviation, so each project needn't re-argue it.
+2. Narrow snapshot-per-component to *project-owned* components; never require snapshots of
+   vendored code.
+3. Add a carve-out for "CI cannot reach a database" — upstream's
+   integration-test-every-DB-query rule doesn't contemplate it.
+4. Add a "data/content shape" tier to the test priority order for content-driven sites.
+5. Reword `governance/CLAUDE.md:63` from "Tests exist per testing-standards.md" to "meets
+   the project's testing standard" — as written it is unsatisfiable until a runner exists.
+6. Soften `governance/docs/rules/coding-standards.md:7` (`kebab-case.tsx`) to "explicit and
+   enforced per project" — this repo uses `PascalCase.tsx` throughout, and its own note at
+   `:16-17` already implies this.
+**Acceptance criteria (stub):** a decision recorded per row (promote / decline / defer);
+promoted rows land as a **submodule commit** in `robertopib/ai-dev-governance`, then the
+gitlink is bumped here.
+**⚠️ This is the one item that legitimately edits the submodule** — it is shared with other
+projects, so changes affect them. Same caveat as R7. Never edit it from a task that isn't
+this one.
+
 ### R2 — Automation Tier 2: CI gate  (Medium)
 **Context:** No CI exists (`.github/workflows/` empty). Bad merges to `main` aren't
 caught before deploy.
 **Acceptance criteria (stub):** a GitHub Actions PR workflow runs `tsc` (cms+site),
 `payload generate:types` drift check, `pnpm build`, the pixel gate, and a
 "migrations committed / no schema drift" check; failing any blocks merge.
+**Status: done (preview)** — `.github/workflows/ci.yml`, 4 jobs, all green on
+`preview` (run `30823119081`), PR-triggered pixel gate proven on PR #2 (closed).
+Runs on PRs *and* pushes to `preview`/`main`. No secrets; CI never touches a real DB
+(placeholder unreachable `DATABASE_URI`; `payload migrate` is NOT run in CI).
+- `repo-integrity` (~15s, no install): migrations `index.ts`↔disk both ways,
+  `push: false`, two-lockfile invariants. `scripts/ci/check-migrations.mjs`,
+  `scripts/ci/check-lockfiles.mjs`.
+- `cms` (~1m): frozen `--ignore-workspace` install (mirrors `cms/vercel.json`),
+  `payload-types.ts` + admin `importMap.js` drift, `next build` (= the typecheck).
+- `site` (~30s): frozen root install + `vite build`. Fully offline —
+  `fetch-content.mjs` is not run; `content/*.json` + `public/images` are committed.
+- `pixel-parity` (~3m, PRs only): shoots merge base *and* head on the SAME runner,
+  requires 0.000%, uploads diff PNGs on failure.
+**Locked finding — the pixel gate cannot use `screenshots/baseline` in CI.** That dir
+is git-ignored (46 MB) *and* macOS-rendered. Measured Linux Chrome vs the committed
+baseline: **all 24 shots differ 0.084%–1.449% with byte-identical page dimensions** —
+pure font rasterization, so layout is portable but the 0.000% gate would fail every
+PR. Same-platform repeat runs measured **0.000%/24**, which is why head-vs-base at
+zero tolerance is safe and needs no committed baseline.
+**Deliberate non-gates:** `pnpm lint` (R9 — no ESLint flat config, would fail every
+PR); "schema change without a migration" is a **warning**, not a blocker, because
+schema-bearing files also carry admin-only changes — a hard version needs a real
+schema diff, which needs a live DB.
+**Branch protection: DONE 2026-08-03** (same session). Both `main` and `preview`:
+PR required (0 approvals), all 4 checks required, `enforce_admins: true`, force-push
+and deletion disabled. Verified by probe — a direct push to `preview` is now
+`remote rejected … protected branch hook declined`. First apply used
+`enforce_admins: false` and the push silently went through anyway; enforcement had to
+be turned on explicitly. See Locked decisions. Cost: two empty commits on `preview`
+(`0d815df`, zero file changes) that can't be removed without relaxing the rules.
 
 ### R3 — Email adapter (forgot-password) + npm ergonomics  (High)
 **Context:** No email adapter → admin **forgot-password sends nothing** (confirmed
@@ -264,6 +527,16 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   auto-migration workflow. (adminThumbnail→R2-URL fix `c8728e1` for the proxy-500.)
 - 2026-07-31 — **Delivery workflow** (this file + templates + playbook + `/next-task`
   `/log-outcome` + session-notes) shipped (`623648a`), now proven across R1b→R10.
+- 2026-08-03 — **R11 done on preview** (`77a08a9`, PR #4, merge `b0ecb43`):
+  `docs/testing-standards.md` — the first testing standard for this repo, 426 lines, as
+  the project-calibrated companion to the non-binding upstream submodule baseline.
+  Rules only: no runner installed, no lockfile/CI change, submodule untouched. Dropped
+  the 80% coverage target, snapshot-per-component, loading-state verification and the
+  code-type layer matrix (each justified in a deltas table); kept the regression-test
+  rule as non-negotiable. Now in **Locked decisions**. **Five defects found while
+  writing it**, none fixed there: the fidelity gate reports `match: true` for **90.2% of
+  committed content bytes without comparing them** (→ R13, bumped to High), plus R16–R19.
+  Upstream-promotion candidates → R20.
 - 2026-08-03 — **R3a shipped to PROD** (merge `841d736`): Payload transactional email
   via `@payloadcms/email-resend`, domain `ase-cor-oba.site` verified in Resend, plus the
   `serverURL` config the reset link needs to be absolute. The owner can now self-serve
