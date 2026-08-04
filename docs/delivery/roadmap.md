@@ -144,7 +144,7 @@ Last updated: 2026-08-04
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
-| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | todo | devops | Low | R17, R12 |
+| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | in-progress | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
