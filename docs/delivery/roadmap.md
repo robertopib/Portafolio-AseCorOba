@@ -119,6 +119,15 @@ Last updated: 2026-08-06
     that blanks the page. Not dev-only — the failure happens on the production rebuild
     against the live CMS. **Local degradation is R18's job; do not re-litigate the
     reporting.**
+  - **The two twins gate differently, on purpose** (R13a, 2026-08-06). `export-content.ts` is a
+    verification tool nothing depends on → **fidelity gate ON by default** (`FIDELITY_GATE=0`
+    opts out). `scripts/fetch-content.mjs` is the build's content **producer** —
+    `vercel.json`'s `buildCommand` is `node scripts/fetch-content.mjs && pnpm build`, so a
+    non-zero exit **aborts the deploy**, and a diff from `git HEAD` is the *normal* result of
+    an editor publish. It therefore detects and reports identically but exits non-zero only
+    under `--gate` / `FIDELITY_GATE=1`. **Do not "fix" this asymmetry into symmetry** — that
+    reds every production deploy. Before requiring any script to exit non-zero, check what
+    invokes it.
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
     both branches) and verified with a real push. Promote a job to *required* only after
@@ -163,14 +172,15 @@ Last updated: 2026-08-06
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
 | R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
 | R13 | Fidelity-twin test + repair the 90%-blind local gate (**split → R13a/R13b**) | split | full-stack | **High** | R11 |
-| R13a | ↳ **Repair the local fidelity gate** (compare the 3 files, fail loudly) + R16 | in-progress | full-stack | **High** | R11 |
+| R13a | ↳ Repair the local fidelity gate (compare all 4 files, fail loudly) + R16 | done (preview) | full-stack | High | R11 |
 | R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | todo | full-stack | **High** | R13a |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
-| R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
+| R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | done (preview) | docs/chore | Low | — |
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
+| R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -460,6 +470,41 @@ works by **inducing** a divergence and watching it fail.
 **Note:** this changes a script's exit code, not the site. Pixel gate n/a in principle, but
 CI still runs it. No schema, no migration.
 
+**Status: done (preview)** 2026-08-06 — PR #13, squash `5830a00`. All 14 emitted files now
+route through `emit()`; the report has 14 entries and no fabricated verdicts. Tests 78 → 98
+(**5 of the new cases fail without the fix**, verified against the pre-fix scripts). All 6
+required checks green — **the first PR gated by R25's expanded list**. Pixel 0.000%/24.
+**R16 closed in the same pass**, and the header is now literally true: `grep
+'writeFileSync(path.join(CONTENT_DIR'` → **no matches** (conductor-verified on
+`origin/preview`). Full record: `.claude/session-notes/2026-08-06-R13a.md`.
+**⚠️ CONDUCTOR ERROR — an acceptance criterion I wrote was wrong, and shipping it literally
+would have broken production.** I required "a mismatch makes **both** twins exit non-zero",
+carried forward from R11's original R13 stub without checking what invokes them.
+`vercel.json`'s `buildCommand` is **`node scripts/fetch-content.mjs && pnpm build`** — that
+script is the build's content **producer**, and with `&&` a non-zero exit **aborts the deploy**.
+A diff from `git HEAD` is the *normal, correct* outcome of every editor publish, so a
+default-on gate there would red every production deploy the moment a word changed — and would
+have failed on day one anyway, because `content/pages.json` is already stale w.r.t. both
+emitters (R17). The worker caught it and split the behaviour by role, which is right:
+- `export-content.ts` — a verification tool nothing depends on → **gates ON by default**
+  (`FIDELITY_GATE=0` opts out).
+- `fetch-content.mjs` — the producer → detects and reports **identically**, but exits non-zero
+  only under `--gate` / `FIDELITY_GATE=1`. Only the exit code differs between modes.
+**Lesson: before requiring a script to exit non-zero, check what invokes it.** Same shape as
+the `studioLabel` error — a claim inherited and re-asserted without verifying its consequence.
+**Decisions worth keeping:** all four files moved to `OUT_DIR` (not `CONTENT_DIR`), making the
+exporter genuinely read-only — the exemption's stated reason ("no pre-existing hand-authored
+source to diff against") stopped being true once the files were committed, and RELEASE.md step
+3 already describes the script as read-only while running it against **prod**. That hazard was
+live, not theoretical: the pre-fix script **silently overwrote three committed files with empty
+data** during this task (12,731 deletions), which is R16 demonstrated rather than argued.
+Also: `match: null` and "emitted but absent from the report" now both **fail** the gate —
+`site.json` was invisible precisely because absence read as "nothing to check".
+**Known duplication, deliberate:** gate logic lives in `scripts/lib/fidelity.mjs` and is
+**mirrored by hand** in `export-content.ts`, because `cms/` is a separate pnpm project with its
+own Vercel root directory — `../../../scripts/…` would not exist in the CMS deployment.
+Flagged in both files as **R13b's to collapse**.
+
 ### R13b — Twin-equivalence test  (High)
 **Depends on R13a** — an equivalence test written against a gate that hardcodes `match: true`
 proves nothing.
@@ -479,6 +524,25 @@ predates the per-category studio/role label feature, so the next `fetch-content`
 introduces `studioLabelVisible`/`roleLabelVisible` keys. Output stays identical unless an
 editor sets a label, but **a committed fixture currently disagrees with what both twins would
 emit** — the equivalence test must not mistake that for induced divergence.
+
+**R13a hand-off (2026-08-06) — R13a cleared the blocker and left three things for you:**
+1. **`deepDiff` compares the in-memory object, not the serialized bytes.** A key whose value is
+   `undefined` exists in the recon object but is dropped by `JSON.stringify`, so the file on
+   disk lacks the key while `deepDiff` reports `extra in reconstructed (recon=undefined)`.
+   Latent today (real content never has those fields empty; it surfaced only against an
+   artificially empty DB) — but **R13b compares emitter outputs directly, which is exactly
+   where it bites.** Decide whether to compare parsed objects or serialized bytes; the twins'
+   contract is *byte*-identical JSON, which argues for bytes.
+2. **`scripts/lib/fidelity.mjs` already exists** — `deepDiff`, `summarizeFidelity`,
+   `formatFidelityFailure`, with hand-written types at `fidelity.d.mts` (the root tsconfig has
+   no `allowJs`, so a TS test importing it would otherwise fail `tsc` with TS7016). It is the
+   natural home for shared comparison code.
+3. **The duplication is the root cause R13b was scoped around.** `export-content.ts` mirrors
+   that module by hand because `cms/` is a separate pnpm project with its own Vercel root
+   directory. Collapsing it — or separating each twin's *transform* from its *fetch* so both
+   can be driven over one fixture — is the actual deliverable, not just a test.
+`tests/fidelity/` already exists and holds R13a's 20-case suite; `vitest.config.ts`'s `include`
+already covers it.
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
 **Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
 exporters** — it predates the per-category studio/role label feature, so the next
@@ -867,6 +931,21 @@ enforcement verified by a rejected push, a 405 merge attempt, and a single-job r
 flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. Mechanics promoted
 to **Locked decisions** ("How to edit branch protection"). Full record:
 `.claude/session-notes/2026-08-06-R25.md`.
+
+### R27 — RELEASE.md step 3 is stale  (Low)
+**Context (from R13a, 2026-08-06):** step 3 describes `export-content.ts` applying schema via
+**auto-push** and warns of a "DATA LOSS WARNING" prompt. Neither exists any more: `push:false`
+is set everywhere and schema comes from committed migrations (Locked decisions, since
+2026-07-30). R13a added an accurate note about the script's new exit code but deliberately did
+not rewrite the step — out of scope for a gate repair.
+**Extra reason this matters:** that step runs the exporter **against production**. Until R13a
+the script silently rewrote committed content when it did so; it is now genuinely read-only,
+but the surrounding instructions still describe behaviour that is gone.
+**Acceptance criteria (stub):** step 3 matches reality (migrations, no auto-push, no data-loss
+prompt, current exit-code semantics). Docs only.
+**Also trivial, fold in if convenient:** `fetch-content.mjs:159-161` has a dead
+`if (fs.existsSync(outPath + '.orig'))` block commented "never used; placeholder for clarity".
+R13a left it to keep the diff surgical.
 
 ### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
 **Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
