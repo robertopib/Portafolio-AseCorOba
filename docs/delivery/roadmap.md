@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-04
+Last updated: 2026-08-06
 
 ---
 
@@ -43,6 +43,23 @@ Last updated: 2026-08-04
   branch and opens a PR. This is what makes `pixel-parity` (a `pull_request`-only
   job) actually gate preview work. Escape hatch if CI itself breaks:
   `gh api -X DELETE repos/robertopib/Portafolio-AseCorOba/branches/<b>/protection/enforce_admins`.
+- **How to edit branch protection** (as of 2026-08-04, R25). Three rules, each earned:
+  1. **`PATCH .../protection/required_status_checks`, never `PUT .../protection`.** The
+     sub-resource payload does not carry `enforce_admins` / `allow_force_pushes` /
+     `allow_deletions`, so they cannot be clobbered by omission — which is exactly how R2
+     silently disabled enforcement. The `contexts` array **replaces**: read the current
+     value first and resend every context you want kept.
+  2. **Send `checks` with `app_id: 15368`** (GitHub Actions), not bare `contexts`, so a
+     third-party app cannot satisfy a required check by reporting a same-named status.
+     **Copy each job name verbatim from a live run** (`gh api …/commits/<sha>/check-runs`) —
+     GitHub matches the job's `name:`, not its YAML key, and a typo protects nothing silently.
+  3. **Prove enforcement by behaviour, never by the API response.** Two probes: a real push
+     that is actually rejected (`! [remote rejected] … protected branch hook declined`, and
+     the ref unmoved), and — to show a check is *required* rather than merely reported — get
+     a green PR to `mergeStateStatus: CLEAN`, then re-run **one** job
+     (`POST /actions/jobs/<id>/rerun`) and watch it flip to `BLOCKED` with that check as the
+     only non-green one. GraphQL `isRequired(pullRequestNumber:)` corroborates per context.
+     **Never disable `enforce_admins` to make a probe easier** — that is R2's mistake.
 - **Visual regression is settled — do not re-litigate.** The CMS-churn objection
   ("the front page changes constantly, so a baseline goes stale") does **not** apply:
   `pixel-parity` stores no baseline, diffs merge-base vs head against the *same*
@@ -104,8 +121,9 @@ Last updated: 2026-08-04
     reporting.**
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
-    both branches) and verified with a real push. Add a `tests` job only as a *required*
-    check after two green runs.
+    both branches) and verified with a real push. Promote a job to *required* only after
+    **two green runs**. Done for `typecheck` + `tests` in R25 — see the
+    **branch-protection edits** entry below for the mechanics.
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -149,7 +167,7 @@ Last updated: 2026-08-04
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
-| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | in-progress | devops | Low | R17, R12 |
+| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
@@ -784,6 +802,12 @@ matches on the job's `name:`, not its key:
 - `Site typecheck (tsc --noEmit)`
 - `Tests (vitest, offline)`
 
+**DONE 2026-08-04** (PR #11, squash `aa3edb0`). Both branches now require **6** contexts;
+enforcement verified by a rejected push, a 405 merge attempt, and a single-job re-run that
+flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. Mechanics promoted
+to **Locked decisions** ("How to edit branch protection"). Full record:
+`.claude/session-notes/2026-08-06-R25.md`.
+
 ### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
 **Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
 while `cms/` runs `6.0.3` — **two different TypeScript majors in one repo**. Harmless today
@@ -1001,3 +1025,22 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   password resets; verified in prod. First deploy with no schema change/migration.
   **Locked finding:** any Payload deploy that sends email must set `serverURL`, or
   generated links come out host-less and mail clients reject them.
+- 2026-08-04 — **R25 done on preview** (PR #11, squash `aa3edb0`): `typecheck` and `tests`
+  are now **required** checks on both `main` and `preview` — **4 → 6 contexts**, adding
+  `Site typecheck (tsc --noEmit)` and `Tests (vitest, offline)` (names copied verbatim from a
+  live run, pinned to `app_id: 15368`). `strict: true`, `enforce_admins: true`, force-push
+  and deletion settings all read back **unchanged** before, after the edit, and again after
+  every probe. Config-only: no workflow, code or test change; two docs files touched.
+  R12's suite now actually gates — a red `tests` blocks merge. **Enforcement proved by
+  behaviour, not an API 200**, which is the whole point of the item: a real push of a real
+  commit was rejected (`! [remote rejected] … protected branch hook declined`, `origin/preview`
+  unmoved, GitHub reporting *6 of 6*), a live merge attempt returned **405 "2 of 6 required
+  status checks are in progress"**, and — the controlled experiment — with all 6 green and the
+  PR `CLEAN`, re-running **one** job flipped it to `BLOCKED` with that check as the only
+  non-green one, for **each new check independently**, recovering to `CLEAN` both times.
+  Control that separates *required* from *merely reported*: `Vercel – asecoroba-cms` was
+  pending on the same commit, `isRequired=false`, and GitHub's count ignored it. The mechanics
+  are now in **Locked decisions** (`PATCH` the sub-resource, pin `app_id`, single-job re-run
+  as the probe, never disable `enforce_admins`). No throwaway PR was created — the probes ran
+  on the real PR, so there is no residue. `enforce_admins` was never disabled, not even
+  momentarily.
