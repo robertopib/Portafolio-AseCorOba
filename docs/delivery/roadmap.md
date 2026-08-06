@@ -162,7 +162,9 @@ Last updated: 2026-08-06
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
 | R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
-| R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
+| R13 | Fidelity-twin test + repair the 90%-blind local gate (**split → R13a/R13b**) | split | full-stack | **High** | R11 |
+| R13a | ↳ **Repair the local fidelity gate** (compare the 3 files, fail loudly) + R16 | in-progress | full-stack | **High** | R11 |
+| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | todo | full-stack | **High** | R13a |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
@@ -414,11 +416,69 @@ with line refs:
   `/tmp/export-error.json`, and calls `process.exit(0)`.
 So this is not "add drift detection to a working gate" — **the gate must be repaired as
 part of the task.** A green fidelity report is currently weak evidence.
-**Acceptance criteria (stub):** (a) the three un-diffed files are actually compared and
-the hardcoded `match: true` is gone; (b) both gates exit non-zero on mismatch; (c) an
-automated check proves both paths produce identical output for the same CMS state and
-fails on an **induced** divergence. Must respect the no-live-DB-in-CI constraint (fixture
-or throwaway DB, never prod/dev Neon).
+**⚠️ SPLIT 2026-08-06 into R13a + R13b — this item is not atomic.** (a)+(b) are a surgical,
+same-file repair that makes the gate real immediately; (c) is an architectural task needing
+fixture capture and probably a refactor of two ~1,050-line files. Bundling them means the
+valuable small fix waits on the hard one, and `docs/testing-standards.md` §2 explicitly warns
+*"Do not bundle these… a big-bang suite gets abandoned."* You also cannot write a meaningful
+equivalence test on a gate that hardcodes `match: true`, so the order is forced.
+**Original acceptance criteria, now divided:** (a) the three un-diffed files are actually
+compared and the hardcoded `match: true` is gone → **R13a**; (b) both gates exit non-zero on
+mismatch → **R13a**; (c) an automated check proves both paths produce identical output for
+the same CMS state and fails on an **induced** divergence → **R13b**. Both must respect the
+no-live-DB-in-CI constraint (fixture or throwaway DB, never prod/dev Neon).
+
+### R13a — Repair the local fidelity gate (+ R16)  (High)
+**Re-verified in source 2026-08-06** (the R11 measurements still hold exactly):
+- Hardcoded `match: true` at `export-content.ts:657` (`pages.json`), `:694`
+  (`categories.json`), `:1016` (`case-studies.json`) — each written **straight into
+  `CONTENT_DIR`** (`:653`, `:690`, `:1012`) instead of `OUT_DIR` (`:28` = `/tmp/export-out`)
+  like every `emit()`ed file.
+- **Byte share re-measured and unchanged: 598,916 / 664,086 = 90.2%** across 14 content
+  files (`pages.json` alone is 537,374 bytes = 80.9%).
+- **`allMatch` is computed and then discarded.** `export-content.ts:1019` computes it, `:1021`
+  writes it to `/tmp/fidelity-report.json`, and **nothing ever reads it**. `process.exit(0)`
+  at `:1031` sits *outside* the `try/catch` (`:1027-1030`), so even a thrown error exits 0.
+- **The REST twin's `exit(1)` does NOT cover this.** `fetch-content.mjs:1092` exits 1 only
+  from `main().catch(...)` — an unhandled throw. The fidelity path at `:1079-1084` sets
+  `allMatch=false`, logs it, and returns normally → **exit 0**. Don't mistake the existing
+  `exit(1)` for a working gate.
+- **NEW (found 2026-08-06, not in R11's list): a FOURTH direct write.** `site.json` is
+  written straight to `CONTENT_DIR` at `:259` and is **not in `report` at all** — not even a
+  fake `match: true`. It is 546 bytes, so it barely moves the percentage, but it means the
+  report is silently *incomplete* as well as partly fabricated. Fix it in the same pass.
+- The comment at `:263-266` claims `pages.json` "has no pre-existing hand-authored source to
+  fidelity-diff against". That was true once; the file is committed now, so the stated reason
+  no longer holds. Decide deliberately: compare against the committed file like everything
+  else, or document why not.
+**Acceptance criteria (stub):** all four files are genuinely compared (no fabricated
+`match: true`, no file missing from `report`); a mismatch makes **both** twins exit non-zero;
+`allMatch` is actually consumed rather than written and forgotten; a swallowed exception no
+longer produces exit 0; **R16** fixed in the same pass (the `:1-10` header claims the script
+does not modify committed content while `:259`, `:653`, `:690`, `:1012` do). Prove the gate
+works by **inducing** a divergence and watching it fail.
+**Note:** this changes a script's exit code, not the site. Pixel gate n/a in principle, but
+CI still runs it. No schema, no migration.
+
+### R13b — Twin-equivalence test  (High)
+**Depends on R13a** — an equivalence test written against a gate that hardcodes `match: true`
+proves nothing.
+**The hard part, scoped honestly:** the twins read from *different sources* —
+`export-content.ts` boots Payload (`getPayload({ config })` at `:86`) and queries the DB via
+`payload.find(...)`; `fetch-content.mjs` goes over HTTP to the REST API. CI has **neither** a
+database nor a live CMS. So proving equivalence offline requires separating each twin's
+**transform** from its **fetch**, then driving both transforms over one captured fixture of
+raw CMS data. That is the real deliverable, and it also attacks the root cause: the
+duplication that makes drift possible in the first place.
+**Acceptance criteria (stub):** an automated, offline check proves both paths produce
+identical output for the same CMS state, and **fails on an induced divergence**; it runs in
+the existing `tests` job (`tests/fidelity/` is already inside `vitest.config.ts`'s `include`
+and was reserved for exactly this by R12); no live DB, no live CMS, no secrets.
+**Also fold in (from R17):** `content/pages.json` is **stale w.r.t. both exporters** — it
+predates the per-category studio/role label feature, so the next `fetch-content` run
+introduces `studioLabelVisible`/`roleLabelVisible` keys. Output stays identical unless an
+editor sets a label, but **a committed fixture currently disagrees with what both twins would
+emit** — the equivalence test must not mistake that for induced divergence.
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
 **Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
 exporters** — it predates the per-category studio/role label feature, so the next
