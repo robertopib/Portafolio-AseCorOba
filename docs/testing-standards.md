@@ -372,9 +372,9 @@ this project's history most obviously validates:
 
 ### Every PR, test-bearing or not — unchanged project gates
 
-- [ ] All 4 required CI checks green (`repo-integrity`, `cms`, `site`, `pixel-parity`).
-      `typecheck` (R17) and `tests` (R12) also run but are **not required yet** — roadmap
-      R25 promotes both in one branch-protection edit.
+- [ ] All 6 required CI checks green (`repo-integrity`, `cms`, `site`, `typecheck`,
+      `tests`, `pixel-parity`). `typecheck` (R17) and `tests` (R12) became *required* on
+      both `main` and `preview` on 2026-08-04 (R25) — a red `tests` run now blocks merge.
 - [ ] Public render unchanged unless intended → `pixel-parity` at **0.000%**.
 - [ ] Schema change → migration committed and imported in `cms/src/migrations/index.ts`.
 - [ ] `pnpm lint` is **not** a gate (R9 — no ESLint flat config exists). Don't make it one
