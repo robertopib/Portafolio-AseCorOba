@@ -46,6 +46,14 @@ for DDL (remove `-pooler` from the host); a quiet window (~2–4 min where only 
    Answer **`y`** to the "DATA LOSS WARNING" (drops the unused inline columns).
    ⚠️ The live prod CMS **admin** now 500s until Step 4 — expected; public site is
    unaffected. Proceed promptly.
+   ℹ️ Since R13a this script is genuinely read-only (it reconstructs into
+   `/tmp/export-out/`, never into `content/`) and its fidelity gate **exits 1**
+   when prod content differs from the committed `content/*.json`. That is
+   informational for this step, not a failure of it — prefix with
+   `FIDELITY_GATE=0` if a non-zero exit would break your shell pipeline. Before
+   R13a the same run silently overwrote `content/pages.json`,
+   `content/categories.json`, `content/case-studies.json` and `content/site.json`
+   with prod data.
 4. **Deploy code.** Type `authorize production deploy`, then merge `preview` →
    `main` (deploys prod CMS new code + rebuilds prod site).
 5. **Verify (AI):** prod CMS `/api/pages` → 200; prod site renders; public site

@@ -7,7 +7,21 @@
  * committed content/*.json.  Writes /tmp/fidelity-report.json.
  *
  * Run:  pnpm payload run src/scripts/export-content.ts
- * Does NOT modify the committed content/*.json (source of truth).
+ *
+ * Does NOT modify the committed content/*.json (source of truth). This is now
+ * literally true: EVERY emitted file goes through emit() into OUT_DIR. Until
+ * R13a, `site.json`, `pages.json`, `categories.json` and `case-studies.json`
+ * were written straight into CONTENT_DIR while this header claimed otherwise
+ * (roadmap R16), so anyone who trusted the header and ran this against prod
+ * silently overwrote the source of truth with prod data. The one script that is
+ * MEANT to rewrite content/ is scripts/fetch-content.mjs.
+ *
+ * Exit code is the gate: 0 only when all 14 files are proven identical to the
+ * committed content. A mismatch, a file with nothing to compare against, an
+ * emitted file missing from the report, or a thrown exception all exit 1.
+ * `FIDELITY_GATE=0` downgrades a mismatch to a warning (for the RELEASE.md
+ * schema step, where the script is run against prod for its side effects and a
+ * content diff is expected) — it does NOT suppress a thrown exception.
  */
 import fs from 'fs'
 import path from 'path'
@@ -26,7 +40,96 @@ import {
 import { assertPortfolioDb } from './dbGuard'
 
 const OUT_DIR = '/tmp/export-out'
+const REPORT_PATH = '/tmp/fidelity-report.json'
+const ERROR_PATH = '/tmp/export-error.json'
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'))
+
+/**
+ * `FIDELITY_GATE=0` downgrades a fidelity mismatch from "exit 1" to a warning.
+ *
+ * ON by default, which is the opposite of scripts/fetch-content.mjs. The
+ * asymmetry is deliberate and is about what depends on the exit code: this
+ * script is a verification tool nobody's build calls, so failing loudly costs
+ * nothing; fetch-content.mjs is the production content producer wired into
+ * vercel.json's buildCommand, where a diff from git HEAD is the normal result of
+ * an editor publishing. Same detection on both sides, opposite defaults.
+ *
+ * The escape hatch exists for RELEASE.md's prod step, which runs this script for
+ * its Payload side effects and expects prod content to differ from committed
+ * content. It does not suppress a thrown exception.
+ */
+const GATE = process.env.FIDELITY_GATE !== '0'
+
+type FileReport = { match: boolean | null; diffs?: string[]; note?: string }
+
+// ---------- gate verdict + failure formatting ----------
+// MIRRORS scripts/lib/fidelity.mjs, which the REST twin imports. cms/ is a
+// separate pnpm project with its own lockfile and its own Vercel root directory,
+// so a `../../../scripts/` import would not resolve in the CMS deployment and
+// would break `next build`. Duplicated on purpose, like loc()/deepDiff()/the
+// reconstruction logic itself. Edit both sides in the same commit; collapsing
+// the duplication properly is R13b.
+
+/**
+ * Reduce the per-file report to a verdict. `match: true` is the ONLY passing
+ * value — a `null` (nothing committed to diff against) or an emitted file absent
+ * from the report counts as unproven and fails. That is the whole point of R13a.
+ */
+function summarizeFidelity(files: Record<string, FileReport>, expected: string[] = []) {
+  const mismatched: string[] = []
+  const unverified: string[] = []
+  for (const [rel, r] of Object.entries(files)) {
+    if (r && r.match === true) continue
+    if (r && r.match === false) mismatched.push(rel)
+    else unverified.push(rel)
+  }
+  const missingFromReport = expected.filter((rel) => !(rel in files))
+  return {
+    allMatch: mismatched.length === 0 && unverified.length === 0 && missingFromReport.length === 0,
+    mismatched: mismatched.sort(),
+    unverified: unverified.sort(),
+    missingFromReport: missingFromReport.sort(),
+  }
+}
+
+/**
+ * Render the failure so it can be acted on without opening the JSON report:
+ * every offending file, and the JSON paths inside it that diverged. Collects
+ * everything and prints it all, in the house style of
+ * scripts/ci/check-lockfiles.mjs — never throw on the first problem.
+ */
+function formatFidelityFailure(
+  files: Record<string, FileReport>,
+  opts: { label: string; reportPath: string; expected?: string[]; maxDiffsPerFile?: number },
+): string {
+  const { label, reportPath, expected = [], maxDiffsPerFile = 12 } = opts
+  const { mismatched, unverified, missingFromReport } = summarizeFidelity(files, expected)
+  const out: string[] = []
+
+  out.push(`❌ ${label}: FIDELITY MISMATCH — the reconstruction does not match the committed content.`)
+
+  for (const rel of mismatched) {
+    const diffs = files[rel]?.diffs || []
+    out.push(`\n  content/${rel} — ${diffs.length} diverging path(s):`)
+    for (const d of diffs.slice(0, maxDiffsPerFile)) out.push(`    ${d}`)
+    if (diffs.length > maxDiffsPerFile) {
+      out.push(`    … and ${diffs.length - maxDiffsPerFile} more (full list: ${reportPath})`)
+    }
+  }
+  for (const rel of unverified) {
+    out.push(`\n  content/${rel} — NOT COMPARED: ${files[rel]?.note || 'no committed version to diff against'}`)
+  }
+  for (const rel of missingFromReport) {
+    out.push(`\n  content/${rel} — emitted but absent from the fidelity report (the report is incomplete).`)
+  }
+
+  out.push(
+    `\n  Full report: ${reportPath}`,
+    `  This means the CMS reconstruction and the committed content/*.json no longer agree.`,
+    `  Do NOT commit regenerated content to make this green — find which side changed first.`,
+  )
+  return out.join('\n')
+}
 
 // ---------- deep compare ----------
 // order-insensitive for object keys, order-SENSITIVE for arrays.
@@ -84,7 +187,10 @@ async function main() {
   await assertPortfolioDb()
 
   const payload = await getPayload({ config })
-  const report: Record<string, { match: boolean; diffs: string[] }> = {}
+  const report: Record<string, FileReport> = {}
+  // Every file emit() wrote. Cross-checked against `report` at the end so an
+  // emitted-but-unreported file (site.json was exactly that until R13a) fails
+  // the gate instead of vanishing from it.
   const written: Record<string, any> = {}
 
   fs.mkdirSync(path.join(OUT_DIR, 'sections'), { recursive: true })
@@ -101,9 +207,22 @@ async function main() {
     return filenameToPath(fn)
   }
 
+  /**
+   * Write one reconstructed file to OUT_DIR and diff it against the committed
+   * original. THE ONLY WAY A FILE MAY LEAVE THIS SCRIPT — every emitted file
+   * lands in `report`, and nothing writes into CONTENT_DIR.
+   *
+   * A missing or unreadable original is reported as `match: null` rather than
+   * throwing, so one absent file surfaces alongside every other problem instead
+   * of aborting the run at the first one. summarizeFidelity still fails on it.
+   */
   const emit = (relPath: string, recon: any, origPath: string) => {
     fs.writeFileSync(path.join(OUT_DIR, relPath), JSON.stringify(recon, null, 2) + '\n')
     written[relPath] = recon
+    if (!fs.existsSync(origPath)) {
+      report[relPath] = { match: null, note: `no committed ${path.relative(CONTENT_DIR, origPath)} to diff against` }
+      return
+    }
     const diffs = deepDiff(recon, readJson(origPath))
     report[relPath] = { match: diffs.length === 0, diffs }
   }
@@ -247,8 +366,6 @@ async function main() {
   }
 
   // ==================== SITIO Y NAVEGACIÓN ====================
-  // Written directly to content/site.json (front-end reads it; no fidelity-diff
-  // source like pages.json).
   {
     const g: any = await payload.findGlobal({ slug: 'site', locale: 'all', depth: 0 })
     const site = {
@@ -256,14 +373,17 @@ async function main() {
       brand: g.brand,
       navItems: (g.navItems || []).map((n: any) => ({ label: n.label, target: n.target })),
     }
-    fs.writeFileSync(path.join(CONTENT_DIR, 'site.json'), JSON.stringify(site, null, 2) + '\n')
+    emit('site.json', site, path.join(CONTENT_DIR, 'site.json'))
   }
 
   // ==================== PÁGINAS ====================
   // The Pages collection is the source of truth for page composition (block
-  // order). Unlike the other exports, content/pages.json has no pre-existing
-  // hand-authored source to fidelity-diff against, so we write it directly to
-  // the committed content dir. The front end reads it at build time.
+  // order). content/pages.json used to be written straight into the committed
+  // content dir on the grounds that it had "no pre-existing hand-authored source
+  // to fidelity-diff against" — true when the file was first generated, false
+  // ever since it was committed. At 537,374 bytes it is 80.9% of all content, so
+  // that one exemption was most of the gate's 90.2% blind spot (R13a). It goes
+  // through emit() like everything else now.
   {
     const pagesRes = await payload.find({
       collection: 'pages',
@@ -649,12 +769,7 @@ async function main() {
         }
       }),
     }
-    fs.writeFileSync(
-      path.join(CONTENT_DIR, 'pages.json'),
-      JSON.stringify(recon, null, 2) + '\n',
-    )
-    written['pages.json'] = recon
-    report['pages.json'] = { match: true, diffs: [] }
+    emit('pages.json', recon, path.join(CONTENT_DIR, 'pages.json'))
 
     // ---- content/categories.json ----
     // A generic catalog of every Categoría + its page-placement Proyectos.
@@ -686,12 +801,7 @@ async function main() {
         }
       }),
     }
-    fs.writeFileSync(
-      path.join(CONTENT_DIR, 'categories.json'),
-      JSON.stringify(catsRecon, null, 2) + '\n',
-    )
-    written['categories.json'] = catsRecon
-    report['categories.json'] = { match: true, diffs: [] }
+    emit('categories.json', catsRecon, path.join(CONTENT_DIR, 'categories.json'))
   }
 
   // ==================== CATEGORÍAS + PROYECTOS ====================
@@ -869,8 +979,6 @@ async function main() {
   // each with a `content` = { [sliceKey]: resolvedSlice } matching what the
   // front-end UX/UI sub-block renderers read. Consumed by CaseStudyTemplate to
   // render /proyectos/:cat/:slug (and the uxui-producto category page).
-  // Written directly to the committed content dir (no pre-existing hand-authored
-  // source to fidelity-diff against).
   {
     const arrText = (arr: any[]) => (arr || []).map((r: any) => loc(r.text))
     const vis = (v: any) => v !== false
@@ -1008,24 +1116,62 @@ async function main() {
         }),
       })),
     }
-    fs.writeFileSync(
-      path.join(CONTENT_DIR, CASE_STUDIES_FILE),
-      JSON.stringify(recon, null, 2) + '\n',
-    )
-    written[CASE_STUDIES_FILE] = recon
-    report[CASE_STUDIES_FILE] = { match: true, diffs: [] }
+    emit(CASE_STUDIES_FILE, recon, path.join(CONTENT_DIR, CASE_STUDIES_FILE))
   }
 
-  const allMatch = Object.values(report).every((r) => r.match)
+  // ==================== VERDICT ====================
+  // `allMatch` used to be computed here, written to /tmp, and never read by
+  // anything — the gate detected divergence and then dropped it on the floor
+  // (R13a). It is now the script's exit code.
+  const summary = summarizeFidelity(report, Object.keys(written))
   fs.writeFileSync(
-    '/tmp/fidelity-report.json',
-    JSON.stringify({ allMatch, outDir: OUT_DIR, files: report }, null, 2),
+    REPORT_PATH,
+    JSON.stringify(
+      {
+        allMatch: summary.allMatch,
+        outDir: OUT_DIR,
+        mismatched: summary.mismatched,
+        unverified: summary.unverified,
+        missingFromReport: summary.missingFromReport,
+        files: report,
+      },
+      null,
+      2,
+    ),
   )
+
+  if (summary.allMatch) {
+    console.log(
+      `[export-content] fidelity: all ${Object.keys(report).length} files match the committed content ✓ ` +
+        `(reconstruction in ${OUT_DIR}, report: ${REPORT_PATH})`,
+    )
+    return
+  }
+
+  const detail = formatFidelityFailure(report, {
+    label: '[export-content]',
+    reportPath: REPORT_PATH,
+    expected: Object.keys(written),
+  })
+  if (GATE) {
+    console.error(detail)
+    process.exit(1)
+  }
+  console.warn(detail.replace(/^❌ /, '⚠️  '))
+  console.warn('\n[export-content] exit 0: FIDELITY_GATE=0 was set, so the mismatch above is a warning.')
 }
 
 try {
   await main()
 } catch (err: any) {
-  fs.writeFileSync('/tmp/export-error.json', JSON.stringify({ message: err.message, stack: err.stack }, null, 2))
+  // Still write the error file — it is genuinely useful — but never swallow the
+  // failure. `process.exit(0)` used to sit outside this try/catch, so a thrown
+  // exception produced a clean exit and an empty fidelity report that read as a
+  // pass (R13a).
+  fs.writeFileSync(ERROR_PATH, JSON.stringify({ message: err.message, stack: err.stack }, null, 2))
+  console.error(`❌ [export-content] FAILED: ${err.message}`)
+  console.error(err.stack)
+  console.error(`  Details: ${ERROR_PATH}`)
+  process.exit(1)
 }
 process.exit(0)
