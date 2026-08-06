@@ -19,13 +19,27 @@
  *                    `url` can't be downloaded. Normally images are pulled from
  *                    `PAYLOAD_API_URL + media.url` (the CMS serves them).
  *
- * FIDELITY GATE (local only): if run against a local CMS AND the committed
- * content/*.json exist, every emitted file is deep-compared to the committed
- * one and a report is written to /tmp/fetch-fidelity.json.
+ * FIDELITY GATE: every emitted file is deep-compared against its committed
+ * version at git HEAD and a report is written to /tmp/fetch-fidelity.json. A
+ * divergence is always printed in full (file + JSON path + expected vs actual).
+ *
+ *   node scripts/fetch-content.mjs           producing run — writes content/ and
+ *                                            WARNS on divergence, exit 0. This is
+ *                                            the Vercel build path: content newer
+ *                                            than git HEAD is the whole point.
+ *   node scripts/fetch-content.mjs --gate    gate run — same comparison, but any
+ *                                            file not proven identical exits 1.
+ *
+ * (`FIDELITY_GATE=1` is equivalent to `--gate`.) See the GATE const below for
+ * why the default is off here and on in export-content.ts.
  */
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+// Deep compare + gate verdict + failure formatting. Order-insensitive for object
+// keys, order-SENSITIVE for arrays. Mirrored (not imported) by export-content.ts
+// — see the note at the top of that module.
+import { deepDiff, summarizeFidelity, formatFidelityFailure } from './lib/fidelity.mjs'
 
 // ----------------------------------------------------------------------------
 // Paths (scripts/ -> project root)
@@ -80,6 +94,30 @@ const CASE_STUDY_BODY_SLICE_KEY = {
 // ----------------------------------------------------------------------------
 const API = (process.env.PAYLOAD_API_URL || 'http://localhost:4400').replace(/\/$/, '')
 
+const FIDELITY_REPORT = '/tmp/fetch-fidelity.json'
+
+/**
+ * `--gate` / `FIDELITY_GATE=1` turns the fidelity comparison into a real gate
+ * (non-zero exit on any file that is not proven identical to committed content).
+ *
+ * It is OPT-IN rather than the default, and that asymmetry with export-content.ts
+ * is deliberate. This script is the production content PRODUCER: `vercel.json`
+ * runs it as `node scripts/fetch-content.mjs && pnpm build`, and its whole purpose
+ * there is to overwrite content/ with newer CMS data. A diff from git HEAD is
+ * therefore the normal, correct outcome of every publish — failing on it would red
+ * every production deploy the moment an editor changes a word. (`content/pages.json`
+ * is also already known-stale w.r.t. both emitters — roadmap R13b — so a default-on
+ * gate would fail on day one.)
+ *
+ * export-content.ts defaults the other way because nothing depends on its exit
+ * code: it is a verification tool, not a build step.
+ *
+ * Without the flag the same divergence is still printed in full — file, path,
+ * expected vs actual — just as a warning. The gate's honesty does not depend on
+ * the flag; only the exit code does.
+ */
+const GATE = process.argv.includes('--gate') || process.env.FIDELITY_GATE === '1'
+
 async function getJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) {
@@ -103,37 +141,6 @@ const getCollection = async (slug, { depth = 2, limit = 1000, sort } = {}) => {
 // Shape helpers (mirrored from export-content.ts)
 // ----------------------------------------------------------------------------
 const loc = (v) => ({ es: (v?.es ?? ''), en: (v?.en ?? '') })
-
-// ---- deep compare (order-insensitive keys, order-SENSITIVE arrays) ----
-function deepDiff(a, b, pathStr = '') {
-  const diffs = []
-  const ta = typeof a
-  const tb = typeof b
-  const isArrA = Array.isArray(a)
-  const isArrB = Array.isArray(b)
-
-  if (isArrA || isArrB) {
-    if (!isArrA || !isArrB) {
-      diffs.push(`${pathStr}: array vs non-array`)
-      return diffs
-    }
-    if (a.length !== b.length) diffs.push(`${pathStr}: array length ${a.length} vs ${b.length}`)
-    const n = Math.min(a.length, b.length)
-    for (let i = 0; i < n; i++) diffs.push(...deepDiff(a[i], b[i], `${pathStr}[${i}]`))
-    return diffs
-  }
-  if (a !== null && b !== null && ta === 'object' && tb === 'object') {
-    const all = new Set([...Object.keys(a), ...Object.keys(b)])
-    for (const k of all) {
-      if (!(k in a)) { diffs.push(`${pathStr}.${k}: missing in reconstructed (orig=${JSON.stringify(b[k])})`); continue }
-      if (!(k in b)) { diffs.push(`${pathStr}.${k}: extra in reconstructed (recon=${JSON.stringify(a[k])})`); continue }
-      diffs.push(...deepDiff(a[k], b[k], `${pathStr}.${k}`))
-    }
-    return diffs
-  }
-  if (a !== b) diffs.push(`${pathStr}: ${JSON.stringify(a)} !== ${JSON.stringify(b)}`)
-  return diffs
-}
 
 // ----------------------------------------------------------------------------
 // Main
@@ -1055,11 +1062,17 @@ async function main() {
     console.warn('[fetch-content] MISSING images:', missing.join(', '))
   }
 
-  // ==================== FIDELITY GATE (local runs) ====================
+  // ==================== FIDELITY GATE ====================
   // Compare each emitted file to a pristine committed copy if git is available.
   // We read the committed version from git HEAD so a re-run doesn't compare a
   // file against itself after we've overwritten it.
-  const fidelity = { allMatch: true, cms: API, files: {} }
+  //
+  // EVERY file in `written` is compared — including pages.json, categories.json,
+  // case-studies.json and site.json. The verdict is decided by summarizeFidelity,
+  // for which `match: true` is the only passing value: a `null` (nothing committed
+  // to compare against) or a file missing from the report fails the gate just like
+  // a real diff. See scripts/lib/fidelity.mjs.
+  const fidelity = { gate: GATE, allMatch: true, cms: API, files: {} }
   const { execSync } = await import('child_process')
   const gitShow = (rel) => {
     try {
@@ -1075,16 +1088,46 @@ async function main() {
       continue
     }
     const diffs = deepDiff(recon, JSON.parse(committedRaw))
-    const match = diffs.length === 0
-    if (!match) fidelity.allMatch = false
-    fidelity.files[rel] = { match, diffs }
+    fidelity.files[rel] = { match: diffs.length === 0, diffs }
   }
   fidelity.images = { downloaded, skipped, missing }
-  fs.writeFileSync('/tmp/fetch-fidelity.json', JSON.stringify(fidelity, null, 2))
-  console.log(`[fetch-content] fidelity: allMatch=${fidelity.allMatch} (report: /tmp/fetch-fidelity.json)`)
 
   // Suppress unused warning for pathToFilename (kept for symmetry with content-map).
   void pathToFilename
+
+  const summary = summarizeFidelity(fidelity.files, Object.keys(written))
+  fidelity.allMatch = summary.allMatch
+  fidelity.mismatched = summary.mismatched
+  fidelity.unverified = summary.unverified
+  fs.writeFileSync(FIDELITY_REPORT, JSON.stringify(fidelity, null, 2))
+
+  if (summary.allMatch) {
+    console.log(
+      `[fetch-content] fidelity: all ${Object.keys(fidelity.files).length} files match the committed content ✓ (report: ${FIDELITY_REPORT})`,
+    )
+    return
+  }
+
+  // A divergence here means the live CMS no longer agrees with committed content.
+  // That is EXPECTED on the producing run (an editor published; overwriting
+  // content/ from the CMS is this script's job — DEPLOY.md "Content is
+  // source-controlled AND regenerated"), and a DEFECT on a gate run. Same
+  // detection, different consequence — so the message is identical and only the
+  // exit code differs.
+  const detail = formatFidelityFailure(fidelity.files, {
+    label: '[fetch-content]',
+    reportPath: FIDELITY_REPORT,
+    expected: Object.keys(written),
+  })
+  if (GATE) {
+    console.error(detail)
+    process.exit(1)
+  }
+  console.warn(detail.replace(/^❌ /, '⚠️  '))
+  console.warn(
+    `\n[fetch-content] exit 0: this is the PRODUCING run, where a diff from git HEAD is the normal` +
+      ` result of a CMS publish. Re-run with --gate to make the above fail the process.`,
+  )
 }
 
 main().catch((err) => {
