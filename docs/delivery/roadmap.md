@@ -192,7 +192,7 @@ Last updated: 2026-08-07
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
 | R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | todo | full-stack | Medium | R13a |
-| R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | todo | qa/devops | Low | R12 |
+| R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | in-progress | qa/devops | Low | R12 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -1036,6 +1036,29 @@ Payload boot. Two branches: **403 when unauthenticated**, and `no-hook` **surfac
 at 200. **Assert on the body, never the status** (§8 gotcha).
 **Note:** this is the *test* only. Whether the status code or the UI should change is **R19**,
 which is a separate, still-open decision — do not resolve R19 here.
+
+**⚠️ Not as trivial as "~20 lines" implies — measured 2026-08-07.** The handler is **inline** in
+the `endpoints` array at `cms/src/payload.config.ts:41-62`, not an exported function. It cannot
+be imported without importing the whole config (DB adapter, plugins, collections). And the
+`tests` CI job installs **root dependencies only** (established by R13b), so any test whose
+import graph reaches `payload` **fails in CI**.
+So R29 needs a small extraction first — the same shape as R13b's: move the handler into its own
+module that imports **nothing** from `payload`, and leave `payload.config.ts` referencing it.
+What makes this cheap: the handler's only Payload coupling is reading `req.user`, so a
+structural param type (`{ user?: { email?: string｜null; id: string｜number } | null }`) removes
+the dependency entirely. `pingDeployHook` (`cms/src/hooks/triggerDeploy.ts`) is **already** pure —
+global `fetch` + `process.env.VERCEL_DEPLOY_HOOK_URL`, no Payload import — so it is directly
+testable as-is and needs no change.
+**Reach into `cms/` using R13b's established pattern:** a **test-only** vitest alias plus an
+ambient `.d.ts` (`vitest.config.ts` + `tests/cms-twin.d.ts` document why at length — a relative
+import drags the module into the `tsc --noEmit` program, where its `fs`/`path` imports fail
+because the root tsconfig deliberately has no `@types/node`). Do not put the alias in
+`vite.config.ts`; the shipped bundle must never resolve anything inside `cms/`.
+**Branches worth covering** (all four are real, verified): `403` unauthenticated;
+`{ ok: false, reason: 'no-hook' }` at **200** when `VERCEL_DEPLOY_HOOK_URL` is unset;
+`{ ok: true }` on a 2xx hook response; `reason: 'error'` when the hook responds non-2xx or
+`fetch` throws. **Assert on the body, never the status** (§8) — the whole defect is that the
+status says nothing.
 
 ### R27 — RELEASE.md step 3 is stale  (Low)
 **Context (from R13a, 2026-08-06):** step 3 describes `export-content.ts` applying schema via
