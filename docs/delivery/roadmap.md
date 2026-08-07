@@ -173,7 +173,7 @@ Last updated: 2026-08-06
 | R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
 | R13 | Fidelity-twin test + repair the 90%-blind local gate (**split → R13a/R13b**) | split | full-stack | **High** | R11 |
 | R13a | ↳ Repair the local fidelity gate (compare all 4 files, fail loudly) + R16 | done (preview) | full-stack | High | R11 |
-| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | todo | full-stack | **High** | R13a |
+| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | in-progress | full-stack | **High** | R13a |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | done (preview) | docs/chore | Low | — |
@@ -543,6 +543,29 @@ emit** — the equivalence test must not mistake that for induced divergence.
    can be driven over one fixture — is the actual deliverable, not just a test.
 `tests/fidelity/` already exists and holds R13a's 20-case suite; `vitest.config.ts`'s `include`
 already covers it.
+
+**Feasibility measured by the conductor 2026-08-07 — the refactor is SMALLER than "separate
+transform from fetch" implies. Do not restructure 2,300 lines.** Each twin funnels all data
+access through **one seam**:
+- **REST twin:** every read goes through `getJson()` (`fetch-content.mjs:121`), wrapped by
+  `getGlobal()` (`:130`) and `getCollection()` (`:133`) — **8 call sites, 1 function**. Stub
+  `getJson` and the whole twin is offline.
+- **Local twin:** 9 `payload.find` / `payload.findGlobal` calls, but all on the single
+  `payload` object obtained once from `getPayload({ config })`
+  (`export-content.ts:86`-ish). Inject a fake object with `.find()` / `.findGlobal()` and the
+  whole twin is offline — **no Payload boot, no DB**.
+- **Shape note:** REST is essentially the HTTP serialization of the same Payload docs, so one
+  recorded fixture can plausibly drive both (the REST side needs the `{docs:[…]}` envelope).
+  Verify this early — it is the main unknown.
+**The real blocker is smaller still: neither script is importable.** Both auto-run at module
+top level and call `process.exit` — `fetch-content.mjs` ends with `main().catch(…)`,
+`export-content.ts` with a bare `process.exit(0)`. A test cannot import either without
+executing it. Making `main` exported and guarding the auto-run behind a
+"invoked directly" check is the first, smallest step.
+**Scope discipline:** `docs/testing-standards.md` §2 warns *"do not bundle these… a big-bang
+suite gets abandoned."* If the fixture work balloons, deliver a **narrower but genuinely
+working** equivalence check over a subset of the 14 files and say which are uncovered — that
+beats an abandoned rewrite. Do not silently reduce coverage; name it.
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
 **Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
 exporters** — it predates the per-category studio/role label feature, so the next

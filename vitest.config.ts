@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { mergeConfig, defineConfig } from 'vitest/config'
 import viteConfig from './vite.config'
 
@@ -18,6 +19,24 @@ import viteConfig from './vite.config'
 export default mergeConfig(
   viteConfig,
   defineConfig({
+    resolve: {
+      alias: {
+        // TEST-ONLY, and it must never move into vite.config.ts — the shipped
+        // bundle has no business resolving anything inside cms/.
+        //
+        // The Local-API twin's reconstruction lives in a separate pnpm project.
+        // Importing it by relative path would work at runtime but drag it into
+        // the `tsc --noEmit` program, where its `fs`/`path` imports fail: the
+        // root tsconfig deliberately has no @types/node. An alias plus the
+        // ambient declaration in tests/cms-twin.d.ts keeps tsc on the
+        // declaration and lets Vitest resolve the real module. Same shielding
+        // pattern, same reason, as scripts/lib/fidelity.d.mts.
+        //
+        // Note the rule this does NOT break: resolve options that the BUILD
+        // depends on still have exactly one source of truth (vite.config.ts).
+        '@cms-export-emit': path.resolve(__dirname, './cms/src/scripts/export-emit.ts'),
+      },
+    },
     test: {
       // Node by default: the invariant and unit layers need no DOM and a jsdom
       // environment costs ~150 ms per file. The renderer tests opt in per file
