@@ -192,7 +192,8 @@ Last updated: 2026-08-07
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
 | R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | todo | full-stack | Medium | R13a |
-| R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | in-progress | qa/devops | Low | R12 |
+| R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
+| R30 | `docs/testing-standards.md` two corrections: §4 unreachable layout + §1 risk-3 premise | todo | qa | Low | R29 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -754,15 +755,32 @@ identical: runtime guards plus the boundary.
 `!req.user`, `:48-50`), but a missing/wrong `VERCEL_DEPLOY_HOOK_URL` makes
 `pingDeployHook` return `{ ok: false, reason: 'no-hook' }`
 (`cms/src/hooks/triggerDeploy.ts:24-25`) which the endpoint returns with **status 200**
-(`:52-55`, deliberately). Editor sees success; nothing rebuilds. Same shape as the R3a
+(`:52-55`, deliberately). ~~Editor sees success; nothing rebuilds.~~ Same shape as the R3a
 bug — an env var whose absence produces a green-looking result.
-**Acceptance criteria (stub):** the editor can tell publish failed. Either
-`PublishButton.tsx` surfaces `reason` distinctly, or the status reflects it — plus the
-~20-line handler unit test proposed in `docs/testing-standards.md` §2 item 3 (403
-unauthenticated, `no-hook` surfaced). Assert on the body, never the status.
-**Note:** decide deliberately whether to keep 200. The current comment argues it's a valid
-editor-facing state, not a server error — that's defensible; the gap is the **UI**, not
-necessarily the status code.
+
+**⚠️ RE-SCOPED 2026-08-07 (R29). The premise above is FALSE — do not work this item against it.**
+"The editor sees success" was wrong when R11 wrote it and was repeated unchecked ever since.
+`PublishButton.tsx:35-37` branches on `data.reason === 'no-hook'` and raises a **red error
+toast** — *"No hay un hook de despliegue configurado."* — and has since `fcf0335`, the only
+commit that file has. Conductor-verified in source. **The editor is already told.**
+**The real, narrower gap:**
+1. **Non-UI consumers.** `curl`, monitoring, any future integration reads 200 as success. The
+   editor is not affected.
+2. **The entire signal is the `reason` string** — the status carries none of it. R29 now pins
+   `reason` with an exact `toEqual`, so it can no longer be tidied out of the payload without a
+   red test. Before that, removing it would have silently degraded the specific toast to the
+   generic *"No se pudo publicar"*.
+3. **The 500 path is unreachable and body-identical.** The handler's `catch` fires only if
+   `pingDeployHook` throws, which it is documented never to do — and if it did, the body would be
+   byte-identical to the 200 error path (measured, R29). **So today the status carries zero
+   information the body does not.**
+**Therefore:** this is a **UI/API-contract** decision, not a status-code bug. The strongest case
+is now *keep 200* and decide deliberately what the endpoint promises non-UI callers. R29 already
+delivered the handler unit test this item used to bundle, so that is no longer part of the scope.
+**Acceptance criteria (stub):** a recorded decision on what `POST /api/publish` guarantees a
+non-UI caller, and whichever of status/body/docs makes that true. **Do not change the editor UX
+without evidence it is deficient** — it currently reports the failure correctly. Any change must
+keep R29's 13 tests green or update them deliberately.
 
 ### R20 — Promote R11's testing deltas upstream  (Low)
 **Context (from R11):** `docs/testing-standards.md` §7 is a 10-row deltas table written so
@@ -1010,6 +1028,25 @@ flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. M
 to **Locked decisions** ("How to edit branch protection"). Full record:
 `.claude/session-notes/2026-08-06-R25.md`.
 
+### R30 — Two corrections to `docs/testing-standards.md`  (Low)
+**Both found by R29, 2026-08-07. The standard is binding, so a wrong line in it propagates into
+every task prompt that cites it — which is exactly how both of these caused damage.**
+1. **§4's file layout lists `cms/src/**/*.test.ts`, which the root runner cannot reach.**
+   `vitest.config.ts`'s `include` is `src/**/*.test.{ts,tsx}` + `tests/**/*.test.{ts,tsx}`, and
+   the root tsconfig doesn't include `cms/`. A CMS unit test placed where §4 says would simply
+   never run — silently green. Replace that row with the **test-only alias + ambient `.d.ts`**
+   pattern actually used twice now (`tests/cms-twin.d.ts` for R13b, `tests/cms-publish-endpoint.d.ts`
+   for R29), and note that CMS-side tests live under `tests/`.
+2. **§1's risk-3 row (`:73`) says "The editor sees success; nothing rebuilds" — false.**
+   `PublishButton.tsx:35-37` shows a red toast on `reason === 'no-hook'` and always has. Correct
+   it to name the real exposure: **non-UI consumers** reading 200 as success, and the fact that
+   the whole signal lives in the `reason` string. Keep risk 3 in the ranking — the endpoint
+   behaviour is still worth a test, and R29 wrote it — but state it accurately.
+**Why this is worth its own item:** the false clause reached three documents and one task prompt
+before anyone opened `PublishButton.tsx`. Fixing the source stops the next re-assertion.
+**Acceptance criteria (stub):** both corrected; §7's deltas table still consistent; no change to
+the standard's substance or to any locked decision. Docs only.
+
 ### R28 — The gate can lose its whole report when stdout is redirected  (Medium)
 **Context (found by R13b, 2026-08-07).** `console.error`/`console.warn` immediately followed by
 `process.exit()` **truncates buffered output on a non-TTY**. Observed twice in ~12 runs — the
@@ -1029,8 +1066,8 @@ non-empty — asserting the exit code alone reproduces the bug it is meant to ca
 **Context:** `docs/testing-standards.md` §2's recommended sequence, item 3 — **the last
 unstarted item in that sequence** (1 = R12 ✓, 2 = R13 ✓, 4 = E2E, deferred). Closes **risk 3**
 in the standard's ranking: `cms/src/payload.config.ts:41-62` returns **HTTP 200** when the
-deploy hook is unconfigured (`pingDeployHook` → `{ ok: false, reason: 'no-hook' }`), so the
-editor sees success and nothing rebuilds — the R3a bug shape.
+deploy hook is unconfigured (`pingDeployHook` → `{ ok: false, reason: 'no-hook' }`), ~~so the
+editor sees success and nothing rebuilds~~ — **that clause is FALSE, see the status block below.**
 **Acceptance criteria (stub):** ~20 lines, unit level with a hand-built fake `req`, offline, no
 Payload boot. Two branches: **403 when unauthenticated**, and `no-hook` **surfaced in the body**
 at 200. **Assert on the body, never the status** (§8 gotcha).
@@ -1054,6 +1091,48 @@ ambient `.d.ts` (`vitest.config.ts` + `tests/cms-twin.d.ts` document why at leng
 import drags the module into the `tsc --noEmit` program, where its `fs`/`path` imports fail
 because the root tsconfig deliberately has no `@types/node`). Do not put the alias in
 `vite.config.ts`; the shipped bundle must never resolve anything inside `cms/`.
+
+**Status: done (preview)** 2026-08-07 — PR #17, squash `9676a97`. Handler extracted **verbatim**
+to `cms/src/endpoints/publish.ts` (imports only `../hooks/triggerDeploy`); `payload.config.ts`
+keeps the endpoint definition. Tests 130 → **143**; CI `tests` **27 s**; all 6 checks green;
+pixel 0.000%/24; no lockfile change. **12 mutations run, each reddening only its own cases** —
+plus a vacuity guard (renaming `publishHandler` reddens 11 of 13). The alias was proven
+load-bearing rather than assumed: a relative import gives
+`triggerDeploy.ts(24,15): error TS2591: Cannot find name 'process'` — exactly R13b's failure mode.
+**Three seam guards added beyond the four branches** — a handler tested in isolation proves
+nothing about whether the config still uses it, and that risk is *created* by the extraction. So
+there are source-text tests pinning the wiring, the path, and the absence of a `payload` import.
+Good instinct; adopt it whenever a task extracts code for testability.
+**One measured limit, written into the test file rather than hidden:** removing
+`pingDeployHook`'s try/catch is NOT caught — the handler's own catch produces a byte-identical
+body and only the status differs (500 vs 200), and this file asserts no status there.
+**Deliberate, declared departure from "assert on the body, never the status":** one status
+assertion, on the **403 only**, reason in a comment. 403 is not part of R19's open question, a
+silent downgrade to 200 there is an **auth hole** rather than a redesign, and
+`PublishButton.tsx:41` branches on it. Every other assertion is body-only, so R19 can change the
+status without touching one of them. Correct call.
+
+**⚠️ CONDUCTOR/STANDARD ERROR — R19's premise is factually wrong, and has been since R11.**
+"The editor sees success; nothing rebuilds" is **false**. `PublishButton.tsx:35-37` branches on
+`data.reason === 'no-hook'` and raises a red toast — *"No hay un hook de despliegue
+configurado."* — and has done since `fcf0335`, the **only** commit that file has ever had.
+Conductor-verified in source. **The editor is told.** The wrong clause propagated to three
+places: `docs/testing-standards.md:73` (§1 risk 3, the origin), and
+`docs/delivery/roadmap.md` in both R19's and R29's detail — I re-asserted it in R29's own prompt
+without checking. **Third instance of this failure mode** (after `studioLabel` and the
+exit-code criterion): a claim inherited from an earlier document and repeated without opening
+the file. Corrections tracked as **R30**.
+**What the real gap is** — R19 must be re-scoped before it is worked:
+- The affected consumers are **non-UI**: `curl`, monitoring, any future integration reading 200
+  as success. Not the editor.
+- **The whole signal is the `reason` string**, and until R29 nothing pinned it. Anyone tidying
+  `reason` out of the payload would have silently killed the UI branch, degrading the specific
+  toast to the generic *"No se pudo publicar"*. Now pinned by an exact `toEqual`.
+- **The only non-200 failure path is unreachable and body-identical.** The handler's `catch` →
+  500 can fire only if `pingDeployHook` throws, which it is documented never to do; measured, if
+  it did the body would be byte-identical to the 200 error path. **So the status carries zero
+  information the body does not** — which argues R19 is a UI/contract question, not a
+  status-code question.
 **Branches worth covering** (all four are real, verified): `403` unauthenticated;
 `{ ok: false, reason: 'no-hook' }` at **200** when `VERCEL_DEPLOY_HOOK_URL` is unset;
 `{ ok: true }` on a 2xx hook response; `reason: 'error'` when the hook responds non-2xx or
