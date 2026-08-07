@@ -121,4 +121,13 @@ removed — publishing is deliberate, one rebuild per click.)
 - **The CMS-side twin is read-only.** `cms/src/scripts/export-content.ts`
   reconstructs the same 14 files into `/tmp/export-out/` and diffs them; it never
   writes into `content/`. Its gate is ON by default (exit 1 on any file not
-  proven identical); `FIDELITY_GATE=0` downgrades that to a warning.
+  proven identical); `FIDELITY_GATE=0` downgrades that to a warning. That file is
+  the CLI — the reconstruction itself lives in `cms/src/scripts/export-emit.ts`,
+  which imports no `payload` and runs nothing on import. Run the CLI, not the
+  library.
+- **The two twins are checked against EACH OTHER, offline** (R13b).
+  `tests/fidelity/twin-equivalence.test.ts` drives both emitters over one
+  committed synthetic fixture and requires byte-identical output for all 14
+  files. It is part of the `tests` CI job — no CMS, no database, no network. Both
+  gates above compare a twin to *committed content*; only this compares the twins
+  to *each other*, which is the contract that keeps the hand-mirroring honest.

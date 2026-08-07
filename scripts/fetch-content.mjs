@@ -1,12 +1,12 @@
 /**
- * BUILD-TIME CONTENT FETCH (REST twin of cms/src/scripts/export-content.ts).
+ * BUILD-TIME CONTENT FETCH (REST twin of cms/src/scripts/export-emit.ts).
  *
  * Run at the FRONT-END build (Vercel buildCommand: `node scripts/fetch-content.mjs && pnpm build`).
  * Reads the deployed CMS over the Payload REST API and RECONSTRUCTS every
  * content file the front-end imports, in the EXACT shapes the committed
  * content/*.json use, then downloads every referenced image to public/images/.
  *
- * The reconstruction logic is a line-for-line mirror of export-content.ts (which
+ * The reconstruction logic is a line-for-line mirror of export-emit.ts (which
  * uses the Local API). Both read localized fields with ?locale=all (returning
  * { es, en }) and relationships/uploads at the right depth, so the emitted JSON
  * is byte-identical to what the Local-API export produces.
@@ -32,12 +32,20 @@
  *
  * (`FIDELITY_GATE=1` is equivalent to `--gate`.) See the GATE const below for
  * why the default is off here and on in export-content.ts.
+ *
+ * IMPORTABLE (R13b): `main()` is exported and every side effect it performs is
+ * an option with a CLI-identical default, so tests/fidelity/twin-equivalence.test.ts
+ * can drive the whole reconstruction over a fixture with no network, no disk and
+ * no git. The auto-run at the bottom is guarded by a direct-invocation check, so
+ * `node scripts/fetch-content.mjs` behaves exactly as before. Types for the
+ * exported surface are hand-written in fetch-content.d.mts (the root tsconfig has
+ * no allowJs, so a TS test importing this file would fail with TS7016).
  */
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 // Deep compare + gate verdict + failure formatting. Order-insensitive for object
-// keys, order-SENSITIVE for arrays. Mirrored (not imported) by export-content.ts
+// keys, order-SENSITIVE for arrays. Mirrored (not imported) by export-emit.ts
 // — see the note at the top of that module.
 import { deepDiff, summarizeFidelity, formatFidelityFailure } from './lib/fidelity.mjs'
 
@@ -48,7 +56,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const ROOT = path.resolve(__dirname, '..')
 const CONTENT_DIR = path.join(ROOT, 'content')
-const SECTIONS_DIR = path.join(CONTENT_DIR, 'sections')
 const IMAGES_DIR = path.join(ROOT, 'public', 'images')
 
 // ----------------------------------------------------------------------------
@@ -118,7 +125,12 @@ const FIDELITY_REPORT = '/tmp/fetch-fidelity.json'
  */
 const GATE = process.argv.includes('--gate') || process.env.FIDELITY_GATE === '1'
 
-async function getJson(url) {
+/**
+ * THE SEAM. Every read this script performs goes through here, which is what
+ * makes the twin-equivalence test possible: inject a different `getJson` and the
+ * entire reconstruction runs offline over a fixture (R13b).
+ */
+async function defaultGetJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
@@ -127,31 +139,66 @@ async function getJson(url) {
   return res.json()
 }
 
-const getGlobal = (slug, depth = 0) =>
-  getJson(`${API}/api/globals/${slug}?locale=all&depth=${depth}`)
+/** The two readers the reconstruction uses, bound to one `getJson`. */
+const makeReaders = (getJson) => ({
+  getGlobal: (slug, depth = 0) =>
+    getJson(`${API}/api/globals/${slug}?locale=all&depth=${depth}`),
 
-const getCollection = async (slug, { depth = 2, limit = 1000, sort } = {}) => {
-  const qs = new URLSearchParams({ locale: 'all', depth: String(depth), limit: String(limit) })
-  if (sort) qs.set('sort', sort)
-  const data = await getJson(`${API}/api/${slug}?${qs.toString()}`)
-  return data.docs || []
-}
+  getCollection: async (slug, { depth = 2, limit = 1000, sort } = {}) => {
+    const qs = new URLSearchParams({ locale: 'all', depth: String(depth), limit: String(limit) })
+    if (sort) qs.set('sort', sort)
+    const data = await getJson(`${API}/api/${slug}?${qs.toString()}`)
+    return data.docs || []
+  },
+})
 
 // ----------------------------------------------------------------------------
-// Shape helpers (mirrored from export-content.ts)
+// Shape helpers (mirrored from export-emit.ts)
 // ----------------------------------------------------------------------------
 const loc = (v) => ({ es: (v?.es ?? ''), en: (v?.en ?? '') })
 
 // ----------------------------------------------------------------------------
 // Main
 // ----------------------------------------------------------------------------
-async function main() {
-  console.log(`[fetch-content] CMS: ${API}`)
-  fs.mkdirSync(SECTIONS_DIR, { recursive: true })
-  fs.mkdirSync(IMAGES_DIR, { recursive: true })
+/**
+ * Reconstruct every content file from the CMS.
+ *
+ * Every parameter defaults to what the CLI has always done, so `main()` with no
+ * arguments is the production behaviour verbatim. The options exist for R13b's
+ * twin-equivalence test, which needs the reconstruction WITHOUT the three side
+ * effects (disk, network images, git):
+ *
+ * @param {object}   [opts]
+ * @param {Function} [opts.getJson]    the seam — replace to run offline
+ * @param {string|null} [opts.contentDir] where to write; null = don't write at all
+ * @param {boolean}  [opts.images]     download referenced images (needs network)
+ * @param {boolean}  [opts.fidelity]   compare against git HEAD and write the report
+ * @param {boolean}  [opts.gate]       only changes the WORDING/severity, never the
+ *                                     detection; the caller owns the exit code
+ * @param {object}   [opts.log]        console-shaped sink, for quiet test runs
+ * @returns {Promise<{written: object, serialized: object, fidelity: object|null, allMatch: boolean}>}
+ */
+export async function main({
+  getJson = defaultGetJson,
+  contentDir = CONTENT_DIR,
+  images = true,
+  fidelity: doFidelity = true,
+  gate = GATE,
+  log = console,
+} = {}) {
+  const { getGlobal, getCollection } = makeReaders(getJson)
+
+  log.log(`[fetch-content] CMS: ${API}`)
+  if (contentDir) fs.mkdirSync(path.join(contentDir, 'sections'), { recursive: true })
+  if (images) fs.mkdirSync(IMAGES_DIR, { recursive: true })
 
   const report = {}
   const written = {}
+  // The exact bytes each file was (or would have been) written with. This — not
+  // `written` — is the twins' contract: byte-identical JSON TEXT. An object key
+  // valued `undefined` is present in `written` but dropped by JSON.stringify, so
+  // the two views genuinely disagree (R13a hand-off).
+  const serialized = {}
   const imageFilenames = new Set() // filenames referenced by content
   const mediaByFilename = {} // filename -> media doc (for downloading)
 
@@ -159,10 +206,13 @@ async function main() {
 
   // Emit a file, and (if a committed source exists) fidelity-diff against it.
   const emit = (relPath, recon) => {
-    const outPath = path.join(CONTENT_DIR, relPath)
-    fs.mkdirSync(path.dirname(outPath), { recursive: true })
-    fs.writeFileSync(outPath, JSON.stringify(recon, null, 2) + '\n')
+    const text = JSON.stringify(recon, null, 2) + '\n'
     written[relPath] = recon
+    serialized[relPath] = text
+    if (!contentDir) return
+    const outPath = path.join(contentDir, relPath)
+    fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    fs.writeFileSync(outPath, text)
     if (fs.existsSync(outPath + '.orig')) {
       // never used; placeholder for clarity
     }
@@ -538,7 +588,7 @@ async function main() {
     })
 
     // Home-preview intro, RESOLVED FROM THE CATEGORÍA (single source of truth),
-    // each emitted key carrying its `<key>Visible` flag. Mirrors export-content.ts.
+    // each emitted key carrying its `<key>Visible` flag. Mirrors export-emit.ts.
     const introFromCat = (cat) => {
       const h = (cat && cat.home) || {}
       const out = {}
@@ -575,7 +625,7 @@ async function main() {
       return out
     }
 
-    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-content.ts.
+    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-emit.ts.
     const pad2 = (n) => String(n).padStart(2, '0')
     const HEADER_SLUG = {
       brandingHeader: 'branding',
@@ -1027,7 +1077,9 @@ async function main() {
   let downloaded = 0
   let skipped = 0
   const missing = []
-  for (const fn of imageFilenames) {
+  // `images: false` (tests only) skips the one part of this script that still
+  // needs the network after `getJson` has been injected.
+  for (const fn of images ? imageFilenames : []) {
     const dest = path.join(IMAGES_DIR, fn)
     const doc = mediaByFilename[fn]
     // Prefer the CMS-served URL (media.url is "/api/media/file/<fn>").
@@ -1057,9 +1109,11 @@ async function main() {
       if (fs.existsSync(dest)) { skipped++ } else { missing.push(fn) }
     }
   }
-  console.log(`[fetch-content] images: ${downloaded} downloaded, ${skipped} already present, ${missing.length} missing`)
-  if (missing.length) {
-    console.warn('[fetch-content] MISSING images:', missing.join(', '))
+  if (images) {
+    log.log(`[fetch-content] images: ${downloaded} downloaded, ${skipped} already present, ${missing.length} missing`)
+    if (missing.length) {
+      log.warn('[fetch-content] MISSING images:', missing.join(', '))
+    }
   }
 
   // ==================== FIDELITY GATE ====================
@@ -1072,7 +1126,18 @@ async function main() {
   // for which `match: true` is the only passing value: a `null` (nothing committed
   // to compare against) or a file missing from the report fails the gate just like
   // a real diff. See scripts/lib/fidelity.mjs.
-  const fidelity = { gate: GATE, allMatch: true, cms: API, files: {} }
+  //
+  // `fidelity: false` (tests only) skips the comparison entirely. The twin-
+  // equivalence test compares the two EMITTERS against each other, not either of
+  // them against committed content — and content/pages.json is known-stale w.r.t.
+  // both (R17), so comparing here would report a divergence that is not one.
+  const fidelity = { gate, allMatch: true, cms: API, files: {} }
+
+  // Suppress unused warning for pathToFilename (kept for symmetry with content-map).
+  void pathToFilename
+
+  if (!doFidelity) return { written, serialized, fidelity: null, allMatch: true }
+
   const { execSync } = await import('child_process')
   const gitShow = (rel) => {
     try {
@@ -1092,9 +1157,6 @@ async function main() {
   }
   fidelity.images = { downloaded, skipped, missing }
 
-  // Suppress unused warning for pathToFilename (kept for symmetry with content-map).
-  void pathToFilename
-
   const summary = summarizeFidelity(fidelity.files, Object.keys(written))
   fidelity.allMatch = summary.allMatch
   fidelity.mismatched = summary.mismatched
@@ -1102,10 +1164,10 @@ async function main() {
   fs.writeFileSync(FIDELITY_REPORT, JSON.stringify(fidelity, null, 2))
 
   if (summary.allMatch) {
-    console.log(
+    log.log(
       `[fetch-content] fidelity: all ${Object.keys(fidelity.files).length} files match the committed content ✓ (report: ${FIDELITY_REPORT})`,
     )
-    return
+    return { written, serialized, fidelity, allMatch: true }
   }
 
   // A divergence here means the live CMS no longer agrees with committed content.
@@ -1119,18 +1181,37 @@ async function main() {
     reportPath: FIDELITY_REPORT,
     expected: Object.keys(written),
   })
-  if (GATE) {
-    console.error(detail)
-    process.exit(1)
+  if (gate) {
+    log.error(detail)
+    return { written, serialized, fidelity, allMatch: false }
   }
-  console.warn(detail.replace(/^❌ /, '⚠️  '))
-  console.warn(
+  log.warn(detail.replace(/^❌ /, '⚠️  '))
+  log.warn(
     `\n[fetch-content] exit 0: this is the PRODUCING run, where a diff from git HEAD is the normal` +
       ` result of a CMS publish. Re-run with --gate to make the above fail the process.`,
   )
+  return { written, serialized, fidelity, allMatch: false }
 }
 
-main().catch((err) => {
-  console.error('[fetch-content] FAILED:', err.stack || err.message)
-  process.exit(1)
-})
+// ----------------------------------------------------------------------------
+// CLI entry
+// ----------------------------------------------------------------------------
+// Only runs when this file IS the process entry point. `vercel.json` invokes it
+// as `node scripts/fetch-content.mjs && pnpm build`, so argv[1] is this file;
+// a test that imports it gets the module and nothing else (R13b).
+//
+// The exit code lives here rather than in main() so that main() has no process
+// side effects at all. Behaviour is unchanged: exit 1 only under --gate /
+// FIDELITY_GATE=1, which is the locked asymmetry with export-content.ts.
+const invokedDirectly =
+  Boolean(process.argv[1]) && path.resolve(process.argv[1]) === __filename
+
+if (invokedDirectly) {
+  try {
+    const { allMatch } = await main()
+    if (GATE && !allMatch) process.exit(1)
+  } catch (err) {
+    console.error('[fetch-content] FAILED:', err.stack || err.message)
+    process.exit(1)
+  }
+}

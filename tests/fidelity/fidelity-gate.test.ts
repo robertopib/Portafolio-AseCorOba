@@ -12,14 +12,25 @@
  *
  * This suite pins the repaired verdict logic. It is deliberately PURE: no Payload,
  * no database, no network, no fs — standard §3 forbids a CI test that needs any of
- * them. Proving the two emitters agree with each other is R13b and is not here.
+ * them. Proving the two emitters agree with each other is R13b, in
+ * twin-equivalence.test.ts.
  *
- * `export-content.ts` cannot be imported (cms/ is a separate project with its own
- * lockfile, and its import chain reaches `payload`), so the invariants that only
- * exist on that side are asserted against its SOURCE TEXT, in the same way and for
- * the same reasons as tests/invariants/media-admin-columns.test.ts. Every parse
- * below asserts that it parsed something, or the check passes vacuously the first
- * time someone reformats the file.
+ * Updated 2026-08-07 (R13b) on two points:
+ *
+ *  1. The Local twin IS importable now. Its reconstruction moved out of the CLI
+ *     into `cms/src/scripts/export-emit.ts`, which imports no `payload`, so the
+ *     source-text checks below read that file where the logic went and
+ *     `export-content.ts` where the CLI behaviour stayed. Source text is still
+ *     the right tool for these particular invariants — "this file contains no
+ *     write into CONTENT_DIR" is a property of the text, not of one run.
+ *  2. The gate helpers that `export-emit.ts` MIRRORS by hand from
+ *     `scripts/lib/fidelity.mjs` are exported, so the last describe block drives
+ *     both implementations over the same inputs. The duplication is still there
+ *     (cms/ is a separate Vercel root; a `../../../scripts/` import would break
+ *     `next build`), but it is no longer merely asserted to be a mirror.
+ *
+ * Every source-text parse below asserts that it parsed something, or the check
+ * passes vacuously the first time someone reformats the file.
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -27,7 +38,13 @@ import {
   summarizeFidelity,
   formatFidelityFailure,
 } from '../../scripts/lib/fidelity.mjs'
-import exportSource from '../../cms/src/scripts/export-content.ts?raw'
+import {
+  deepDiff as cmsDeepDiff,
+  summarizeFidelity as cmsSummarizeFidelity,
+  formatFidelityFailure as cmsFormatFidelityFailure,
+} from '@cms-export-emit'
+import cliSource from '../../cms/src/scripts/export-content.ts?raw'
+import exportSource from '../../cms/src/scripts/export-emit.ts?raw'
 import fetchSource from '../../scripts/fetch-content.mjs?raw'
 
 describe('deepDiff', () => {
@@ -164,10 +181,37 @@ describe('formatFidelityFailure', () => {
   })
 })
 
-describe('export-content.ts (source-text invariants — the twin we cannot import)', () => {
-  it('parsed a file that looks like the exporter', () => {
+describe('the Local-API twin (source-text invariants)', () => {
+  it('parsed files that look like the exporter and its CLI', () => {
     expect(exportSource.length).toBeGreaterThan(10_000)
-    expect(exportSource).toContain('const OUT_DIR')
+    expect(exportSource).toContain('export const OUT_DIR')
+    expect(cliSource).toContain("from './export-emit'")
+  })
+
+  // Regression (R13b): the reconstruction must stay importable from the root test
+  // suite, which installs root dependencies only. A `payload` or `@payload-config`
+  // import here would not resolve in the `tests` CI job, and the twin-equivalence
+  // check would have to be deleted. `import type` is erased, so the type-only
+  // reference to payload's BasePayload does not count — hence the negative lookahead.
+  it('keeps the CMS-only imports in the CLI, not in the reconstruction', () => {
+    const runtimeImports = [
+      ...exportSource.matchAll(/^import\s+(?!type\b)[\s\S]*?from\s+'([^']+)'/gm),
+    ].map((m) => m[1])
+    expect(runtimeImports.length).toBeGreaterThan(0)
+    expect(runtimeImports).toEqual(expect.arrayContaining(['./content-map']))
+    expect(runtimeImports).not.toContain('payload')
+    expect(runtimeImports).not.toContain('@payload-config')
+    expect(runtimeImports).not.toContain('./dbGuard')
+    // …and the CLI is where they went.
+    expect(cliSource).toContain("from 'payload'")
+    expect(cliSource).toContain("from './dbGuard'")
+  })
+
+  // Regression (R13b): the reconstruction must not exit the process. It used to
+  // call process.exit(1) from inside main(), which a test cannot survive.
+  it('leaves the exit code to the CLI', () => {
+    expect(exportSource).not.toContain('process.exit')
+    expect(cliSource).toContain('process.exit(1)')
   })
 
   // Regression: pages.json / categories.json / case-studies.json each carried
@@ -182,15 +226,19 @@ describe('export-content.ts (source-text invariants — the twin we cannot impor
   // content/*.json (source of truth)" while four writes did exactly that. Whoever
   // trusted the header and ran this against prod overwrote the source of truth.
   it('writes nothing into the committed content dir, so its header is true', () => {
-    expect(exportSource).toContain('Does NOT modify the committed content/*.json')
-    const contentWrites = [...exportSource.matchAll(/writeFileSync\(\s*\n?\s*path\.join\(CONTENT_DIR/g)]
+    expect(cliSource).toContain('Does NOT modify the committed content/*.json')
+    const contentWrites = [
+      ...exportSource.matchAll(/writeFileSync\(\s*\n?\s*path\.join\(CONTENT_DIR/g),
+      ...cliSource.matchAll(/writeFileSync\(\s*\n?\s*path\.join\(CONTENT_DIR/g),
+    ]
     expect(contentWrites).toEqual([])
   })
 
   // Regression: `process.exit(0)` sat OUTSIDE the try/catch, so a thrown
-  // exception was written to /tmp/export-error.json and then exited 0.
+  // exception was written to /tmp/export-error.json and then exited 0. The
+  // try/catch now lives in the CLI, which is the only side that can exit.
   it('exits non-zero from its catch block', () => {
-    const catchBlock = exportSource.slice(exportSource.lastIndexOf('} catch (err'))
+    const catchBlock = cliSource.slice(cliSource.lastIndexOf('} catch (err'))
     expect(catchBlock.length).toBeGreaterThan(50)
     expect(catchBlock).toContain('process.exit(1)')
   })
@@ -199,16 +247,28 @@ describe('export-content.ts (source-text invariants — the twin we cannot impor
 describe('fetch-content.mjs (source-text invariants)', () => {
   it('parsed a file that looks like the fetcher', () => {
     expect(fetchSource.length).toBeGreaterThan(10_000)
-    expect(fetchSource).toContain('async function main()')
+    expect(fetchSource).toContain('export async function main(')
+  })
+
+  // Regression (R13b): the CLI must only run when this file IS the process entry
+  // point. `main().catch(...)` at module scope meant importing the module ran the
+  // whole fetch — including the network — so no test could touch it.
+  it('runs its CLI only when invoked directly', () => {
+    expect(fetchSource).toContain('if (invokedDirectly) {')
+    expect(fetchSource).toContain('path.resolve(process.argv[1]) === __filename')
   })
 
   // Regression: the fidelity path set `allMatch=false`, logged one line and
   // returned normally, so the script exited 0. The existing `exit(1)` at the
   // bottom only ever fired for an unhandled throw.
+  // (R13b moved the exit out of main() and into the CLI, so the two halves are
+  // asserted separately: main REPORTS the failure under the gate and returns
+  // allMatch:false, and the CLI turns that into exit 1. Neither half alone is the
+  // gate — that split is exactly how the pre-R13a decoy `exit(1)` fooled people.)
   it('exits non-zero on a mismatch in gate mode', () => {
-    expect(fetchSource).toContain('if (GATE) {')
-    const gateBlock = fetchSource.slice(fetchSource.indexOf('  if (GATE) {'))
-    expect(gateBlock.slice(0, 120)).toContain('process.exit(1)')
+    const gateBlock = fetchSource.slice(fetchSource.indexOf('  if (gate) {'))
+    expect(gateBlock.slice(0, 120)).toContain('log.error(detail)')
+    expect(fetchSource).toContain('if (GATE && !allMatch) process.exit(1)')
   })
 
   // The gate reads the same verdict logic this suite tests, rather than a second
@@ -216,5 +276,72 @@ describe('fetch-content.mjs (source-text invariants)', () => {
   it('imports the shared fidelity primitives', () => {
     expect(fetchSource).toContain("from './lib/fidelity.mjs'")
     expect(fetchSource).toContain('summarizeFidelity(')
+  })
+})
+
+/**
+ * The gate helpers exist TWICE: `scripts/lib/fidelity.mjs`, which the REST twin
+ * imports, and a hand-written copy inside `cms/src/scripts/export-emit.ts`.
+ *
+ * R13b was scoped to collapse that. It deliberately did not: `cms/` is a separate
+ * pnpm project with its own Vercel ROOT DIRECTORY, so `../../../scripts/…` does
+ * not exist in the CMS deployment and any sharing scheme (vendoring with a
+ * generated-file check, a published internal package, a build step) puts a code
+ * generator in front of `next build`. A broken CMS deploy is far worse than a
+ * duplicated 60-line helper.
+ *
+ * What it did instead is this block: drive BOTH implementations over the same
+ * inputs and require identical results, so the mirror is verified rather than
+ * asserted. Edit one side without the other and this goes red — which is the
+ * actual risk the duplication carries.
+ */
+describe('the two fidelity-helper implementations agree', () => {
+  const CASES: [string, unknown, unknown][] = [
+    ['identical', { a: 1 }, { a: 1 }],
+    ['changed leaf', { hero: { title: { es: 'Hola' } } }, { hero: { title: { es: 'Hi' } } }],
+    ['extra key', { a: 1, studioLabelVisible: true }, { a: 1 }],
+    ['missing key', { a: 1 }, { a: 1, roleLabelVisible: false }],
+    ['array length', { xs: [1, 2, 3] }, { xs: [1, 2] }],
+    ['array order (order-SENSITIVE)', { xs: [1, 2] }, { xs: [2, 1] }],
+    ['type change', { a: '1' }, { a: 1 }],
+    ['null vs missing', { a: null }, {}],
+    ['nested arrays of objects', { xs: [{ b: [{ c: 1 }] }] }, { xs: [{ b: [{ c: 2 }] }] }],
+  ]
+
+  it.each(CASES)('deepDiff: %s', (_label, a, b) => {
+    expect(cmsDeepDiff(a, b)).toEqual(deepDiff(a, b))
+  })
+
+  const REPORTS: [string, Record<string, { match: boolean | null; diffs?: string[]; note?: string }>, string[]][] = [
+    ['all match', { 'a.json': { match: true } }, ['a.json']],
+    ['a mismatch', { 'a.json': { match: false, diffs: ['.x'] } }, ['a.json']],
+    ['unverified null', { 'a.json': { match: null, note: 'nothing to compare' } }, ['a.json']],
+    ['missing from report', { 'a.json': { match: true } }, ['a.json', 'b.json']],
+    ['empty report', {}, []],
+    [
+      'several at once',
+      {
+        'a.json': { match: true },
+        'b.json': { match: false, diffs: ['.p', '.q'] },
+        'c.json': { match: null },
+      },
+      ['a.json', 'b.json', 'c.json', 'd.json'],
+    ],
+  ]
+
+  it.each(REPORTS)('summarizeFidelity: %s', (_label, files, expected) => {
+    expect(cmsSummarizeFidelity(files, expected)).toEqual(summarizeFidelity(files, expected))
+  })
+
+  it.each(REPORTS)('formatFidelityFailure: %s', (_label, files, expected) => {
+    const opts = { label: '[x]', reportPath: '/tmp/r.json', expected }
+    expect(cmsFormatFidelityFailure(files, opts)).toBe(formatFidelityFailure(files, opts))
+  })
+
+  it('truncates long diff lists the same way on both sides', () => {
+    const files = { 'a.json': { match: false, diffs: Array.from({ length: 30 }, (_, i) => `.p${i}`) } }
+    const opts = { label: '[x]', reportPath: '/tmp/r.json', expected: ['a.json'], maxDiffsPerFile: 4 }
+    expect(cmsFormatFidelityFailure(files, opts)).toBe(formatFidelityFailure(files, opts))
+    expect(formatFidelityFailure(files, opts)).toContain('and 26 more')
   })
 })
