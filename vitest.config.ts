@@ -35,6 +35,11 @@ export default mergeConfig(
         // Note the rule this does NOT break: resolve options that the BUILD
         // depends on still have exactly one source of truth (vite.config.ts).
         '@cms-export-emit': path.resolve(__dirname, './cms/src/scripts/export-emit.ts'),
+        // Same pattern, same reason (R29): the POST /api/publish handler. Its
+        // own imports are Payload-free, but it reaches `process.env` through
+        // cms/src/hooks/triggerDeploy.ts, which is TS2591 without @types/node (measured).
+        // tsc sees tests/cms-publish-endpoint.d.ts; Vitest resolves the module.
+        '@cms-publish-endpoint': path.resolve(__dirname, './cms/src/endpoints/publish.ts'),
       },
     },
     test: {
