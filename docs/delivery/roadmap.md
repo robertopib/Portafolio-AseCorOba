@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-04
+Last updated: 2026-08-06
 
 ---
 
@@ -43,6 +43,23 @@ Last updated: 2026-08-04
   branch and opens a PR. This is what makes `pixel-parity` (a `pull_request`-only
   job) actually gate preview work. Escape hatch if CI itself breaks:
   `gh api -X DELETE repos/robertopib/Portafolio-AseCorOba/branches/<b>/protection/enforce_admins`.
+- **How to edit branch protection** (as of 2026-08-04, R25). Three rules, each earned:
+  1. **`PATCH .../protection/required_status_checks`, never `PUT .../protection`.** The
+     sub-resource payload does not carry `enforce_admins` / `allow_force_pushes` /
+     `allow_deletions`, so they cannot be clobbered by omission — which is exactly how R2
+     silently disabled enforcement. The `contexts` array **replaces**: read the current
+     value first and resend every context you want kept.
+  2. **Send `checks` with `app_id: 15368`** (GitHub Actions), not bare `contexts`, so a
+     third-party app cannot satisfy a required check by reporting a same-named status.
+     **Copy each job name verbatim from a live run** (`gh api …/commits/<sha>/check-runs`) —
+     GitHub matches the job's `name:`, not its YAML key, and a typo protects nothing silently.
+  3. **Prove enforcement by behaviour, never by the API response.** Two probes: a real push
+     that is actually rejected (`! [remote rejected] … protected branch hook declined`, and
+     the ref unmoved), and — to show a check is *required* rather than merely reported — get
+     a green PR to `mergeStateStatus: CLEAN`, then re-run **one** job
+     (`POST /actions/jobs/<id>/rerun`) and watch it flip to `BLOCKED` with that check as the
+     only non-green one. GraphQL `isRequired(pullRequestNumber:)` corroborates per context.
+     **Never disable `enforce_admins` to make a probe easier** — that is R2's mistake.
 - **Visual regression is settled — do not re-litigate.** The CMS-churn objection
   ("the front page changes constantly, so a baseline goes stale") does **not** apply:
   `pixel-parity` stores no baseline, diffs merge-base vs head against the *same*
@@ -102,10 +119,20 @@ Last updated: 2026-08-04
     that blanks the page. Not dev-only — the failure happens on the production rebuild
     against the live CMS. **Local degradation is R18's job; do not re-litigate the
     reporting.**
+  - **The two twins gate differently, on purpose** (R13a, 2026-08-06). `export-content.ts` is a
+    verification tool nothing depends on → **fidelity gate ON by default** (`FIDELITY_GATE=0`
+    opts out). `scripts/fetch-content.mjs` is the build's content **producer** —
+    `vercel.json`'s `buildCommand` is `node scripts/fetch-content.mjs && pnpm build`, so a
+    non-zero exit **aborts the deploy**, and a diff from `git HEAD` is the *normal* result of
+    an editor publish. It therefore detects and reports identically but exits non-zero only
+    under `--gate` / `FIDELITY_GATE=1`. **Do not "fix" this asymmetry into symmetry** — that
+    reds every production deploy. Before requiring any script to exit non-zero, check what
+    invokes it.
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
-    both branches) and verified with a real push. Add a `tests` job only as a *required*
-    check after two green runs.
+    both branches) and verified with a real push. Promote a job to *required* only after
+    **two green runs**. Done for `typecheck` + `tests` in R25 — see the
+    **branch-protection edits** entry below for the mechanics.
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -144,13 +171,16 @@ Last updated: 2026-08-04
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
 | R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
-| R13 | Fidelity-twin test + **repair the 90%-blind local gate** | todo | full-stack | **High** | R11 |
+| R13 | Fidelity-twin test + repair the 90%-blind local gate (**split → R13a/R13b**) | split | full-stack | **High** | R11 |
+| R13a | ↳ Repair the local fidelity gate (compare all 4 files, fail loudly) + R16 | done (preview) | full-stack | High | R11 |
+| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | todo | full-stack | **High** | R13a |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
-| R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | todo | docs/chore | Low | — |
+| R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | done (preview) | docs/chore | Low | — |
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
-| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | in-progress | devops | Low | R17, R12 |
+| R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
+| R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -396,11 +426,123 @@ with line refs:
   `/tmp/export-error.json`, and calls `process.exit(0)`.
 So this is not "add drift detection to a working gate" — **the gate must be repaired as
 part of the task.** A green fidelity report is currently weak evidence.
-**Acceptance criteria (stub):** (a) the three un-diffed files are actually compared and
-the hardcoded `match: true` is gone; (b) both gates exit non-zero on mismatch; (c) an
-automated check proves both paths produce identical output for the same CMS state and
-fails on an **induced** divergence. Must respect the no-live-DB-in-CI constraint (fixture
-or throwaway DB, never prod/dev Neon).
+**⚠️ SPLIT 2026-08-06 into R13a + R13b — this item is not atomic.** (a)+(b) are a surgical,
+same-file repair that makes the gate real immediately; (c) is an architectural task needing
+fixture capture and probably a refactor of two ~1,050-line files. Bundling them means the
+valuable small fix waits on the hard one, and `docs/testing-standards.md` §2 explicitly warns
+*"Do not bundle these… a big-bang suite gets abandoned."* You also cannot write a meaningful
+equivalence test on a gate that hardcodes `match: true`, so the order is forced.
+**Original acceptance criteria, now divided:** (a) the three un-diffed files are actually
+compared and the hardcoded `match: true` is gone → **R13a**; (b) both gates exit non-zero on
+mismatch → **R13a**; (c) an automated check proves both paths produce identical output for
+the same CMS state and fails on an **induced** divergence → **R13b**. Both must respect the
+no-live-DB-in-CI constraint (fixture or throwaway DB, never prod/dev Neon).
+
+### R13a — Repair the local fidelity gate (+ R16)  (High)
+**Re-verified in source 2026-08-06** (the R11 measurements still hold exactly):
+- Hardcoded `match: true` at `export-content.ts:657` (`pages.json`), `:694`
+  (`categories.json`), `:1016` (`case-studies.json`) — each written **straight into
+  `CONTENT_DIR`** (`:653`, `:690`, `:1012`) instead of `OUT_DIR` (`:28` = `/tmp/export-out`)
+  like every `emit()`ed file.
+- **Byte share re-measured and unchanged: 598,916 / 664,086 = 90.2%** across 14 content
+  files (`pages.json` alone is 537,374 bytes = 80.9%).
+- **`allMatch` is computed and then discarded.** `export-content.ts:1019` computes it, `:1021`
+  writes it to `/tmp/fidelity-report.json`, and **nothing ever reads it**. `process.exit(0)`
+  at `:1031` sits *outside* the `try/catch` (`:1027-1030`), so even a thrown error exits 0.
+- **The REST twin's `exit(1)` does NOT cover this.** `fetch-content.mjs:1092` exits 1 only
+  from `main().catch(...)` — an unhandled throw. The fidelity path at `:1079-1084` sets
+  `allMatch=false`, logs it, and returns normally → **exit 0**. Don't mistake the existing
+  `exit(1)` for a working gate.
+- **NEW (found 2026-08-06, not in R11's list): a FOURTH direct write.** `site.json` is
+  written straight to `CONTENT_DIR` at `:259` and is **not in `report` at all** — not even a
+  fake `match: true`. It is 546 bytes, so it barely moves the percentage, but it means the
+  report is silently *incomplete* as well as partly fabricated. Fix it in the same pass.
+- The comment at `:263-266` claims `pages.json` "has no pre-existing hand-authored source to
+  fidelity-diff against". That was true once; the file is committed now, so the stated reason
+  no longer holds. Decide deliberately: compare against the committed file like everything
+  else, or document why not.
+**Acceptance criteria (stub):** all four files are genuinely compared (no fabricated
+`match: true`, no file missing from `report`); a mismatch makes **both** twins exit non-zero;
+`allMatch` is actually consumed rather than written and forgotten; a swallowed exception no
+longer produces exit 0; **R16** fixed in the same pass (the `:1-10` header claims the script
+does not modify committed content while `:259`, `:653`, `:690`, `:1012` do). Prove the gate
+works by **inducing** a divergence and watching it fail.
+**Note:** this changes a script's exit code, not the site. Pixel gate n/a in principle, but
+CI still runs it. No schema, no migration.
+
+**Status: done (preview)** 2026-08-06 — PR #13, squash `5830a00`. All 14 emitted files now
+route through `emit()`; the report has 14 entries and no fabricated verdicts. Tests 78 → 98
+(**5 of the new cases fail without the fix**, verified against the pre-fix scripts). All 6
+required checks green — **the first PR gated by R25's expanded list**. Pixel 0.000%/24.
+**R16 closed in the same pass**, and the header is now literally true: `grep
+'writeFileSync(path.join(CONTENT_DIR'` → **no matches** (conductor-verified on
+`origin/preview`). Full record: `.claude/session-notes/2026-08-06-R13a.md`.
+**⚠️ CONDUCTOR ERROR — an acceptance criterion I wrote was wrong, and shipping it literally
+would have broken production.** I required "a mismatch makes **both** twins exit non-zero",
+carried forward from R11's original R13 stub without checking what invokes them.
+`vercel.json`'s `buildCommand` is **`node scripts/fetch-content.mjs && pnpm build`** — that
+script is the build's content **producer**, and with `&&` a non-zero exit **aborts the deploy**.
+A diff from `git HEAD` is the *normal, correct* outcome of every editor publish, so a
+default-on gate there would red every production deploy the moment a word changed — and would
+have failed on day one anyway, because `content/pages.json` is already stale w.r.t. both
+emitters (R17). The worker caught it and split the behaviour by role, which is right:
+- `export-content.ts` — a verification tool nothing depends on → **gates ON by default**
+  (`FIDELITY_GATE=0` opts out).
+- `fetch-content.mjs` — the producer → detects and reports **identically**, but exits non-zero
+  only under `--gate` / `FIDELITY_GATE=1`. Only the exit code differs between modes.
+**Lesson: before requiring a script to exit non-zero, check what invokes it.** Same shape as
+the `studioLabel` error — a claim inherited and re-asserted without verifying its consequence.
+**Decisions worth keeping:** all four files moved to `OUT_DIR` (not `CONTENT_DIR`), making the
+exporter genuinely read-only — the exemption's stated reason ("no pre-existing hand-authored
+source to diff against") stopped being true once the files were committed, and RELEASE.md step
+3 already describes the script as read-only while running it against **prod**. That hazard was
+live, not theoretical: the pre-fix script **silently overwrote three committed files with empty
+data** during this task (12,731 deletions), which is R16 demonstrated rather than argued.
+Also: `match: null` and "emitted but absent from the report" now both **fail** the gate —
+`site.json` was invisible precisely because absence read as "nothing to check".
+**Known duplication, deliberate:** gate logic lives in `scripts/lib/fidelity.mjs` and is
+**mirrored by hand** in `export-content.ts`, because `cms/` is a separate pnpm project with its
+own Vercel root directory — `../../../scripts/…` would not exist in the CMS deployment.
+Flagged in both files as **R13b's to collapse**.
+
+### R13b — Twin-equivalence test  (High)
+**Depends on R13a** — an equivalence test written against a gate that hardcodes `match: true`
+proves nothing.
+**The hard part, scoped honestly:** the twins read from *different sources* —
+`export-content.ts` boots Payload (`getPayload({ config })` at `:86`) and queries the DB via
+`payload.find(...)`; `fetch-content.mjs` goes over HTTP to the REST API. CI has **neither** a
+database nor a live CMS. So proving equivalence offline requires separating each twin's
+**transform** from its **fetch**, then driving both transforms over one captured fixture of
+raw CMS data. That is the real deliverable, and it also attacks the root cause: the
+duplication that makes drift possible in the first place.
+**Acceptance criteria (stub):** an automated, offline check proves both paths produce
+identical output for the same CMS state, and **fails on an induced divergence**; it runs in
+the existing `tests` job (`tests/fidelity/` is already inside `vitest.config.ts`'s `include`
+and was reserved for exactly this by R12); no live DB, no live CMS, no secrets.
+**Also fold in (from R17):** `content/pages.json` is **stale w.r.t. both exporters** — it
+predates the per-category studio/role label feature, so the next `fetch-content` run
+introduces `studioLabelVisible`/`roleLabelVisible` keys. Output stays identical unless an
+editor sets a label, but **a committed fixture currently disagrees with what both twins would
+emit** — the equivalence test must not mistake that for induced divergence.
+
+**R13a hand-off (2026-08-06) — R13a cleared the blocker and left three things for you:**
+1. **`deepDiff` compares the in-memory object, not the serialized bytes.** A key whose value is
+   `undefined` exists in the recon object but is dropped by `JSON.stringify`, so the file on
+   disk lacks the key while `deepDiff` reports `extra in reconstructed (recon=undefined)`.
+   Latent today (real content never has those fields empty; it surfaced only against an
+   artificially empty DB) — but **R13b compares emitter outputs directly, which is exactly
+   where it bites.** Decide whether to compare parsed objects or serialized bytes; the twins'
+   contract is *byte*-identical JSON, which argues for bytes.
+2. **`scripts/lib/fidelity.mjs` already exists** — `deepDiff`, `summarizeFidelity`,
+   `formatFidelityFailure`, with hand-written types at `fidelity.d.mts` (the root tsconfig has
+   no `allowJs`, so a TS test importing it would otherwise fail `tsc` with TS7016). It is the
+   natural home for shared comparison code.
+3. **The duplication is the root cause R13b was scoped around.** `export-content.ts` mirrors
+   that module by hand because `cms/` is a separate pnpm project with its own Vercel root
+   directory. Collapsing it — or separating each twin's *transform* from its *fetch* so both
+   can be driven over one fixture — is the actual deliverable, not just a test.
+`tests/fidelity/` already exists and holds R13a's 20-case suite; `vitest.config.ts`'s `include`
+already covers it.
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
 **Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
 exporters** — it predates the per-category studio/role label feature, so the next
@@ -784,6 +926,27 @@ matches on the job's `name:`, not its key:
 - `Site typecheck (tsc --noEmit)`
 - `Tests (vitest, offline)`
 
+**DONE 2026-08-04** (PR #11, squash `aa3edb0`). Both branches now require **6** contexts;
+enforcement verified by a rejected push, a 405 merge attempt, and a single-job re-run that
+flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. Mechanics promoted
+to **Locked decisions** ("How to edit branch protection"). Full record:
+`.claude/session-notes/2026-08-06-R25.md`.
+
+### R27 — RELEASE.md step 3 is stale  (Low)
+**Context (from R13a, 2026-08-06):** step 3 describes `export-content.ts` applying schema via
+**auto-push** and warns of a "DATA LOSS WARNING" prompt. Neither exists any more: `push:false`
+is set everywhere and schema comes from committed migrations (Locked decisions, since
+2026-07-30). R13a added an accurate note about the script's new exit code but deliberately did
+not rewrite the step — out of scope for a gate repair.
+**Extra reason this matters:** that step runs the exporter **against production**. Until R13a
+the script silently rewrote committed content when it did so; it is now genuinely read-only,
+but the surrounding instructions still describe behaviour that is gone.
+**Acceptance criteria (stub):** step 3 matches reality (migrations, no auto-push, no data-loss
+prompt, current exit-code semantics). Docs only.
+**Also trivial, fold in if convenient:** `fetch-content.mjs:159-161` has a dead
+`if (fs.existsSync(outPath + '.orig'))` block commented "never used; placeholder for clarity".
+R13a left it to keep the diff surgical.
+
 ### R26 — TypeScript major-version skew: root 7.0.2 vs cms 6.0.3  (Low)
 **Context (found at R17 ingest, 2026-08-04):** R17 installed `typescript@7.0.2` at the root
 while `cms/` runs `6.0.3` — **two different TypeScript majors in one repo**. Harmless today
@@ -1001,3 +1164,22 @@ _(moved here when completed; full detail in `.claude/session-notes/`)_
   password resets; verified in prod. First deploy with no schema change/migration.
   **Locked finding:** any Payload deploy that sends email must set `serverURL`, or
   generated links come out host-less and mail clients reject them.
+- 2026-08-04 — **R25 done on preview** (PR #11, squash `aa3edb0`): `typecheck` and `tests`
+  are now **required** checks on both `main` and `preview` — **4 → 6 contexts**, adding
+  `Site typecheck (tsc --noEmit)` and `Tests (vitest, offline)` (names copied verbatim from a
+  live run, pinned to `app_id: 15368`). `strict: true`, `enforce_admins: true`, force-push
+  and deletion settings all read back **unchanged** before, after the edit, and again after
+  every probe. Config-only: no workflow, code or test change; two docs files touched.
+  R12's suite now actually gates — a red `tests` blocks merge. **Enforcement proved by
+  behaviour, not an API 200**, which is the whole point of the item: a real push of a real
+  commit was rejected (`! [remote rejected] … protected branch hook declined`, `origin/preview`
+  unmoved, GitHub reporting *6 of 6*), a live merge attempt returned **405 "2 of 6 required
+  status checks are in progress"**, and — the controlled experiment — with all 6 green and the
+  PR `CLEAN`, re-running **one** job flipped it to `BLOCKED` with that check as the only
+  non-green one, for **each new check independently**, recovering to `CLEAN` both times.
+  Control that separates *required* from *merely reported*: `Vercel – asecoroba-cms` was
+  pending on the same commit, `isRequired=false`, and GitHub's count ignored it. The mechanics
+  are now in **Locked decisions** (`PATCH` the sub-resource, pin `app_id`, single-job re-run
+  as the probe, never disable `enforce_admins`). No throwaway PR was created — the probes ran
+  on the real PR, so there is no residue. `enforce_admins` was never disabled, not even
+  momentarily.
