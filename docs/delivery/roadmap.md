@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-06
+Last updated: 2026-08-07
 
 ---
 
@@ -128,6 +128,16 @@ Last updated: 2026-08-06
     under `--gate` / `FIDELITY_GATE=1`. **Do not "fix" this asymmetry into symmetry** — that
     reds every production deploy. Before requiring any script to exit non-zero, check what
     invokes it.
+  - **Fidelity comparisons use serialized BYTES, never parsed objects** (R13b, 2026-08-07). The
+    twins' contract is byte-identical JSON *text*. An object diff **invents** differences (a key
+    valued `undefined` exists in memory but `JSON.stringify` drops it) **and misses real ones** —
+    key-order changes are invisible to it and are exactly what a hand-edit to one mirrored
+    emitter produces. `deepDiff` explains a byte failure by naming the path; it never decides one.
+  - **A hand-mirror is not a mirror until something checks it** (R13b). Proof: R13a's own commit
+    `5830a00` created two copies of `formatFidelityFailure` **with different failure text**, and
+    nothing noticed until a mirror test existed. Cross-project duplication is permitted where
+    collapsing it would risk the CMS deploy (`cms/` is a separate Vercel root directory) — but it
+    **must be covered by an equivalence test** driving both copies over the same inputs.
   - **Payload Local API integration tests are local-only, never in CI.**
   - **A new CI job gates nothing until branch protection is updated by hand** (`gh api`,
     both branches) and verified with a real push. Promote a job to *required* only after
@@ -171,9 +181,9 @@ Last updated: 2026-08-06
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
 | R12 | Content-resilience tests — the gap CI structurally cannot see | done (preview) | qa/full-stack | Medium | R11, R17 |
-| R13 | Fidelity-twin test + repair the 90%-blind local gate (**split → R13a/R13b**) | split | full-stack | **High** | R11 |
+| R13 | Fidelity-twin test + repair the 90%-blind local gate (split → R13a/R13b) | **done (preview)** | full-stack | High | R11 |
 | R13a | ↳ Repair the local fidelity gate (compare all 4 files, fail loudly) + R16 | done (preview) | full-stack | High | R11 |
-| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | in-progress | full-stack | **High** | R13a |
+| R13b | ↳ Twin-equivalence test — prove both emitters agree, fail on induced divergence | done (preview) | full-stack | High | R13a |
 | R14 | Dead file `src/styles/globals.css` — imported by nothing (footgun) | todo | chore | Low | — |
 | R15 | `pnpm/action-setup@v4` Node-20 deprecation warning in CI | todo | devops | Low | R2 |
 | R16 | `export-content.ts` header contradicts its behaviour (writes committed content) | done (preview) | docs/chore | Low | — |
@@ -181,6 +191,8 @@ Last updated: 2026-08-06
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
+| R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | todo | full-stack | Medium | R13a |
+| R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | todo | qa/devops | Low | R12 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -566,6 +578,49 @@ executing it. Making `main` exported and guarding the auto-run behind a
 suite gets abandoned."* If the fixture work balloons, deliver a **narrower but genuinely
 working** equivalence check over a subset of the 14 files and say which are uncovered — that
 beats an abandoned rewrite. Do not silently reduce coverage; name it.
+
+**Status: done (preview)** 2026-08-07 — PR #15, squash `fdb3302`. **All 14 files proven
+equivalent**, not a subset. Tests 98 → 130; CI `tests` **31 s** (budget 60 s); all 6 required
+checks green; pixel 0.000%/24; **no lockfile change, no new dependency**. The feasibility read
+held: `export-content.ts` became a thin CLI over a new `export-emit.ts` (~97% a rename — the
+~1,000 reconstruction lines untouched, conductor-verified: the 185 differing lines are imports,
+exports and the injection interface, nothing in the reconstruction body), and
+`fetch-content.mjs`'s `main()` was exported and parameterised. Both fakes inject at the single
+seam each. Full record: `.claude/session-notes/2026-08-07-R13b.md`.
+
+**⚠️ THE FINDING THAT JUSTIFIES THE WHOLE OF R13 — the hand-mirror had already drifted, inside
+the very commit that created it.** R13a's `5830a00` wrote `formatFidelityFailure` twice, and the
+two copies shipped with **different failure text** — `scripts/lib/fidelity.mjs:138` said "the two
+content emitters and the committed content/*.json no longer agree" while
+`export-content.ts:128` said "the CMS reconstruction and…". Same commit, same hour, already
+divergent, and nothing detected it until R13b's mirror test ran. Conductor-verified at both
+paths. **Hand-mirroring does not drift over months; it drifts immediately.** Fixed in PR #15.
+
+**Locked decisions this produced (do not re-litigate):**
+- **Compare serialized BYTES, never parsed objects.** Byte-identical JSON text is the actual
+  contract. An object diff both *invents* differences (a key valued `undefined` exists in memory
+  but `JSON.stringify` drops it — R13a's hand-off trap) and *misses* real ones (**key-order
+  changes are invisible to an object diff and are exactly what a hand-edit to one mirrored
+  emitter produces** — demonstrated with an induced swap in `site.json`: 299 vs 299 bytes,
+  parsed objects equal). `deepDiff` is now used only to *explain* a byte failure by naming the
+  path, with an explicit "objects equal, bytes differ" branch. Both behaviours are pinned.
+- **A hand-mirror is not a mirror until something checks it.** The `fidelity.mjs` duplication was
+  **deliberately NOT collapsed** — `cms/` is a separate Vercel root directory, every sharing
+  scheme puts a generator in front of `next build`, and a broken CMS deploy is far worse than a
+  duplicated 60-line helper. Instead the mirror is **verified**: the CMS copies are exported and
+  25 cases drive both implementations over the same inputs. Apply this pattern to any future
+  cross-project duplication.
+- **The fixture models the twins' depth asymmetry rather than papering over it.** REST reads
+  pages at `depth: 2`, the Local API at `depth: 0`; both survive only because every relationship
+  read is `typeof x === 'object' ? x.id : x`. The fixture stores ids and projects per request, so
+  a twin that loses one of those guards **fails the test**.
+**Not covered, explicitly named:** image download (REST-only, no Local-API equivalent, so nothing
+to compare); Payload behaviour the fake reader doesn't model (access control, drafts, pagination
+beyond `limit`, locale fallback — it implements `depth` and `sort:'slug'`, which is all either
+twin asks for); and branch coverage that is broad but not exhaustive across every field of every
+global.
+**Stale note now resolved:** this item said "fix R16 in the same pass" — **R13a already closed
+R16**; no action was needed or taken.
 **Note:** fix R16 (the misleading header) in the same pass — same file, same reader.
 **Also fold in (from R17, 2026-08-04):** `content/pages.json` is **stale w.r.t. both
 exporters** — it predates the per-category studio/role label feature, so the next
@@ -954,6 +1009,33 @@ enforcement verified by a rejected push, a 405 merge attempt, and a single-job r
 flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. Mechanics promoted
 to **Locked decisions** ("How to edit branch protection"). Full record:
 `.claude/session-notes/2026-08-06-R25.md`.
+
+### R28 — The gate can lose its whole report when stdout is redirected  (Medium)
+**Context (found by R13b, 2026-08-07).** `console.error`/`console.warn` immediately followed by
+`process.exit()` **truncates buffered output on a non-TTY**. Observed twice in ~12 runs — the
+process exited with the correct code but wrote a **zero-byte log**.
+**Why this is Medium, not Low:** it defeats R13a's entire "fail loudly" guarantee at exactly the
+moment it matters — a CI job or script piping the gate's output to a file gets the right exit
+code and *no explanation of what diverged*. R13a's value was the message, not the exit status.
+**Pre-existing, not introduced by R13b** — reproduced on the pre-split R13a code.
+**Acceptance criteria (stub):** the full report survives redirection to a file/pipe. Fix is
+small (`process.exitCode` and let stdio flush, or `fs.writeSync(1, …)`), but it **touches the
+locked asymmetric-exit path** (see Locked decisions), so it gets its own task rather than being
+smuggled into an unrelated one. A regression test must pipe the output and assert it is
+non-empty — asserting the exit code alone reproduces the bug it is meant to catch.
+**Could fold into R27** (both touch the same scripts and docs) if convenient.
+
+### R29 — `POST /api/publish` handler unit test  (Low)
+**Context:** `docs/testing-standards.md` §2's recommended sequence, item 3 — **the last
+unstarted item in that sequence** (1 = R12 ✓, 2 = R13 ✓, 4 = E2E, deferred). Closes **risk 3**
+in the standard's ranking: `cms/src/payload.config.ts:41-62` returns **HTTP 200** when the
+deploy hook is unconfigured (`pingDeployHook` → `{ ok: false, reason: 'no-hook' }`), so the
+editor sees success and nothing rebuilds — the R3a bug shape.
+**Acceptance criteria (stub):** ~20 lines, unit level with a hand-built fake `req`, offline, no
+Payload boot. Two branches: **403 when unauthenticated**, and `no-hook` **surfaced in the body**
+at 200. **Assert on the body, never the status** (§8 gotcha).
+**Note:** this is the *test* only. Whether the status code or the UI should change is **R19**,
+which is a separate, still-open decision — do not resolve R19 here.
 
 ### R27 — RELEASE.md step 3 is stale  (Low)
 **Context (from R13a, 2026-08-06):** step 3 describes `export-content.ts` applying schema via
