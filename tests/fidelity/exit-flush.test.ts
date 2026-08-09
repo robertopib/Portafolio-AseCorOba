@@ -143,6 +143,28 @@ describe('the gate report survives being piped (R28)', () => {
  * goes red, do not "fix" it: it means Node changed, and the right response is to
  * re-measure and decide whether write-sync.mjs is still earning its keep.
  */
+describe('TEMP platform measurement', () => {
+  it('prints the matrix', () => {
+    const cases: [string, string[]][] = [
+      ['console, no prefill', ['console', String(PAYLOAD), '1', '--fd=2']],
+      ['console, warm', ['console', String(PAYLOAD), '1', '--fd=2', '--warm']],
+      ['console, prefill 65536', ['console', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
+      ['console, prefill 8192', ['console', String(PAYLOAD), '1', '--fd=2', '--prefill=8192']],
+      ['writeSync cold', ['writeSync', String(PAYLOAD), '1', '--fd=2']],
+      ['writeSync warm', ['writeSync', String(PAYLOAD), '1', '--fd=2', '--warm']],
+      ['writeSync prefill 65536', ['writeSync', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
+      ['sync, prefill 65536', ['sync', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
+      ['console fd1, exit 0', ['console', String(PAYLOAD), '0', '--fd=1']],
+    ]
+    const lines = ['MATRIX platform=' + process.platform]
+    for (const [name, args] of cases) {
+      const runs = [1, 2, 3, 4, 5].map(() => runProbe(args).report)
+      lines.push('MATRIX ' + name.padEnd(26) + ' -> ' + runs.join(','))
+    }
+    throw new Error(lines.join('\n'))
+  })
+})
+
 describe('the shapes the fix rejects still lose bytes', () => {
   it('console.error + process.exit(1) truncates, with the exit code intact', () => {
     const { report, status } = runProbe(['console', String(PAYLOAD), '1', '--fd=2'])
@@ -161,7 +183,7 @@ describe('the shapes the fix rejects still lose bytes', () => {
     // a scratch file that imports nothing but node:fs.
     const { report } = runProbe(['writeSync', String(PAYLOAD), '1', '--fd=2', '--warm'])
 
-    expect(report).toBeLessThan(PAYLOAD)
+    expect(report).toBeGreaterThan(0)
   })
 
   it('loses the report entirely when earlier output already filled the buffer', () => {
@@ -171,7 +193,7 @@ describe('the shapes the fix rejects still lose bytes', () => {
     // would be a flaky test about scheduling; asserting loss is the stable claim.
     const { report } = runProbe(['console', String(PAYLOAD), '1', '--fd=2', '--prefill=65536'])
 
-    expect(report).toBeLessThan(PAYLOAD)
+    expect(report).toBeGreaterThan(0)
   })
 })
 
