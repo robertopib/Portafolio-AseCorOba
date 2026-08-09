@@ -38,6 +38,13 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { main, formatFidelityFailure, OUT_DIR } from './export-emit'
 import { assertPortfolioDb } from './dbGuard'
+// Every byte this file prints goes through `out`, never through `console`. This
+// is the script R28 was really about: the gate-failure path below hands
+// formatFidelityFailure's full multi-file report to one write and then exits, and
+// on a pipe `console.error` loses everything past the first 64 KiB buffer — or,
+// if earlier output has not been drained, the whole message. See
+// scripts/lib/write-sync.mjs for the measurements; this file is its mirror.
+import { syncConsole as out } from './write-sync'
 
 const REPORT_PATH = '/tmp/fidelity-report.json'
 const ERROR_PATH = '/tmp/export-error.json'
@@ -83,7 +90,7 @@ try {
   )
 
   if (summary.allMatch) {
-    console.log(
+    out.log(
       `[export-content] fidelity: all ${Object.keys(report).length} files match the committed content ✓ ` +
         `(reconstruction in ${OUT_DIR}, report: ${REPORT_PATH})`,
     )
@@ -94,11 +101,15 @@ try {
       expected: Object.keys(written),
     })
     if (GATE) {
-      console.error(detail)
+      out.error(detail)
       process.exit(1)
     }
-    console.warn(detail.replace(/^❌ /, '⚠️  '))
-    console.warn('\n[export-content] exit 0: FIDELITY_GATE=0 was set, so the mismatch above is a warning.')
+    // The FIDELITY_GATE=0 branch is exposed too, and less obviously: it prints
+    // the same full report and does not exit here — it falls through to the
+    // unconditional process.exit(0) at the bottom of this file, which discards
+    // queued output exactly the way exit(1) does. Same truncation, exit code 0.
+    out.warn(detail.replace(/^❌ /, '⚠️  '))
+    out.warn('\n[export-content] exit 0: FIDELITY_GATE=0 was set, so the mismatch above is a warning.')
   }
 } catch (err: any) {
   // Still write the error file — it is genuinely useful — but never swallow the
@@ -106,9 +117,12 @@ try {
   // exception produced a clean exit and an empty fidelity report that read as a
   // pass (R13a).
   fs.writeFileSync(ERROR_PATH, JSON.stringify({ message: err.message, stack: err.stack }, null, 2))
-  console.error(`❌ [export-content] FAILED: ${err.message}`)
-  console.error(err.stack)
-  console.error(`  Details: ${ERROR_PATH}`)
+  out.error(`❌ [export-content] FAILED: ${err.message}`)
+  out.error(err.stack)
+  out.error(`  Details: ${ERROR_PATH}`)
   process.exit(1)
 }
+// Load-bearing, and the reason R28 writes synchronously rather than assigning
+// `process.exitCode`: Payload holds an open pg pool, so nothing here exits on its
+// own. An exitCode-based fix would also be silently overridden by this line.
 process.exit(0)

@@ -48,6 +48,11 @@ import { fileURLToPath } from 'url'
 // keys, order-SENSITIVE for arrays. Mirrored (not imported) by export-emit.ts
 // — see the note at the top of that module.
 import { deepDiff, summarizeFidelity, formatFidelityFailure } from './lib/fidelity.mjs'
+// Every byte this script prints goes through here, never through `console`. A
+// fidelity report handed to `console.error` is truncated at one 64 KiB pipe
+// buffer by the `process.exit(1)` that follows it — and CI reads job output
+// through a pipe (roadmap R28). See that module's header for the measurements.
+import { syncConsole } from './lib/write-sync.mjs'
 
 // ----------------------------------------------------------------------------
 // Paths (scripts/ -> project root)
@@ -175,7 +180,11 @@ const loc = (v) => ({ es: (v?.es ?? ''), en: (v?.en ?? '') })
  * @param {boolean}  [opts.fidelity]   compare against git HEAD and write the report
  * @param {boolean}  [opts.gate]       only changes the WORDING/severity, never the
  *                                     detection; the caller owns the exit code
- * @param {object}   [opts.log]        console-shaped sink, for quiet test runs
+ * @param {object}   [opts.log]        console-shaped sink, for quiet test runs.
+ *                                     Defaults to syncConsole, NOT console: the
+ *                                     CLI calls process.exit() right after this
+ *                                     returns, which discards anything console
+ *                                     has merely queued (R28).
  * @returns {Promise<{written: object, serialized: object, fidelity: object|null, allMatch: boolean}>}
  */
 export async function main({
@@ -184,7 +193,7 @@ export async function main({
   images = true,
   fidelity: doFidelity = true,
   gate = GATE,
-  log = console,
+  log = syncConsole,
 } = {}) {
   const { getGlobal, getCollection } = makeReaders(getJson)
 
@@ -1203,6 +1212,12 @@ export async function main({
 // The exit code lives here rather than in main() so that main() has no process
 // side effects at all. Behaviour is unchanged: exit 1 only under --gate /
 // FIDELITY_GATE=1, which is the locked asymmetry with export-content.ts.
+//
+// Neither process.exit() below was touched by R28 — that fix is entirely about
+// main()'s output being written synchronously (see the `log` default), so the
+// report it printed a moment ago is already on the fd when these run. `:1212`
+// prints nothing itself but is exposed all the same, because main() wrote the
+// report immediately before it.
 const invokedDirectly =
   Boolean(process.argv[1]) && path.resolve(process.argv[1]) === __filename
 
@@ -1211,7 +1226,7 @@ if (invokedDirectly) {
     const { allMatch } = await main()
     if (GATE && !allMatch) process.exit(1)
   } catch (err) {
-    console.error('[fetch-content] FAILED:', err.stack || err.message)
+    syncConsole.error('[fetch-content] FAILED:', err.stack || err.message)
     process.exit(1)
   }
 }
