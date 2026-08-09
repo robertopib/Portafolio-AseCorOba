@@ -191,7 +191,7 @@ Last updated: 2026-08-07
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
-| R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | todo | full-stack | Medium | R13a |
+| R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | in-progress | full-stack | Medium | R13a |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
 | R30 | `docs/testing-standards.md` two corrections: §4 unreachable layout + §1 risk-3 premise | todo | qa | Low | R29 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
@@ -1061,6 +1061,25 @@ locked asymmetric-exit path** (see Locked decisions), so it gets its own task ra
 smuggled into an unrelated one. A regression test must pipe the output and assert it is
 non-empty — asserting the exit code alone reproduces the bug it is meant to catch.
 **Could fold into R27** (both touch the same scripts and docs) if convenient.
+
+**⚠️ MECHANISM REPRODUCED by the conductor, 2026-08-09 — read this before diagnosing.** The
+roadmap's own wording ("redirected to a file/pipe") was imprecise. Measured on macOS / Node 22
+with a 200,000-byte payload written via `console.error` immediately before `process.exit(1)`:
+
+| Destination | Bytes delivered | Verdict |
+|---|---|---|
+| File (`2> log`) | 200,001 / 200,001 | **safe** — POSIX file writes are synchronous |
+| Pipe (`2>&1 \| …`) | **65,536** | **truncated at exactly one 64 KiB pipe buffer** |
+
+So it is **pipes, not files** — and GitHub Actions captures job output through a pipe. A *small*
+report survives (55-byte payload delivered intact across 5/5 runs), which is why this hid: the
+loss is **size-dependent**, appearing only once a failure report exceeds the 64 KiB buffer.
+**Both candidate fixes verified at 200 KB**, each delivering 200,001 bytes with exit code 1
+preserved: `process.exitCode = 1` (let Node exit naturally) and `fs.writeSync(2, …)`.
+**Not reproduced: R13b's "zero-byte log".** I measured 64 KiB truncation, never a zero-byte
+result. Same class of bug and definitely real, but the exact zero-byte path is uncharacterised —
+possibly Linux/CI buffering or a different timing. **The worker should characterise it rather
+than assume my mechanism is the whole story.**
 
 ### R29 — `POST /api/publish` handler unit test  (Low)
 **Context:** `docs/testing-standards.md` §2's recommended sequence, item 3 — **the last
