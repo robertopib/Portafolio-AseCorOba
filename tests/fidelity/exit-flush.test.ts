@@ -24,6 +24,21 @@
  *
  * Files were never affected — POSIX file writes are synchronous. It is pipes.
  *
+ * ── And on the CI runner: ubuntu-latest / Node 24, same probe, 5 runs each ───
+ *
+ *   console.error, no prefill    200000,146176,146176,146176,146176
+ *   console.error, warm          200000,146176,146176,146176,200000
+ *   console.error, prefill 64K   200000,109632,200000,182720,109632
+ *   bare fs.writeSync, warm      146176,146176,146176,200000,146176
+ *   syncConsole (the fix)        200000,200000,200000,200000,200000
+ *
+ * Two things follow, and they shape how this file is written. **The fix is
+ * deterministic on both platforms; the bug is not.** Linux loses a random amount
+ * — and sometimes none at all — where macOS truncates at a clean 65,536 every
+ * time. That is a second, independent reason R13b saw this intermittently. It
+ * also means no assertion about the unfixed shape can be made about a SINGLE run
+ * without being flaky on Linux, which is why the guard below samples.
+ *
  * TWO FINDINGS WORTH NOT RELEARNING, both pinned by tests below:
  *
  *  1. A BARE `fs.writeSync` IS NOT THE FIX. It delivers everything only while the
@@ -91,12 +106,15 @@ describe('the gate report survives being piped (R28)', () => {
   // Regression: console.error(report) + process.exit(1) delivered only the first
   // 64 KiB of the report through a pipe — CI saw the exit code and no reason.
   it('delivers a 200,000-byte report through a pipe before process.exit(1)', () => {
-    const { report, status } = runProbe(['sync', String(PAYLOAD), '1', '--fd=2'])
+    // Repeated, unlike the cases below, because "the fix is deterministic where
+    // the bug is not" is half of what this file claims. One green run would not
+    // distinguish the fix from a lucky sample on Linux.
+    const runs = Array.from({ length: 5 }, () => runProbe(['sync', String(PAYLOAD), '1', '--fd=2']))
 
-    expect(report).toBe(PAYLOAD)
-    // Asserted second, and only alongside the byte count: this was correct even
+    expect(runs.map((r) => r.report)).toEqual(Array(5).fill(PAYLOAD))
+    // Asserted second, and only alongside the byte counts: this was correct even
     // when the bug was live. On its own it is the non-test the standard warns of.
-    expect(status).toBe(1)
+    expect(runs.map((r) => r.status)).toEqual(Array(5).fill(1))
   })
 
   // Regression: a bare fs.writeSync delivers everything only on a blocking fd; in
@@ -135,65 +153,40 @@ describe('the gate report survives being piped (R28)', () => {
 })
 
 /**
- * Vacuity guards. Without these the assertions above could quietly become
- * tautologies — if the unfixed shapes stopped losing bytes, every test in this
- * file would pass whether or not the fix was still there, and nobody would know.
+ * THE VACUITY GUARD. Without it every assertion above could quietly become a
+ * tautology: if the unfixed shape stopped losing bytes, this whole file would
+ * pass whether or not the fix was still there, and nobody would find out.
  *
- * These are the one place in the suite that asserts a defect still exists. If one
- * goes red, do not "fix" it: it means Node changed, and the right response is to
- * re-measure and decide whether write-sync.mjs is still earning its keep.
+ * It is the one place in the suite that asserts a defect still exists, so it is
+ * written to be robust rather than precise. It SAMPLES, because the loss is
+ * probabilistic on Linux (measured 4 of 5 runs; deterministic on macOS) — a
+ * single-run `expect(report).toBeLessThan(PAYLOAD)` was tried first and went red
+ * on the CI runner for exactly that reason. Ten runs at a measured ≥0.8 loss rate
+ * puts a false green around 1e-7; even at a coin-flip rate it is under 0.1%.
+ *
+ * Two claims are deliberately NOT asserted here, because they held on macOS and
+ * not on Linux, and a cross-platform gate is not the place for them. Both are
+ * recorded in the header instead:
+ *   - a bare `fs.writeSync` on a non-blocking fd truncates (5/5 macOS, 4/5 Linux)
+ *   - with the buffer pre-filled the report is lost ENTIRELY — 0 bytes, 5/5
+ *     against a stalled reader on macOS. That is R13b's zero-byte log.
+ *
+ * IF THIS GOES RED, do not "fix" it. It means the platform changed, and the right
+ * response is to re-measure and decide whether write-sync.mjs still earns its keep.
  */
-describe('TEMP platform measurement', () => {
-  it('prints the matrix', () => {
-    const cases: [string, string[]][] = [
-      ['console, no prefill', ['console', String(PAYLOAD), '1', '--fd=2']],
-      ['console, warm', ['console', String(PAYLOAD), '1', '--fd=2', '--warm']],
-      ['console, prefill 65536', ['console', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
-      ['console, prefill 8192', ['console', String(PAYLOAD), '1', '--fd=2', '--prefill=8192']],
-      ['writeSync cold', ['writeSync', String(PAYLOAD), '1', '--fd=2']],
-      ['writeSync warm', ['writeSync', String(PAYLOAD), '1', '--fd=2', '--warm']],
-      ['writeSync prefill 65536', ['writeSync', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
-      ['sync, prefill 65536', ['sync', String(PAYLOAD), '1', '--fd=2', '--prefill=65536']],
-      ['console fd1, exit 0', ['console', String(PAYLOAD), '0', '--fd=1']],
-    ]
-    const lines = ['MATRIX platform=' + process.platform]
-    for (const [name, args] of cases) {
-      const runs = [1, 2, 3, 4, 5].map(() => runProbe(args).report)
-      lines.push('MATRIX ' + name.padEnd(26) + ' -> ' + runs.join(','))
-    }
-    throw new Error(lines.join('\n'))
-  })
-})
+describe('the shape the fix rejects still loses bytes', () => {
+  const SAMPLES = 10
 
-describe('the shapes the fix rejects still lose bytes', () => {
   it('console.error + process.exit(1) truncates, with the exit code intact', () => {
-    const { report, status } = runProbe(['console', String(PAYLOAD), '1', '--fd=2'])
+    const runs = Array.from({ length: SAMPLES }, () =>
+      runProbe(['console', String(PAYLOAD), '1', '--fd=2']),
+    )
 
-    expect(report).toBeLessThan(PAYLOAD)
-    expect(report).toBeGreaterThan(0)
-    // The exit code is RIGHT and the message is gone. This is the whole bug, and
-    // the reason a test asserting only `status` would have caught nothing.
-    expect(status).toBe(1)
-  })
-
-  it('a bare fs.writeSync truncates too, once the fd is non-blocking', () => {
-    // --warm is belt-and-braces here: the probe's own `import … from
-    // 'node:process'` has already instantiated the stream, which is finding 1 and
-    // the reason writeAllSync loops. A bare fs.writeSync only looks like a fix in
-    // a scratch file that imports nothing but node:fs.
-    const { report } = runProbe(['writeSync', String(PAYLOAD), '1', '--fd=2', '--warm'])
-
-    expect(report).toBeGreaterThan(0)
-  })
-
-  it('loses the report entirely when earlier output already filled the buffer', () => {
-    // Only `< PAYLOAD` is asserted, deliberately. The exact figure is 0 or 65,536
-    // depending on whether the parent's read loop got scheduled between the two
-    // writes (9/20 runs gave 0 locally) — the intermittency R13b hit. Asserting 0
-    // would be a flaky test about scheduling; asserting loss is the stable claim.
-    const { report } = runProbe(['console', String(PAYLOAD), '1', '--fd=2', '--prefill=65536'])
-
-    expect(report).toBeGreaterThan(0)
+    expect(runs.some((r) => r.report < PAYLOAD)).toBe(true)
+    // The exit code is RIGHT in every run and the message is gone in most of
+    // them. That is the whole bug, and the reason a regression test asserting
+    // only `status` would have caught precisely nothing.
+    expect(runs.map((r) => r.status)).toEqual(Array(SAMPLES).fill(1))
   })
 })
 
