@@ -69,8 +69,8 @@ code is effectively frozen (17 commits in 6 months). So test what changes.
 | # | Risk | Why it's invisible today | Where it goes |
 |---|---|---|---|
 | **1** | **Content-shaped breakage** | CI validates code against a fixture; prod renders live CMS data. No type check, no error boundary, no clamping. | **R12** — §2 integration + invariant layers |
-| **2** | **Fidelity-twin drift** | Two hand-synced emitters must produce byte-identical JSON. The existing gate covers 9.8% of content bytes and cannot fail. | **R13** — §2 node-integration layer |
-| **3** | **Publish plumbing** | A missing deploy-hook env var returns **HTTP 200**. The editor sees success; nothing rebuilds. | §2 unit layer, item 3 |
+| **2** | **Fidelity-twin drift** | Two hand-synced emitters must produce byte-identical JSON. As written (2026-08-03) the existing gate covered 9.8% of content bytes and could not fail — **both closed by R13a/R13b**, see the note under "Risk 2 in detail". | **R13** — §2 node-integration layer |
+| **3** | **Publish plumbing** | A missing deploy-hook env var returns **HTTP 200** carrying `{ ok: false, reason: 'no-hook' }`. The whole signal is that one string, and **non-UI consumers** — `curl`, monitoring, any future integration — read the 200 as success. | §2 unit layer, item 3 — **done, R29** |
 | **4** | **Bilingual `{es,en}` fallback** | `fallback: true` degrades a missing `en` to Spanish silently. | Folded into R12's fixtures |
 | **5** | **Migration integrity** | — **already gated.** `repo-integrity` checks `index.ts`↔disk both ways and `push: false` in ~15 s. | **Cite it, don't rebuild it** (`ci.yml:49-68`) |
 
@@ -137,14 +137,53 @@ Two aggravating findings:
 
 R13 is not "add drift detection to a working gate." It is "the gate is mostly a comment."
 
+> **Updated 2026-08-10 (R30) — everything above is now the *historical* diagnosis; R13 shipped.**
+> The three sentences in the present tense are no longer true, and are kept because they are the
+> case for the work. Current state, read from the code: every emitted file goes through `emit()`
+> into a temp dir and is deep-diffed, and `match: true` is the only passing verdict
+> (`cms/src/scripts/export-emit.ts:97`, `scripts/fetch-content.mjs:1135`); the header's
+> "does NOT modify the committed content" claim is now literally true rather than a lie
+> (`cms/src/scripts/export-content.ts:11-17`); and **both gates can fail** —
+> `export-content.ts` exits 1 by default, `fetch-content.mjs` exits 1 under `--gate` /
+> `FIDELITY_GATE=1` (`:1227`). **That default asymmetry is deliberate and locked** — the
+> verification tool fails loudly because nothing depends on it; the production content producer
+> wired into `vercel.json` does not, because a diff from `git HEAD` is the normal result of an
+> editor publishing. Do not "harmonise" them.
+
 ### Risk 3 in detail — success at HTTP 200
 
-`cms/src/payload.config.ts:41-62`. Auth is correct: `403` when `!req.user` (`:48-50`). The
-failure mode is the happy path — a missing or wrong `VERCEL_DEPLOY_HOOK_URL` makes
-`pingDeployHook` return `{ ok: false, reason: 'no-hook' }`
+`cms/src/endpoints/publish.ts` (extracted from `payload.config.ts` by R29; the config keeps the
+endpoint definition at `payload.config.ts:41-54`). Auth is correct: `403` when `!req.user`
+(`publish.ts:44-46`). The failure mode is the happy path — a missing or wrong
+`VERCEL_DEPLOY_HOOK_URL` makes `pingDeployHook` return `{ ok: false, reason: 'no-hook' }`
 (`cms/src/hooks/triggerDeploy.ts:24-25`), which the endpoint returns with **status 200**
-(`:52-55`, deliberately). That is the R3a bug shape: an env var whose absence produces a
-green-looking result and a broken outcome (`docs/delivery/roadmap.md:299-304`).
+(`publish.ts:49-55`, deliberately). That is the R3a bug shape: an env var whose absence produces
+a green-looking result and a broken outcome (`docs/delivery/roadmap.md:299-304`).
+
+> **Corrected 2026-08-10 (R30) — who actually gets misled.** The risk-3 row above used to end
+> *"The editor sees success; nothing rebuilds."* **That clause was false, and had been since this
+> document was written on 2026-08-03.** `cms/src/components/PublishButton.tsx:35-37` branches on
+> `data.reason === 'no-hook'` and raises a red toast — *"No hay un hook de despliegue
+> configurado."* — and has done since `fcf0335`, the **only** commit that file has ever had. The
+> editor **is** told.
+>
+> The risk stays in the ranking, because the exposure is real; it just belongs to a different
+> consumer. **The entire signal is the `reason` string in a 200 body.** Anything that is not the
+> admin button — `curl`, an uptime check, a future integration — sees HTTP 200 and stops there.
+> And because the UI branch keys off `reason` rather than the status, tidying that field out of
+> the payload would have silently degraded the specific toast to the generic *"No se pudo
+> publicar"* with nothing going red. R29 pinned it with an exact `toEqual`
+> (`tests/unit/publish-endpoint.test.ts`), which is what the test was worth.
+>
+> The 500 path carries nothing extra: `publish.ts:56-58` fires only if `pingDeployHook` throws,
+> which it is documented never to do (`triggerDeploy.ts:22`), and its body is byte-identical to
+> the 200 error body. **So the status code conveys no information the body does not** — which is
+> why the open question (**R19**) is a contract question, not a status-code question.
+>
+> Cost of the wrong clause, recorded because it is the point: it propagated from this line into
+> `docs/delivery/roadmap.md` twice (R19's and R29's detail) and into R29's task prompt before
+> anyone opened `PublishButton.tsx`. Never restate a claim about behaviour from a document —
+> open the file.
 
 > **Do not treat `read: () => true` on the collections as a finding.** Public reads are
 > intentional — the site is a public portfolio. Assert that intent holds; don't "fix" it.
@@ -244,10 +283,18 @@ publish), or the site stops being a static SPA. At that point evaluate Playwrigh
 |---|---|---|---|
 | **1** | Content resilience: hostile-fixture renderer tests + committed-content invariants | **R12** | **Yes.** Needs only the site project. Closes the largest gap. Do this one first, alone. |
 | 2 | Fidelity-twin equivalence test | **R13** | Yes, after item 1 establishes the runner. Also fix the two gate defects in §1 (the hardcoded `match: true`, the `exit(0)`). |
-| 3 | `POST /api/publish` handler unit test — 403 unauthenticated, `no-hook` surfaced | new | Yes. ~20 lines. |
+| 3 | `POST /api/publish` handler unit test — 403 unauthenticated, `no-hook` surfaced | **R29** | Yes. ~~~20 lines~~ — see the note below. |
 | 4 | E2E | — | **Deferred.** Not scheduled. |
 
 Do **not** bundle these. One roadmap task at a time; a big-bang suite gets abandoned.
+
+> **Updated 2026-08-10 (R30).** Item 3 shipped as **R29** (2026-08-07); the Roadmap column said
+> "new" when this was written. The *"~20 lines"* estimate was wrong and is worth keeping visible:
+> the handler was an **inline arrow function** in the `endpoints` array, so testing it at all
+> required first extracting it to `cms/src/endpoints/publish.ts` — importing it in place meant
+> importing the whole config, and the `tests` job installs root dependencies only, where
+> `payload` does not resolve (`.github/workflows/ci.yml:265-266`). **An untestable seam is part
+> of the estimate**, not a surprise to absorb inside one.
 
 ---
 
@@ -270,8 +317,13 @@ A standard is judged as much by what it declines to require.
 
 ## 4. Tooling recommendation
 
-**Recommended, not adopted.** No runner is installed as of this document. Installing one is
-R12's first step, and it is a lockfile change — treat it as such.
+**ADOPTED as of R12** (2026-08-04, merge `4ceeaf0`) — Vitest + RTL + jsdom are installed, in the
+**root lockfile only**, with `vitest.config.ts` merging `vite.config.ts`. *(Updated 2026-08-10
+(R30): this paragraph used to read "**Recommended, not adopted.** No runner is installed as of
+this document. Installing one is R12's first step, and it is a lockfile change — treat it as
+such." It was written on 2026-08-03 against a repo with zero test tooling. The reasoning below is
+kept as the record of **why** each choice was made — read it as rationale, not as a pending
+decision.)*
 
 ### Site + shared: Vitest + React Testing Library + jsdom
 
@@ -315,8 +367,58 @@ tests/renderers/*.test.tsx                  # jsdom integration layer
 tests/invariants/content-shape.test.ts      # invariant checks over content/*.json
 tests/invariants/media-admin-columns.test.ts# CMS config invariants (source-text, no CMS deps)
 tests/fidelity/twin-equivalence.test.ts     # R13
-cms/src/**/*.test.ts                        # co-located CMS unit tests
+tests/unit/*.test.ts                        # CMS-side unit tests live HERE, not under cms/
+tests/cms-twin.d.ts                         # ambient for the @cms-export-emit alias (R13b)
+tests/cms-publish-endpoint.d.ts             # ambient for the @cms-publish-endpoint alias (R29)
+tests/node-builtins.d.ts                    # ambient for node:child_process / :process / :url (R28)
 ```
+
+> **Corrected 2026-08-10 (R30) — the old last row pointed at a path the runner cannot reach.**
+> This block used to end with `cms/src/**/*.test.ts   # co-located CMS unit tests`. **No such
+> test would ever run.** `vitest.config.ts`'s `include` is exactly two globs —
+> `src/**/*.test.{ts,tsx}` (`:59`) and `tests/**/*.test.{ts,tsx}` (`:61`) — and the root
+> `tsconfig.json`'s `include` is `["src", "tests"]` (`:77`). A suite never collected reports
+> nothing, so
+> the run stays **green**: the worst possible failure mode for a line in a binding standard.
+> Use the pattern below instead, which is what R13b and R29 actually did.
+
+**Reaching into `cms/` from a root test — alias + ambient `.d.ts`.** CMS-side tests live under
+`tests/` like every other suite and reach the CMS module through a **test-only** vitest alias
+paired with a hand-written ambient declaration. Two instances so far:
+
+| Alias | Real module | Ambient declaration | Task |
+|---|---|---|---|
+| `@cms-export-emit` | `cms/src/scripts/export-emit.ts` | `tests/cms-twin.d.ts` | R13b |
+| `@cms-publish-endpoint` | `cms/src/endpoints/publish.ts` | `tests/cms-publish-endpoint.d.ts` | R29 |
+
+Both halves are load-bearing, and each fails differently:
+
+- **The alias goes in `vitest.config.ts` (`:37`, `:42`) and NEVER in `vite.config.ts`.** The
+  shipped bundle has no business resolving anything inside `cms/` (`vitest.config.ts:24-25`).
+  This is the one sanctioned exception to "never restate a resolve option outside
+  `vite.config.ts`" — it holds because no *build* resolution depends on it (`:35-36`).
+- **The ambient declaration is what keeps the real module out of `tsc --noEmit`.** A relative
+  import drags the file *and everything it imports* into the typecheck program, where `fs` /
+  `path` / `process` fail: the root tsconfig deliberately has no `@types/node`
+  (`tsconfig.json:61-64`). Measured, not assumed — R29 pointed a test at the relative path and
+  got `cms/src/hooks/triggerDeploy.ts(24,15): error TS2591: Cannot find name 'process'`
+  (`tests/cms-publish-endpoint.d.ts:8-16`). A bare specifier resolves to the declaration, tsc
+  never opens the file, and Vitest resolves the real module at runtime.
+
+An ambient declaration is perfectly happy to lie, so it is only safe when something else catches
+drift: `pnpm --dir cms build` typechecks the real module against `cms/tsconfig.json`, and the
+test must **call** the module for real rather than merely typecheck against the declaration.
+Where the *wiring* is what the extraction put at risk, also assert on the config's source text —
+R29 added seam guards pinning that `payload.config.ts` still references the handler, at the right
+path, without importing `payload`.
+
+**Reaching a Node builtin needs the same shielding.** `tests/node-builtins.d.ts` declares only
+the sliver of `node:child_process`, `node:process` and `node:url` the R28 suite calls — third
+instance of the same pattern, same `@types/node` reason. Two rules from that file's header
+(`tests/node-builtins.d.ts:13-22`): keep it **minimal**, and keep it `declare module`, never a
+global — a `declare const process` would leak Node's globals into all 83 files under `src/**` and
+quietly legitimise server-only code in a browser bundle. If `@types/node` is ever added this file
+becomes a duplicate-module error; delete it then, don't merge the two.
 
 **A co-located test file is a Tailwind source file** (R12, measured). `@source` in
 `src/styles/tailwind.css` scans `src/**` as text, so class names written in an assertion
@@ -324,9 +426,17 @@ become real CSS rules and move the shipped bundle — i.e. they redden `pixel-pa
 change that touches no markup. `@source not '../**/*.test.{ts,tsx}'` excludes them; with it
 the bundle is byte-identical. Keep that line, or keep tests out of `src/`. See §8.
 
-**Do not import CMS source from a root test.** `cms/` is a separate project with its own
-lockfile, enforced by `scripts/ci/check-lockfiles.mjs`; anything reaching `payload`,
-`sharp` or `@aws-sdk/*` will neither resolve nor typecheck from the root. A CMS *config*
+**Never let a root test's import graph reach `payload`, `sharp` or `@aws-sdk/*`.** *(Reworded
+2026-08-10 (R30); this used to say "Do not import CMS source from a root test", which the alias
+pattern above now contradicts. The real constraint was never the directory — it is the transitive
+import graph.)* `cms/` is a separate project with its own lockfile, enforced by
+`scripts/ci/check-lockfiles.mjs`, and the `tests` job installs **root dependencies only**
+(`.github/workflows/ci.yml:265-266`), so those specifiers will neither resolve nor typecheck from
+the root. That is exactly why the two aliased modules were carved out to import nothing from
+`payload`: **one `payload` import added to either of them takes its suite out of CI** — the
+specifier does not resolve there, so the job reddens and the pressure is to delete the test
+rather than to restore the seam. Say so in the module's header, as both of them do. A CMS
+*config*
 invariant can still be asserted by reading the file as source text (`?raw`) — see
 `tests/invariants/media-admin-columns.test.ts`, which guards the R21 outage that way. When
 doing that, assert that the parse itself succeeded, or the test passes vacuously the first
@@ -446,7 +556,7 @@ For a human deciding what to promote into the governance submodule. **Nothing in
 | **Layer matrix by code type** (`:8-20`) | **Changed** | Reorganized by **risk** rather than code type. The upstream table routes ~everything here to "unit + snapshot". | Maybe — as an alternative table for content-driven / presentational projects. |
 | **Snapshot test per presentational component** (`:16`) | **Dropped** | Third-party vendored code; snapshots record upstream markup and break on dependency bumps for reasons no reviewer can act on. Presentational output is guarded by `pixel-parity` instead. | Yes — narrow the rule to *project-owned* components, and never require snapshots of vendored code. |
 | **Loading-state verification** (`:34`) | **Dropped** | Zero `fetch(`/`await` in the site's own code; all content is build-time JSON. No async UI exists. | No — the rule is fine, it just needs its "(if async UI)" condition taken seriously. |
-| **Integration test for every API route / DB query** (`:13-14`) | **Changed** | One custom endpoint exists (`payload.config.ts:41-62`); a unit test with a fake `req` covers both its branches. DB-backed integration is recommended but **local-only** — CI has no database by design. | Yes — add an explicit carve-out for "CI cannot reach a database", which upstream currently doesn't contemplate. |
+| **Integration test for every API route / DB query** (`:13-14`) | **Changed** | One custom endpoint exists (defined at `payload.config.ts:41-54`, handler at `cms/src/endpoints/publish.ts` since R29); a unit test with a hand-built fake `req` covers its branches (`tests/unit/publish-endpoint.test.ts`). DB-backed integration is recommended but **local-only** — CI has no database by design. | Yes — add an explicit carve-out for "CI cannot reach a database", which upstream currently doesn't contemplate. |
 | **Regression test on every bug fix** (`:38-47`) | **KEPT, non-negotiable** | Cheap, high-value, and this project's history validates it — R8's phantom migration import and R3a's host-less reset link are both exactly the class of bug a regression test pins. | Already upstream. Leave it. |
 | **Test priority order** (`:64-75`) | **Changed** | Upstream ranks auth/business-logic above UI. Here the top risk is **content shape reaching a renderer**, which upstream's list has no row for. §1's ranking replaces it. | Maybe — add a "data/content shape" tier for content-driven sites. |
 | **Test file organization** (`:79-95`) | **Changed** | Assumes `src/features/**`, which this repo does not use. Replaced with a co-located layout in §4. | No — it's illustrative, not binding. |
@@ -476,14 +586,54 @@ For a human deciding what to promote into the governance submodule. **Nothing in
   keep that line, or move tests out of `src/`.
 - **A missing content field blanks the whole page**, it does not degrade one section. No
   error boundary exists anywhere in `src/`.
-- **`export-content.ts` reports `match: true` for 90.2% of content bytes without comparing
-  them** (`:653-657`, `:689-694`, `:1011-1016`), and both fidelity gates `exit 0` on failure.
-  A green fidelity report is currently weak evidence. Fix this as part of R13.
-- **`export-content.ts`'s header lies.** It says it does not modify committed content; it
-  writes `pages.json`, `categories.json` and `case-studies.json` straight into `content/`.
+- **A gate that cannot fail is a comment.** *(Rewritten 2026-08-10 (R30) — both bullets this
+  replaces are FIXED and must not be re-asserted. They used to read: "`export-content.ts` reports
+  `match: true` for 90.2% of content bytes without comparing them (`:653-657`, `:689-694`,
+  `:1011-1016`), and both fidelity gates `exit 0` on failure"; and "`export-content.ts`'s header
+  lies — it says it does not modify committed content, and writes `pages.json`,
+  `categories.json` and `case-studies.json` straight into `content/`.")* R13a/R13b closed both:
+  every file is emitted to a temp dir and really diffed, `match: true` is the only passing
+  verdict (`cms/src/scripts/export-emit.ts:97`), and the exit code is now the gate
+  (`cms/src/scripts/export-content.ts:19-24`). **What survives as the lesson**: a hardcoded
+  `match: true` and a `catch`-then-`exit(0)` are both invisible in a green run, so *never* accept
+  a passing report as evidence a gate works — make it go red on purpose first. See also the
+  locked default asymmetry between the two gates in §1's risk-2 note.
 - **`POST /api/publish` returns 200 when the deploy hook is unconfigured**
-  (`payload.config.ts:52-55`). Green response, nothing rebuilt. Assert on the body, never the
-  status.
+  (`cms/src/endpoints/publish.ts:49-55`; the handler moved out of `payload.config.ts` in R29).
+  Nothing rebuilds, and the only thing distinguishing it from success is
+  `reason: 'no-hook'` in the body. **Assert on the body, never the status** — the status is
+  R19's open question and every body assertion survives R19 changing it. *(Corrected 2026-08-10
+  (R30): this bullet used to say "Green response"; the admin UI is not fooled —
+  `PublishButton.tsx:35-37` shows a red toast. The consumers at risk are non-UI. See §1 risk 3.)*
+  One sanctioned exception, R29's, worth copying rather than re-arguing: the **403** may be
+  asserted on status, because a silent downgrade there is an auth hole rather than a redesign and
+  `PublishButton.tsx:38` branches on it. Say why in a comment when you take it.
+- **A message written immediately before `process.exit` is truncated when output is a pipe —
+  and CI reads output through a pipe.** *(R28, 2026-08-10.)* `console.error(msg)` then
+  `process.exit(1)` does not drain queued stream writes: measured on macOS / Node 22 with a
+  200,000-byte payload, a **file** (`2> log`) got all 200,001 bytes while a **pipe** (`2>&1 | …`)
+  got exactly **65,536** — one kernel pipe buffer. GitHub Actions captures job output through a
+  pipe, so CI is the exposed case, and the loss is **size-dependent**, which is why it hid for
+  months: a short message always survives. It bites once a failure report exceeds 64 KiB, i.e.
+  precisely when the report matters most. **The sharp edge: a bare `fs.writeSync` is NOT the
+  fix.** It delivers in full only while the fd is still *blocking*, and libuv flips it to
+  `O_NONBLOCK` the moment Node instantiates `process.stderr` — after which it truncates at 65,536,
+  identically to the bug it was meant to fix. **Merely importing a named export from
+  `node:process` is enough to reach that state** (measured: `import { execPath } from
+  'node:process'` drops 200,000 → 65,536), so every real script is already in it. The working fix
+  is an **offset loop plus an `Atomics.wait` sleep on EAGAIN**; use `writeAllSync` /
+  `syncConsole` from `scripts/lib/write-sync.mjs`, whose header carries the full measurement
+  tables and the reasoning for choosing it over `process.exitCode` (`:22-54`). Two consequences
+  for tests: **a regression test must pipe the output and assert on its bytes** — asserting the
+  exit code alone reproduces the bug it is meant to catch — and because the truncation is
+  **non-deterministic on Linux** (five runs gave 200000, 146176, 146176, 146176, 146176), the
+  vacuity guard samples ~10 runs and asserts at least one loses bytes rather than asserting that
+  a single run truncates. See `tests/fidelity/exit-flush.test.ts`.
+- **A verification is only worth what its setup shares with the real thing.** *(R28's other
+  lesson, and it is not about stdio.)* The bare-`writeSync` claim above was originally "verified"
+  at 200 KB — in a scratch script that imported nothing else, which is the one condition under
+  which it passes. A scratch script is not a 1,000-line script with imports. Reproduce in
+  something shaped like the target, or say plainly that you did not.
 - **A green `pixel-parity` on a `src/styles/globals.css` edit proves nothing** — that file is
   imported by nothing (roadmap R14). Real global style changes go in `theme.css`.
 - **Adding a CI job does not gate anything** until branch protection's required-checks list
