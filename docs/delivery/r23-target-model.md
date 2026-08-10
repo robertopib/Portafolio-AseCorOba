@@ -3,11 +3,40 @@
 > **Status: design only.** No schema, no migration, no exporter change, no renderer change.
 > Successor to [analysis-projects-vs-photos.md](analysis-projects-vs-photos.md) (**R23a**);
 > the thing it is designed to make safe to execute is **R23b**. Its companion is
-> [r23-backfill-mapping.md](r23-backfill-mapping.md) — the 57-row mapping the owner signs off.
+> [r23-backfill-mapping.md](r23-backfill-mapping.md) — the client worksheet the owner fills in.
 >
 > **All evidence below was measured offline from committed content and committed source on
 > 2026-08-10.** No live CMS, no database, no network. Every claim carries a `path:line` or a
 > command that reproduces it.
+
+> ## ⚠️ Revised 2026-08-10 (R23a-ii) — the `Cliente` axis was missing
+>
+> **The owner reviewed R23a at the review gate and corrected the model. That is the gate
+> working, not a failure.** R23a designed `Categoría → Proyecto → images[]` and stopped there.
+> Wrong: **a client's work spans several categories**, so `Cliente` cannot sit under
+> `Categoría` — they are different axes. The three owner decisions and the generative rule are
+> **locked** ([roadmap.md:1528-1566](roadmap.md)); they are recorded in **§3.0** and are not
+> re-litigated anywhere in this file.
+>
+> **What changed on 2026-08-10:**
+>
+> | § | Change |
+> |---|---|
+> | **3.0** | **New.** The locked model, the three owner decisions, the generative rule. |
+> | **3.2** | The WodFest hedge is **deleted** — the rule settles it, and it settles it *for* image-level placement rather than against it. |
+> | **3.5** | **New.** Decision 4 — the `Clientes` collection and the `cliente` relationship. |
+> | **3.6** | The entity diagram, replacing R23a's two-level sketch. |
+> | **4** | **New §4.1** — proof that `Cliente` reaches nothing the exporter emits. The six shapes are otherwise untouched. |
+> | **5.1** | Migration surface: three new tables and two new columns, not two tables. |
+> | **5.2** | Backfill is driven by the worksheet's `(cliente, categoría)` pairs, not by typed prefixes. |
+> | **5.3 / 5.4** | The parent count is now an *output* of the worksheet; rollback drops in FK order. |
+> | **7** | R23b-i is blocked on the **worksheet**, not on six questions — four are resolved. |
+>
+> **What did NOT change, and must not be redone:** §2 in full (the measured evidence),
+> §3.1 (`group` stays, on the parent), §3.2's conclusion (placement stays on the *image*),
+> §3.3 (`images[]` is an array field, not a second collection), §3.4's field table, §4's six
+> shapes and the `group: 'any'` wrinkle, and the order-preservation rule (branding's published
+> `id` **is** `p.order`; the gap at 4 is `fisio-equina`; never renumber).
 
 ---
 
@@ -27,6 +56,10 @@ ways that were not visible from `sections/*.json` alone:
 | Emitters to change | `export-content.ts` + `fetch-content.mjs` | the same six shapes, **twice** — both hand-maintained ~1,150-line twins, guarded by `tests/fidelity/twin-equivalence.test.ts` |
 | `placement` | "moves to the parent" | **cannot** move to the parent — two rows disprove it (§3.2) |
 
+**And one thing R23a itself got wrong, corrected by the owner on 2026-08-10:** the model needs
+a **third** entity, `Cliente`, on an axis of its own — see §3.0. It does not disturb any of the
+three findings above.
+
 Recommendation: **do Option A, and split R23b in two** — see §7.
 
 ---
@@ -34,9 +67,13 @@ Recommendation: **do Option A, and split R23b in two** — see §7.
 ## 2. What the real data says
 
 Reproduce the row inventory with the script in
-[r23-backfill-mapping.md §4](r23-backfill-mapping.md#4-how-to-regenerate-this-file):
-`node /tmp/r23-map.mjs` → `ROWS: 57` (branding 25, fotografia-producto 18, marketing-360 8,
-web-apps 6), `PROJECTS: 28   HOME-ONLY ROWS: 1`.
+[r23-backfill-mapping.md §5](r23-backfill-mapping.md#5-cómo-regenerar-el-inventario):
+`node /tmp/r23-worksheet.mjs` → `ROWS: 57` (branding 25, fotografia-producto 18, marketing-360
+8, web-apps 6) and `IMAGES: 40` (21 / 12 / 4 / 3).
+
+*(R23a cited the same script printing `PROJECTS: 28   HOME-ONLY ROWS: 1`. That output is
+**gone on purpose**: it was the prefix-grouping this task removes. The row and image counts
+are unchanged and still reconcile — 17×2 + 22 + 1 = 57.)*
 
 ### 2.1 The home preview is already a project index — it just is not modelled
 
@@ -125,6 +162,39 @@ key). They are CMS-organizational. R23b carries them across unchanged.
 
 ## 3. The target model
 
+### 3.0 The locked model — settled by the owner, 2026-08-10
+
+**These are not proposals and this file does not argue them.** They were chosen by the owner at
+the R23a review gate and locked in [roadmap.md:1528-1566](roadmap.md). Everything below §3.0 is
+design *under* them.
+
+| # | Decision | What it rules out |
+|---|---|---|
+| **1** | **No product level.** A project holds images directly; the image title names the product. Vinte-Vinte's 7 views are **7 images in one project**, not a nested product entity. | A four-level `Cliente → Proyecto → Producto → imagen` hierarchy. Matches how the site renders — every image is a card. |
+| **2** | **A project belongs to exactly one `Categoría`.** A client's branding work and their photography work are **separate projects**. | A project spanning two category pages. Keeps every project rendering on exactly one page, so the exporter and the public pages are unchanged. |
+| **3** | **`Clientes` is a real collection, not a text field.** | The root cause. The bug is that grouping lives in a hand-typed string that drifts — `Ana Grace` vs `Ana Grace Salon & Estética` split one salon into two. A relationship cannot drift, and renaming a client becomes one edit. |
+
+**The generative rule: one `Cliente` + one `Categoría` = one `Proyecto`** — the default, with
+genuine exceptions allowed. It is not a constraint the schema enforces; it is the rule the
+backfill applies and the rule an editor follows afterwards.
+
+**The rule is load-bearing: it auto-resolves four of R23a's six open questions.** Ana Grace's
+split prefix, WodFest, `Live Técnica Phicontour` and OFF DAY Trainer all collapse to *"same
+client, same category, same project."* The two that survive are named in
+[r23-backfill-mapping.md §4](r23-backfill-mapping.md#4-lo-que-la-regla-no-resuelve).
+
+**Validated against the real data.** `OFF DAY Trainer` appears in **Branding** (2 images,
+`sports`) *and* in **Web y Apps** (1 image) — one client, two categories, two projects. R23a
+had filed that collision under *"no action needed"* (its §1.7); under the locked model it is
+the case the model exists for. Reproduce:
+`node /tmp/r23-worksheet.mjs --imgs | grep -i "off day"`.
+
+**Why `Cliente` cannot live under `Categoría`** — the shape R23a assumed. A client with work in
+two categories would need two client records, which is the same drift-prone duplication the
+typed prefix already causes, one level up. The axes are independent: `Categoría` selects the
+public page, `Cliente` names who the work was for, and `group` (§3.1) selects a layout slot.
+**Three axes, three fields.**
+
 ### 3.1 Decision 1 — `group`: keep it, move it to the parent, and rename what it *means*
 
 **Decision: `group` stays, as a field on the parent, relabelled as a page section.**
@@ -142,6 +212,11 @@ it belongs. The one change beyond moving it is honesty in the admin UI:
 adrianaMunoz, anaGrace, logos)"*. It is a **page section**, and calling it a subgroup is what
 invited the analysis to read it as a proto-project. R23b should say
 *"Solo para Branding: en qué sección de la página aparece este proyecto."*
+
+**`group` is a third axis, distinct from `Cliente` as well as from `Categoría`** (added
+2026-08-10). The same evidence proves both: `sports` holds WodFest, OFF DAY Trainer and SNAGA —
+**three clients in one group** — while the six `adrianaMunoz` rows may well collapse to **one
+client in one group**. A group is neither a client nor a project; it is a slot on a page.
 
 Not overridable by this decision: `group` remains free text with the same four values, so
 `projByKey`'s `(group ? p.group === group : !p.group)` filter
@@ -165,9 +240,12 @@ so the home/page duplication collapses"*). **Two rows disprove parent-level plac
    `home` would have to own an image that the page arrays must not see — which is exactly an
    image-level flag, wearing a parent's clothes.
 
-*(If the owner rules in [r23-backfill-mapping.md §1.2](r23-backfill-mapping.md#12--wodfest-costa-rica--one-project-or-two-this-one-changes-the-schema)
-that WodFest is two projects, case 1 disappears. Case 2 does not, and the image-level flag is
-lossless either way — which is why this design does not wait on that answer.)*
+*(**Settled 2026-08-10.** R23a hedged here, deferring to an owner ruling on whether WodFest is
+one project or two. The generative rule answers it: `wodfest-1` and `wodfest-2` are **one
+client, one categoría → one project with two images, both flagged `showOnHome`**. So case 1 is
+now **confirmed** rather than conditional, and the locked model argues *for* image-level
+placement rather than leaving it contingent. Case 2 — `fisio-equina` — never depended on the
+ruling.)*
 
 **Why no `homeOrder`.** Home order equals page order in all four categories (§2.1), and
 branding's single `order` sequence spans both placements (§2.4). Sorting the flattened image
@@ -182,10 +260,15 @@ real `cover` becomes worth having in **R24**, when a project needs a cover indep
 the home preview shows; adding it now is unused schema. Recorded here so R24 does not have to
 rediscover it.
 
-**What the duplication collapse is worth:** 57 rows → **40 image rows** across 29 projects.
-17 of the 18 home rows merge into the page row that already carries the same media;
-`fisio-equina` has no page twin and stays as its own image row. Photography 18 → 12,
-branding 25 → 21, marketing 8 → 4, web-apps 6 → 3.
+**What the duplication collapse is worth:** 57 rows → **40 image rows**. 17 of the 18 home rows
+merge into the page row that already carries the same media; `fisio-equina` has no page twin
+and stays as its own image row. Branding 25 → 21, photography 18 → 12, marketing 8 → 4,
+web-apps 6 → 3. Reconciles as 17×2 + 22 + 1 = 57 (`node /tmp/r23-worksheet.mjs`).
+
+**40 is fixed; the number of *parents* is not.** R23a said "across 29 projects". That was the
+prefix-grouping's answer. Under the locked model the parent count is whatever the worksheet's
+distinct `(cliente, categoría)` pairs come to — **≤ 29, because the rule only ever merges**
+(§5.3). 40 is a property of the media and does not move.
 
 ### 3.3 Decision 3 — Payload shape: an `images[]` **array field** on the existing `projects`
 
@@ -197,7 +280,7 @@ The tradeoff, stated plainly:
 | | Array field on `projects` | Separate `project-images` collection |
 |---|---|---|
 | Editing a 7-view shoot | **one record** | seven records + a parent = eight |
-| Admin surface | one list of 29 projects | two lists; images list has 40 unlabelled rows |
+| Admin surface | one list of projects | two lists; the images list has 40 unlabelled rows |
 | Referenceable by ID | no | yes |
 | Migration | rows → `projects_images` array table, one `INSERT … SELECT` | new collection + relationship + join table |
 
@@ -224,6 +307,7 @@ analysis).
 | Field | Change | Note |
 |---|---|---|
 | `category` relationship (`:42-51`) | none | |
+| **`cliente` relationship** | **new** | §3.5 — to `clients`, `hasMany: false`, optional |
 | `type` select (`:52-65`) | none | `image` \| `caseStudy` |
 | `group` text (`:80-88`) | **description rewritten** | §3.1 — "sección de la página" |
 | `internalTitle` (`:123-130`) | becomes the project name | admin-only, as today |
@@ -251,12 +335,82 @@ Spanish `admin.description` on every field, per the `Categories.ts` house patter
 `homeTitle` / `homeCategoryLabel` get `admin.condition: (_, sibling) => sibling?.showOnHome`
 so they only appear when they apply.
 
+### 3.5 Decision 4 — `Clientes`: a real collection, plus one relationship on `projects`
+
+**Locked by the owner (§3.0 decision 3).** This section designs it; it does not argue it.
+
+**The collection.** Modelled field-for-field on the house pattern in
+[Categories.ts](../../cms/src/collections/Categories.ts) — Spanish `labels`, `admin.group:
+'Portafolio'`, `useAsTitle`, and an `admin.description` on the collection *and* on every field.
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | text, required, **not localized** | A client's name is language-agnostic, exactly like `studioName` at [Categories.ts:116](../../cms/src/collections/Categories.ts#L116). This is what keeps `clients_locales` out of the migration (§5.1). |
+| `notes` | textarea, optional | Free notes for the owner. CMS-only, like every field here. |
+
+```ts
+labels: { singular: 'Cliente', plural: 'Clientes' },
+admin: {
+  useAsTitle: 'name',
+  group: 'Portafolio',
+  description: 'Las personas y marcas para las que se hizo el trabajo. Un cliente puede '
+    + 'tener proyectos en varias categorías.',
+  defaultColumns: ['name'],
+},
 ```
-Categoría
-  └── Proyecto            (category, type, group, internalTitle, slug, title, caseStudy…)
-        └── images[]      (image, alt, categoryLabel, order, size,
-                           showOnPage, showOnHome, homeTitle, homeCategoryLabel)
+
+**No `access.read: () => true`.** `Categories` and `Projects` both open read to the public
+because the build fetches them over REST without auth
+([Categories.ts:36-39](../../cms/src/collections/Categories.ts#L36-L39)). Nothing in the build
+fetches clients. Leaving read auth'd (Payload's default when unset) is the **schema-level
+statement that `Cliente` is CMS-only** — and it means a future exporter change cannot silently
+start reading it without also changing access. §4.1.
+
+**The relationship, on `projects`:**
+
+```ts
+{
+  name: 'cliente',
+  type: 'relationship',
+  relationTo: 'clients',
+  hasMany: false,          // decision 2: one project, one client
+  // NOT required — the UX/UI case study has no client row, and a genuinely
+  // client-less piece must stay representable.
+  label: 'Cliente',
+  admin: { description: '¿Para quién se hizo este trabajo? Un cliente puede tener '
+    + 'proyectos en varias categorías; cada uno es un proyecto aparte.' },
+}
 ```
+
+`hasMany: false` with a single `relationTo` is what keeps this a plain FK column rather than a
+`projects_rels` join table — the same shape `category` already has
+([baseline.ts:357](../../cms/src/migrations/20260730_133159_baseline.ts#L357),
+[:1764](../../cms/src/migrations/20260730_133159_baseline.ts#L1764),
+[:2047](../../cms/src/migrations/20260730_133159_baseline.ts#L2047)). §5.1 depends on it.
+
+**Optional, not required, and that is deliberate.** A `required` relationship would make the
+backfill unable to land any row the worksheet leaves blank — turning a content gap into a
+migration failure. §5.2 fails loudly on a blank *worksheet cell* instead, which is the check
+that belongs in the migration; the schema stays permissive.
+
+### 3.6 The resulting shape
+
+```
+Clientes                        (name, notes)                      ← CMS-only
+   ▲
+   │ cliente  (relationship, opcional, hasMany: false)
+   │
+Proyecto  ──── category ───▶  Categoría                            ← drives the public page
+   │      (exactamente una, §3.0 decision 2)
+   │      (type, group, internalTitle, slug, title, caseStudy…)
+   │
+   └── images[]   (image, alt, categoryLabel, order, size,
+                   showOnPage, showOnHome, homeTitle, homeCategoryLabel)
+```
+
+Three axes, and none of them nests inside another: **`Categoría`** selects the public page,
+**`Cliente`** names who the work was for, **`group`** selects a layout slot on the branding
+page (§3.1). R23a's diagram had only the first.
 
 ---
 
@@ -322,8 +476,41 @@ flatten(slug, group, home) =            // group: a name | null (ungrouped only)
 
 **The gate that proves it.** After the migration, run both exporters and
 `git diff --exit-code content/` — zero diff is the whole safety argument
-(`roadmap.md:1560` — *"this is the whole safety argument — prove it, don't assert it"*).
-`pixel-parity` then holds at 0.000% for free, because no renderer input changed.
+(`roadmap.md` → *R23 acceptance criteria* — *"this is the whole safety argument — prove it,
+don't assert it"*). `pixel-parity` then holds at 0.000% for free, because no renderer input
+changed.
+
+### 4.1 `Cliente` changes nothing the exporter emits — checked, not assumed
+
+**Verdict: nil.** Adding the `clients` collection and the `cliente` relationship changes
+**zero bytes** of `content/`. The roadmap asserts this
+([roadmap.md:1553](roadmap.md) — *"`Cliente` is CMS-only and invisible to the exporter"*); this
+section is the check, because an assumption here would invalidate the byte-identity gate that
+the entire migration rests on. Four independent reasons, any one of which is sufficient:
+
+| # | Reason | Evidence |
+|---|---|---|
+| 1 | **Neither twin ever fetches `clients`.** Between them they read exactly four collections — `media`, `categories`, `projects`, `pages` — plus globals. | [export-emit.ts:236, :275, :283, :432](../../cms/src/scripts/export-emit.ts#L236); [fetch-content.mjs:231, :247, :255, :381](../../scripts/fetch-content.mjs#L231) |
+| 2 | **Every emitted card is an explicit object literal**, listing its keys by name. There is **no spread of a project doc** anywhere in either twin, so a new field cannot ride along. | `resolveGalleryCards` [export-emit.ts:311-328](../../cms/src/scripts/export-emit.ts#L311-L328), and the five other emit sites `:838-843`, `:867-871`, `:876-880`, `:893-896`, `:907-912` — each names its keys |
+| 3 | **Projects are fetched at `depth: 0`**, so `cliente` would serialise as a bare integer id even if something read it. | `depth: 0` at [export-emit.ts:283](../../cms/src/scripts/export-emit.ts#L283) and [fetch-content.mjs:255](../../scripts/fetch-content.mjs#L255) |
+| 4 | **The one deep fetch cannot reach it.** The REST twin loads `pages` at `depth: 2` — the only non-zero depth in either twin. `Pages`' sole relationship is to `categories` ([Pages.ts:206](../../cms/src/collections/Pages.ts#L206)), and `Categories` has **no** relationship fields at all, so the populate terminates one hop short of `projects`. | [fetch-content.mjs:381](../../scripts/fetch-content.mjs#L381); [Categories.ts:48-192](../../cms/src/collections/Categories.ts#L48-L192) |
+
+Reproduce reason 1 and 2 together — no hit in either exporter:
+
+```
+grep -rni 'client\|cliente' cms/src/scripts/export-emit.ts cms/src/scripts/export-content.ts \
+  scripts/fetch-content.mjs        # no output
+```
+
+*(The same grep over `content/` **does** hit — 18 times, all of them the Spanish word
+`cliente` inside the UX/UI case study's prose, e.g. `content/sections/uxui-casestudy.json:42`
+*"un cliente real"*. Prose, not structure. Flagged so a future reader does not mistake it for
+a leak.)*
+
+**Consequence for R23b:** the exporter work in R23b-ii is exactly what R23a specified — the six
+shapes and the `group: 'any'` wrinkle. The `Cliente` axis adds **nothing** to it. Had this come
+out the other way it would have been a significant finding and would have reopened §3.0
+decision 2; it did not.
 
 ---
 
@@ -335,55 +522,88 @@ Per the locked **schema = migrations** decision (`push:false`, `pnpm migrate:cre
 `db.execute(sql\`…\`)` — and both must be registered in `cms/src/migrations/index.ts`.
 **Written in R23b, not here.**
 
-### 5.1 Shape of the change
+### 5.1 Shape of the change — three new tables, two new columns, all additive
 
-`up` — additive only, in one migration:
+**Revised 2026-08-10.** R23a's plan created two tables. The `Cliente` axis adds a third, plus
+two columns — and, notably, **not** a fourth table.
 
-1. `CREATE TABLE projects_images` (Payload's array-field table: `_order`, `_parent_id`, `id`,
-   plus the nine columns from §3.4) and `projects_images_locales` for the four localized
-   fields, mirroring how the baseline models `projects_locales`.
-2. `ALTER TABLE projects` — nothing dropped. The old `placement` / `image` / `alt` /
-   `categoryLabel` / `order` / `size` columns **stay in place**, unused, until a follow-up
-   migration removes them once byte-identity has been proved on `preview` *and* production.
+`up` — additive only, nothing dropped, in one migration:
 
-`down` — `DROP TABLE projects_images_locales, projects_images`. Nothing else, because nothing
-else was destructive. **This is what makes the change reversible**, and it is the reason for
-the two-migration split rather than a single drop-and-move.
+| # | Statement | Why this shape |
+|---|---|---|
+| 1 | `CREATE TABLE clients` (`id`, `name`, `notes`, `updated_at`, `created_at`) | §3.0 decision 3. **No `clients_locales`** — `name` is not localized (§3.5), so there is nothing to put in it. |
+| 2 | `ALTER TABLE projects ADD COLUMN "cliente_id" integer` + FK to `clients(id)` `ON DELETE set null` + `CREATE INDEX projects_cliente_idx` | A single non-`hasMany` relationship is an FK column, not a join table. Mirrors `category_id` exactly — [baseline.ts:357](../../cms/src/migrations/20260730_133159_baseline.ts#L357), FK [:1764](../../cms/src/migrations/20260730_133159_baseline.ts#L1764), index [:2047](../../cms/src/migrations/20260730_133159_baseline.ts#L2047). |
+| 3 | `ALTER TABLE payload_locked_documents_rels ADD COLUMN "clients_id" integer` + FK `ON DELETE cascade` | Payload keeps one `<collection>_id` column per collection on that table — [baseline.ts:1407-1417](../../cms/src/migrations/20260730_133159_baseline.ts#L1407-L1417). Easy to miss by hand; `migrate:create` generates it. |
+| 4 | `CREATE TABLE projects_images` (Payload's array-field table: `_order`, `_parent_id`, `id`, plus the non-localized columns from §3.4) | unchanged from R23a |
+| 5 | `CREATE TABLE projects_images_locales` (the four localized fields) | unchanged from R23a; mirrors how the baseline models `projects_locales` |
+
+**Why one plus a relationship, and not two new tables.** The task framed this as a choice.
+Steps 1–3 *are* "one table plus a relationship" — the relationship costs a column, not a table,
+because of `hasMany: false` (§3.5). Making it `hasMany` would buy a `projects_rels` join table
+and multi-client projects, which §3.0 decision 2 rules out. Step 3's column is not a choice at
+all; Payload requires it.
+
+`ALTER TABLE projects` drops nothing. The old `placement` / `image` / `alt` / `categoryLabel` /
+`order` / `size` columns **stay in place**, unused, until a follow-up migration removes them
+once byte-identity has been proved on `preview` *and* production.
 
 ### 5.2 The backfill
 
-A data migration, driven by the **owner-approved**
-[r23-backfill-mapping.md](r23-backfill-mapping.md) — R23b parses the §3 tables, and must
-**fail loudly** if any `Certeza` cell still reads `AMBIGUO` or any §5 ruling is still
-`pendiente`.
+A data migration, driven by the **owner-completed**
+[r23-backfill-mapping.md](r23-backfill-mapping.md). **Revised 2026-08-10:** R23b no longer
+parses proposed project names out of typed prefixes. It reads **one column** — the client the
+owner wrote against each of the 40 images — and derives the projects from it.
 
-1. For each of the 29 approved projects: keep **one** existing `projects` row as the parent
-   (the lowest-`order` page row), set `group` from it, set `internalTitle` to the project name.
-2. For each page row in the project: insert a `projects_images` entry carrying `image`, `alt`,
+**The gate.** R23b must **fail loudly** if *any* `CLIENTE` cell is still blank. R23a's
+equivalent check was "no `Certeza` cell reads `AMBIGUO`"; blank is a stronger and simpler
+signal, because it cannot be produced by accident. The worksheet gives the owner an explicit
+`—` token meaning *"no client — its own project"*, so **blank always means "not answered"** and
+can never be mistaken for an answer.
+
+1. **Derive the projects.** Group the 40 images by the pair `(cliente, categoría)` — the
+   generative rule (§3.0), applied mechanically. Each `—` image is its own project. Each
+   distinct pair becomes one parent.
+2. For each project: keep **one** existing `projects` row as the parent (the lowest-`order`
+   page row), set `cliente_id`, set `group` from it, set `internalTitle` to the project name.
+3. For each page row in the project: insert a `projects_images` entry carrying `image`, `alt`,
    `categoryLabel`, `order`, `size` verbatim, `showOnPage = true`.
-3. For each home row: **merge into the image row with the same media**, setting
+4. For each home row: **merge into the image row with the same media**, setting
    `showOnHome = true`, `homeTitle` from the home row's `title` (branding: leave null — shape
    C has no title) and `homeCategoryLabel` from its `category` (branding: null). If no page
    row shares the media — `fisio-equina.png`, the single case — insert a new image row with
    `showOnHome = true, showOnPage = false` and its own `order`.
-4. Delete the now-redundant `projects` rows (the 18 home rows and the non-parent page rows).
+5. **Insert the `clients` rows** first, one per distinct client name across the whole
+   worksheet — **not per category**. A client with work in two categories is **one** client row
+   and two projects (§3.0 decision 2; `OFF DAY Trainer` is the live case).
+6. Delete the now-redundant `projects` rows (the 18 home rows and the non-parent page rows).
    **This is the only destructive step**, and it runs against production, so it needs the
    Destructive Operations Protocol and `authorize db migration on production` typed by the
    human in-session — never assumed, never simulated.
 
-**Expected result: 57 `projects` rows → 29 parents + 40 `projects_images` rows.** State both
-numbers before and after; a mismatch aborts.
+**Expected result: 57 `projects` rows → N parents + 40 `projects_images` rows**, where **N is
+computed from the committed worksheet, not predicted here** (§5.3). Emit all three numbers
+before and after; any mismatch aborts.
 
 ### 5.3 Verification, in order
 
 | # | Check | Pass condition |
 |---|---|---|
-| 1 | Row counts before/after | 57 → 29 + 40 |
+| 0 | Every `CLIENTE` cell in the worksheet is filled (a name, or `—`) | 40 of 40 — **abort before touching the database** |
+| 1 | Row counts before/after | 57 → **N** parents + **40** image rows, where N = distinct `(cliente, categoría)` pairs in the worksheet |
+| 1b | `clients` rows | one per distinct client **name**, across all categories — fewer than N whenever a client has work in two categories |
 | 2 | Both exporters re-run, `git diff --exit-code content/` | **no diff** — the whole safety argument |
 | 3 | `pnpm test` incl. `twin-equivalence` | green |
 | 4 | `pixel-parity` | **0.000%** |
 | 5 | Branding ids in `sections/branding.json` | `1,2,3,5,…,21` — gap at 4 intact |
 | 6 | Admin smoke: open `Set Regalo Vinte-Vinte` | **one** record, 7 images |
+| 7 | Admin smoke: open the `OFF DAY Trainer` client | **two** projects, in two different categories |
+
+**On check 1: the parent count is an output, not a target.** R23a wrote `57 → 29 + 40` and R23b
+would have asserted 29. Under the locked model, 29 was the *prefix-grouping's* answer and the
+rule can only ever produce **fewer** parents, never more — every merge the owner confirms
+removes one. So N is computed from the completed worksheet at migration time and asserted
+against the database; hard-coding 29 would turn a correct merge into a spurious abort. **40 is
+a real constant** — it counts distinct media, which the grouping cannot change.
 
 Run 1–5 on the Neon `dev` branch first. `dbGuard.ts` must pass (`DB_TARGET_HOST` matching
 `DATABASE_URI`), use the **direct, non-pooled** endpoint for DDL, and **never `seed` prod**
@@ -391,13 +611,31 @@ Run 1–5 on the Neon `dev` branch first. `dbGuard.ts` must pass (`DB_TARGET_HOS
 
 ### 5.4 Rollback
 
-- **Before the destructive step (5.2 step 4):** run the migration's `down`. The original 57
-  rows are untouched; nothing is lost.
+**Revised 2026-08-10** for the two extra objects. `down` must drop in **FK order**, the exact
+reverse of §5.1 — dropping `clients` before the two columns that reference it fails:
+
+```
+DROP TABLE projects_images_locales;
+DROP TABLE projects_images;
+ALTER TABLE payload_locked_documents_rels DROP COLUMN clients_id;   -- FK → clients
+ALTER TABLE projects                      DROP COLUMN cliente_id;   -- FK → clients
+DROP TABLE clients;                                                 -- last
+```
+
+- **Before the destructive step (5.2 step 6):** run `down`. The original 57 `projects` rows are
+  untouched; nothing about the public site was ever read from the new objects.
 - **After it:** `down` restores the schema but not the deleted rows. Recovery is a Neon
-  point-in-time restore, so **step 4 must be a separate migration from steps 1–3**, applied
+  point-in-time restore, so **step 6 must be a separate migration from steps 1–5**, applied
   only once check 2 has passed on production data. The intermediate state — old columns and
   new array both populated — is fully functional, because the exporter changes land with step
-  4, not before.
+  6, not before.
+- **The one new loss, and why it is acceptable.** `down` now also destroys the `clients` rows
+  and every `projects.cliente_id` — the only content in this whole migration that is *new
+  data* rather than moved data, and therefore the only part not recoverable from the surviving
+  `projects` rows. It does not need to be: **the completed worksheet is the durable source**,
+  it is committed to `git`, and re-running step 5 of the backfill reconstructs `clients` and
+  the assignments exactly. This is the practical reason the worksheet is a **committed
+  document** and not a spreadsheet or a chat message.
 
 ---
 
@@ -422,6 +660,10 @@ editing model gets the record the owner actually works with, and 18 duplicate ro
    `Proyecto(title, cover, order, placement) → images[] (media + alt + size)` would have lost
    `homeTitle`, `homeCategoryLabel` and `categoryLabel`, and could not represent `WodFest` or
    `fisio-equina` at all.
+4. **A third entity, added 2026-08-10 (§3.0).** `Clientes` is one more collection, one more
+   FK column and one more admin list. It is the smallest of the four costs and it buys the
+   root-cause fix: grouping stops living in a string that drifts. It costs the exporter
+   **nothing** (§4.1).
 
 None of this argues for Option B instead. Option B (**R24**) is a public redesign that breaks
 the pixel gate by intent and still wants this model underneath it.
@@ -437,17 +679,29 @@ the pixel gate by intent and still wants this model underneath it.
 - **R23b-ii — exporter flattening + byte-identity proof + cleanup.** The six shapes in both
   twins, then migration 2 dropping the old columns and the redundant rows.
 
-**Blocked on the owner.** R23b-i must not start until the six questions in
-[r23-backfill-mapping.md §1](r23-backfill-mapping.md#1-read-this-first--the-groupings-that-are-guesses)
-are answered. §1.2 (WodFest) is the only one that touches the schema, and §3.2 is written to
-be lossless either way — but the groupings themselves are content judgements, and inferring
-them mid-migration is what this task exists to prevent.
+**Blocked on the owner — restated 2026-08-10.** R23b-i must not start until the **client
+worksheet** ([r23-backfill-mapping.md](r23-backfill-mapping.md)) comes back with all 40 cells
+filled. R23a phrased this as "six open questions"; **four are resolved by the generative rule**
+(§3.0) and the remaining two are named in
+[§4 of the worksheet](r23-backfill-mapping.md#4-lo-que-la-regla-no-resuelve) — neither blocks
+R23b-i:
+
+- The **genuine-exception** case (one client, one categoría, but two projects) — answered
+  inside the worksheet itself, per row.
+- **`FisioEquina` home-only** — a content question. Image-level `showOnHome`/`showOnPage` is
+  lossless either way (§3.2), so R23b-i can proceed whichever way it lands.
+
+What does block it is the client column, and **it cannot be inferred**: `Croissant Artesanal`
+and `Croissant Premium` carry no client marker at all yet are the same client as
+`Crackers D'Argent`. R23a's prefix-grouping produced the wrong answer exactly there. Guessing
+mid-migration is what this gate exists to prevent.
 
 ## 8. Explicitly out of scope
 
-No schema, migration, exporter, renderer or content change was made by R23a — this file and
-[r23-backfill-mapping.md](r23-backfill-mapping.md) are the entire output. **Option B / project
-detail pages are R24** and are not designed here. The **page-builder remains a locked
-non-goal**: this adds a *content* hierarchy, not layout editing — `group` keeps selecting from
-the same four fixed layouts the renderers already hard-code (§2.3), and no new layout choice
-is exposed to an editor.
+No schema, migration, exporter, renderer or content change was made by R23a **or by R23a-ii** —
+this file and [r23-backfill-mapping.md](r23-backfill-mapping.md) are the entire output of both.
+**Option B / project detail pages are R24** and are not designed here. The **page-builder
+remains a locked non-goal**: this adds a *content* hierarchy, not layout editing — `group`
+keeps selecting from the same four fixed layouts the renderers already hard-code (§2.3), and no
+new layout choice is exposed to an editor. Adding `Clientes` does not change that: a client is
+content, and it reaches no renderer at all (§4.1).
