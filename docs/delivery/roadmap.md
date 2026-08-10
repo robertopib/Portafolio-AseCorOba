@@ -193,7 +193,7 @@ Last updated: 2026-08-10
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
-| R6 | Root `CLAUDE.md` misinforms agents: wrong platform, wrong mechanism, **nonexistent workflow file** | todo | docs | **Medium** (was Low) | — |
+| R6 | ↳ folded into R38 — root `CLAUDE.md` misinforms agents | done (via R38) | docs | **Medium** (was Low) | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
@@ -224,9 +224,10 @@ Last updated: 2026-08-10
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
 | R40 | `governance/.claude/rules/` templates — **premise confirmed**: they load on the first Read under `governance/`; excluded | done (preview) | docs | **Medium** | R33 |
-| R41 | Committed `.claude/settings.json` for `claudeMdExcludes` — R40's fix is machine-local; revisits R37's gitignore | todo | devops | Low | R40, R37 |
+| R41 | ~~Committed `.claude/settings.json` for `claudeMdExcludes`~~ — **closed dormant, owner's decision** | closed (dormant) | devops | Low | R40, R37 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
-| R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
+| R38 | Root `CLAUDE.md`: override-hierarchy note (+ R6 folded in) — **done, watch upstream F2** | done (preview) | docs | Medium | R33 |
+| R42 | Census claims in `governance-deltas.md` §2.2 go stale within a day — should it assert any? | todo | docs | Low | R34, R38 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
 | R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
 
@@ -944,7 +945,48 @@ generalize `:116` to feature branches.
    superseded — and superseded *by a permanent note that says so* (`2026-07-31-R8.md:36`),
    which strengthens the delta rather than weakening it.
 
-### R38 — Upstream `governance/CLAUDE.md` denies our precedence clause is legal  (Medium)
+### R42 — Should `governance-deltas.md` assert a census at all?  (Low)
+**Found by R38's worker, 2026-08-10 — and it is self-demonstrating.** §2.2 of the deltas file
+says *"13 of the 17"* session notes are permanent. That number was **measured at R34 ingest on
+the same day** and is already wrong: **19 notes** now (+ README), **15** declaring permanence,
+and only **4** using the literal `**Permanent**` string — the rest say *"permanent record"* or
+*"**Keep: permanent.**"*.
+**Three ways it has been wrong in three days:** I first wrote "11 of 18" (counted README as a
+note); R34's worker corrected it to "13 of 17"; R38's worker measured 19/15/4. Each count was
+right when taken. **The defect is asserting a census in a document nobody re-measures**, in the
+file whose entire purpose is preventing stale claims.
+**The decision, and it is a real one:** does the delta need a number at all? Its *claim* —
+"this repo keeps permanent session notes, upstream's 30-day clean would delete them" — is true
+regardless of the count, and R38 already rewrote root `CLAUDE.md`'s version into a form that
+cannot drift. Options: drop the number; replace it with a command that regenerates it; or keep
+it with a measured-on date.
+**Secondary finding worth fixing while there:** the permanence marker is **not uniform** (three
+different phrasings), so any future count is unreliable regardless. Standardising it is cheaper
+than counting.
+**Acceptance criteria (stub):** §2.2 no longer carries a claim that goes stale unattended; the
+underlying delta unchanged in substance; if a marker convention is adopted, existing notes are
+made consistent or the inconsistency is recorded.
+
+### R41 — Committed settings for `claudeMdExcludes`  (Low) — **CLOSED DORMANT 2026-08-10**
+**Owner's decision, taken with the exposure correctly scoped.** R40's fix is machine-local, but
+the affected population is far smaller than the outcome implied. Measured at ingest:
+- **123 commits, one contributor** — "every other contributor" is currently nobody.
+- **CI never loads Claude Code rules** (`grep -ciE 'claude|anthropic' .github/workflows/ci.yml`
+  → 0), so "every CI checkout" is not exposed either.
+- `~/.claude/settings.json` carries the same exclusion at **user level**, so any fresh clone
+  **on this machine** is already covered.
+Residual exposure is therefore **the owner on a different machine**, and nothing else.
+**Closed rather than done.** Reopen if a second contributor or a second machine appears.
+**⚠️ If it does recur it will be silent** — that is R40's whole finding, and `/context` cannot
+see it. The re-open test is in `docs/delivery/governance-deltas.md` (Maintenance step 5), and
+the answer is pinned to Claude Code **2.1.220**; re-run it rather than trusting the record.
+**A cleaner fix exists if this is ever reopened**, and it does *not* meaningfully reverse R37:
+put `claudeMdExcludes` alone in a **committed `.claude/settings.json`** (that file is Claude
+Code's *shared* settings by convention) and keep the machine-specific `GH_CONFIG_DIR` path and
+permission allowlist in the gitignored `.claude/settings.local.json`. R37 ignored that file
+because of its machine-specific *content*, not because repo policy may never be committed.
+
+### R38 — Root `CLAUDE.md`: override-hierarchy note, with R6 folded in  (Medium)
 **Found by R33's worker; conductor-verified 2026-08-10.** The bump landed an *Override
 Hierarchy* block at `governance/CLAUDE.md:19-29`:
 ```
@@ -973,6 +1015,54 @@ violate the upstream hierarchy (it fills a gap the hierarchy omits; D3 ratifies 
 `governance/CLAUDE.md:19-29` citation. Cheap, and it pre-empts a future worker deciding our
 clause is illegal and "fixing" it. **Close this when upstream ships D3**, and check whether
 upstream's own wording makes our note redundant.
+
+**R6 FOLDED IN 2026-08-10.** Both edit root `CLAUDE.md`; the roadmap already warned *"do not
+run them concurrently on the same file."* They are also the same job — **making the file every
+agent reads first correct and self-consistent.** R6's three verified defects (wrong platform,
+a workflow file that does not exist, wrong mechanism) are in its own detail block above; do not
+re-derive them, but do re-verify before writing.
+**One extra reason R6 now matters more than its original Low suggested:** R40 proved that a
+governance read injects `governance/.claude/rules/01-project-context.md`, which asserts a
+`[framework]` + `[database]` + `[hosting]` stack. Root `CLAUDE.md` is the file that has to be
+*right* when a placeholder stack is sitting next to it in context. On this machine the
+exclusion suppresses it — on any other, it does not (**R41**, closed dormant).
+
+**Status: done (preview)** 2026-08-10 — PR #32, squash `22a1cbd`. `CLAUDE.md` 122 → **180
+lines** (under the ~200 guidance);
+`grep -ciE "siteground|rsync|public_html|deploy\.yml"` → **0**. R33's 80% worked example
+byte-identical. 6/6 checks, pixel 0.000% over **24** images — the count read and reported
+correctly this time. **R6 closes with it.**
+**Deployment section: summary deleted, heading kept as a tombstone** pointing at
+`INFRASTRUCTURE.md` + `RELEASE.md`. Right call — a heading-scanner still lands somewhere, and
+the remaining four lines contain *nothing that can go stale*, which is the actual fix for
+drift. The R40 injection hazard was also surfaced in the file itself (`:48-53`).
+
+**⚠️ TERMINOLOGY CORRECTION — "D3" is mine and it is not greppable upstream.** I have used
+"D3" across R33, R34, R36 and R38. Verified: upstream's own files contain it **only** as a
+legend token at `governance/docs/delivery/roadmap.md:26`. The real identifiers are:
+- **F2** — the roadmap item that implements it (`:42`, still `todo`, depends on LD-03/04/05).
+- **LD-03** — override precedence · **LD-04** — the mirrored-path surface (**R36**) ·
+  **LD-05** — the safety floor.
+Cite **F2 / LD-03 / LD-05** in future prompts; a worker grepping upstream for "D3" finds a
+table legend and concludes we invented it.
+
+**⚠️ The worker found a stronger argument than the one I supplied, and verified at ingest.**
+My reading was that the hierarchy is a *gap* — true, and still the right lead. But upstream has
+**already retracted the line**: `governance/docs/delivery/locked-decisions.md:125-127` lists
+*"Current wrong claims to remove: `CLAUDE.md:24`, `CLAUDE.md:463`, …"* — `:24` being the exact
+*"additive only"* line a worker could cite against our clause. LD-03's own rationale is that
+the strict rule *"was not obeyed — it was routed around"* and *"produced less governance, not
+more."* So the one sentence that appears to outlaw our precedence section is **disowned by its
+author and scheduled for deletion in F2.** That is a fact, not an inference, and it belongs in
+front of the gap argument.
+**Closing condition is now written into `CLAUDE.md` itself** — re-read the note when a bump
+lands upstream **F2**; upstream's own wording may make ours redundant. Tracked as a watch, not
+an open item.
+**Prompt premise corrected (mild):** `.github/workflows/deploy.yml` *did* exist — added in
+`640cd95`, deleted **2026-07-15** in `ecd4aee` (*"Remove SiteGround rsync deploy workflow"*).
+"Does not exist" was accurate; "never existed" would have replaced one false claim with
+another. The review marker now records the deletion date, which is the drift *mechanism* rather
+than just the defect.
 
 ### R37 — The `exit-flush` vacuity guard can red any PR at random  (Medium)
 **Found by R33's worker on a gitlink-plus-markdown PR — it went red on the first CI run and
