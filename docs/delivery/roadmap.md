@@ -143,6 +143,23 @@ Last updated: 2026-08-10
     both branches) and verified with a real push. Promote a job to *required* only after
     **two green runs**. Done for `typecheck` + `tests` in R25 — see the
     **branch-protection edits** entry below for the mechanics.
+- **Governance precedence — `governance/` is non-binding where a project file disagrees**
+  (locked 2026-08-10, R33; generalizes R11's testing-only clause to the whole submodule).
+  `governance/` is upstream boilerplate **shared with other projects**. Where a project file
+  disagrees with `governance/docs/rules/`, **the project file wins**, and its Deltas section
+  records every departure and why. **Never edit `governance/` in place** — override in a
+  project file (**R20** is the sole exception).
+  **Safety floor — four things are NOT overridable** (adopted from upstream D3/LD-05, which
+  drew it from an observed failure: a sibling project running production Stripe with no
+  authorization phrases at all). Content is tailorable; **the mechanism is not removable**,
+  and dropping one needs named human sign-off, not a table row:
+  1. **Authorization phrases** — `authorize production deploy`, `authorize db migration on
+     production`. 2. **Destructive-operations protocol.** 3. **Secrets and PII handling.**
+  4. **Protected branches** (R2: PR-only, 6 required checks, `enforce_admins: true`).
+  **This must live in root `CLAUDE.md`, not only here.** A worker that reads `CLAUDE.md` and
+  nothing else must learn that upstream is non-binding — otherwise it reads the still-live
+  80% coverage mandate (`governance/docs/rules/testing-standards.md:77`, re-imported 3× by
+  `testing-qa.agent.md`) as law and writes exactly the tests our standard forbids.
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -176,7 +193,7 @@ Last updated: 2026-08-10
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
-| R6 | Correct stale root CLAUDE.md hosting section | todo | docs | Low | — |
+| R6 | Root `CLAUDE.md` misinforms agents: wrong platform, wrong mechanism, **nonexistent workflow file** | todo | docs | **Medium** (was Low) | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
@@ -203,6 +220,10 @@ Last updated: 2026-08-10
 | R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
 | R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
+| R33 | **Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md`** (T1+T2) | in-progress | devops/docs | **Medium** | — |
+| R34 | Record deltas for the 3 incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
+| R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
+| R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
 
 Status values: `todo` · `in-progress` · `blocked` · `done`.
 
@@ -785,6 +806,104 @@ non-UI caller, and whichever of status/body/docs makes that true. **Do not chang
 without evidence it is deficient** — it currently reports the failure correctly. Any change must
 keep R29's 13 tests green or update them deliberately.
 
+### R33 — Governance bump + precedence clause  (Medium)  ← T1+T2, emitted 2026-08-10
+**Everything in the governance arc depends on this.** Planned from a *verified* read of
+upstream, not from the planning prompt's description — which was written against `8562d06`
+and is now stale in ways that matter.
+
+**Corrections to the planning input (all verified 2026-08-10 by fetching the submodule
+read-only, no bump performed):**
+- Upstream `main` is **`fddf95b`**, not `8562d06`. The gap is **14 commits, not 5** —
+  `8562d06` is 4 commits *behind* the tip.
+- The prompt's incoming-file list is right as far as it goes (`AGENTS.md`,
+  `.claude/rules/` ×4, `.github/skills/` ×5, `docs/rules/github-workflow.md`,
+  `docs/session-notes/README.md`, personas 861→2,911 lines) but **misses 12 files added
+  after `8562d06`**: `docs/alignment/` (10 files) and `docs/delivery/{roadmap,locked-decisions}.md`.
+  Total diff `e85041e..fddf95b` = **45 files, +8,977/−354**.
+- **The framework has already harvested us.** `docs/alignment/` contains a cross-project
+  gap analysis, a decisions doc (**D1–D8**), and four per-project planning prompts —
+  including `portafolio-planning-prompt.md`, the source of this very session's input.
+  Upstream `docs/delivery/locked-decisions.md` and `roadmap.md` are our patterns, adopted.
+
+**T2's premise is VALID and urgent — verified, not assumed.** The 80% mandate is **still
+live at the tip**: `docs/rules/testing-standards.md:77` — *"Minimum coverage for new code:
+80% line coverage on new files"* — and `.github/agents/testing-qa.agent.md` re-imports it
+**three times** (`:39`, `:267`, `:304` — *"NEVER lower coverage thresholds"*) plus a
+`Coverage threshold` context row at `:22`. Upstream **D4 decided to remove it** but has
+**not implemented it**. So the bump lands a live 80% mandate *and* a persona that enforces
+it, while our rejection lives only in `docs/delivery/roadmap.md`. **A fresh worker reading
+`CLAUDE.md` and nothing else would read the mandate as law.** That is why T1 and T2 ship
+together and not in sequence.
+
+**⚠️ T2's suggested clause is SUPERSEDED by upstream D3 — do not paste it verbatim.**
+D3 adopts our formulation (*"the strict rule was not obeyed, it was routed around, and it
+produced less governance rather than more"*) but adds two things the prompt's draft omits:
+1. **A safety floor (LD-05).** A blanket "project file wins" would legitimize the worst
+   finding in the cross-project audit — a sibling project running production Stripe with
+   **no authorization phrases at all**. The exception list is closed and short:
+   **authorization phrases, destructive-operations protocol, secrets/PII, protected
+   branches.** Content is tailorable; the mechanism is not removable. Our clause must carry
+   this floor — we have those phrases and R2's protected branches, and they must not become
+   overridable by a table row.
+2. **The surface (LD-04).** Upstream prefers the **mirrored path** `docs/rules/<same-name>.md`
+   over our flat `docs/testing-standards.md`, because a mirrored set can be *verified* (diff
+   the file sets, require a Deltas table in every shadow) and a flat convention cannot.
+   **Deliberately deferred to R36** — R30 has just finished correcting every citation of
+   `docs/testing-standards.md`, and moving it now re-breaks them. Move once upstream lands D3.
+
+**Also verified for T2:** root `CLAUDE.md` points at neither `governance/AGENTS.md` (which
+did not exist at our pin) nor `docs/testing-standards.md`. Both must be added.
+
+### R34 — Deltas for the incoming files that conflict with our practice  (Medium)
+**The bump's real risk is not the 80% rule — that one is known. It is the three files that
+contradict settled practice quietly.** All verified against `origin/main`:
+1. **`docs/rules/github-workflow.md` (new; did not exist at our pin) conflicts with R2 in
+   three places.** *"Every PR must link to at least one issue"* — we use roadmap-as-SSOT and
+   have never opened an issue. *"PR must be under [400] lines"* — R13b and R30 both exceeded
+   that for good reason. *"Request review from at least [1] reviewer"* (`:135`) — **R2
+   deliberately set branch protection to 0 approvals** with `enforce_admins: true`, because
+   the owner is the only reviewer. Adopting that line literally would deadlock every PR.
+2. **`docs/rules/session-and-context.md` (+140/−22) relocates and re-purposes session
+   notes.** It puts them in `docs/session-notes/`; ours live in `.claude/session-notes/`. It
+   also says *"Never keep session notes as a permanent knowledge store — extract and
+   integrate"* (`:130`), while ours are explicitly marked **Permanent** and are where the
+   four inherited-claim errors are recorded. That practice is load-bearing; the upstream rule
+   would delete the project's error memory.
+3. **`.github/agents/testing-qa.agent.md`** re-imports the coverage threshold our standard
+   drops (see R33).
+**Acceptance criteria (stub):** a delta recorded for each, in the project file that overrides
+it, with the reason. **Do not edit `governance/`.** Where we keep our practice, say so and
+why; where upstream is better, adopt it deliberately.
+
+### R35 — `full-stack.md` + `devops.md` agents  (Low)  ← T5, depends on R33
+**Context:** `.claude/agents/` holds exactly one agent, `qa.md` — and the cross-project audit
+names it **the best-shaped agent across all four projects**: real tool names, `model: opus`,
+and an explicit **negative scope fence** (*"Your remit is authoring testing rules, not tests.
+You do not install runners, add dependencies, touch either lockfile."*). Upstream personas
+have no such fence; ours is being harvested as the reference shape (D8/H12).
+That fence has been load-bearing here — R11 shipped rules-only and R12 shipped the runner,
+cleanly, because the boundary was written down.
+**Most prompts this session named `full-stack` or `devops` as the agent to load, and neither
+exists** — the worker got the label and no persona.
+**Acceptance criteria (stub):** `full-stack.md` and `devops.md` in `qa.md`'s shape, each with
+its own negative scope fence. **After R33** they can be based on the 244–332-line upstream
+personas rather than the 86-line versions at our pin. Keep them terse — the value is the
+fence, not the length.
+
+### R36 — Move `docs/testing-standards.md` to the mirrored path  (Low)  ← deferred from R33
+**Context (upstream D3/LD-04):** upstream prefers project overrides at the **mirrored path**
+`docs/rules/<same-name>.md`, because a mirrored set can be *verified* — diff the file set of
+`governance/docs/rules/` against `docs/rules/` and require a Deltas table in every shadow.
+Our flat `docs/testing-standards.md` works but no gate can check it. Upstream costs this as
+*"Portafolio moves one file."*
+**Why deferred, not done in R33:** R30 has just finished correcting every citation of
+`docs/testing-standards.md` across the roadmap, the standard itself, and CLAUDE.md. Moving it
+immediately re-breaks all of them for a benefit that only materializes once upstream ships
+the `verify-governance` gate. **Do this when upstream lands D3**, ideally in the same pass
+that adopts the gate.
+**Acceptance criteria (stub):** file moved, every citation updated (grep, don't guess), the
+§7 deltas table intact, no substance change.
+
 ### R20 — Promote R11's testing deltas upstream  (Low)
 **Context (from R11):** `docs/testing-standards.md` §7 is a 10-row deltas table written so
 a human can decide what belongs in the shared `governance/` submodule. Candidates, ranked:
@@ -807,6 +926,31 @@ gitlink is bumped here.
 **⚠️ This is the one item that legitimately edits the submodule** — it is shared with other
 projects, so changes affect them. Same caveat as R7. Never edit it from a task that isn't
 this one.
+
+**RE-SCOPED 2026-08-10 (T6) — and mostly overtaken by events. Verify before working it.**
+The framework has **already harvested this repo**, without a PR from us. Upstream
+`origin/main` now carries `docs/alignment/` (10 files: a cross-project gap analysis, a
+decisions doc **D1–D8**, four per-project planning prompts) plus
+`docs/delivery/{roadmap,locked-decisions}.md` — our patterns, adopted upstream. Four things
+were harvested, not one: the conductor/worker loop, the **Locked decisions register**,
+`.claude/commands/`, and the downstream-precedence clause.
+Status of our §7 deltas as of the tip:
+- **D3 adopts our precedence formulation** — with a safety floor and a mirrored-path surface
+  (see R33, R36).
+- **D4 adopts our coverage argument** and quotes R11 directly, but refines it: upstream will
+  forbid the *harmful shape* (a repo-wide ratio counting vendored code, used as a primary
+  gate) rather than banning percentages absolutely — *"no coverage percentage, ever" is right
+  for Portafolio and over-generalized as an upstream absolute.* **That does not conflict with
+  our Locked decision**, which is scoped to this repo.
+- **D4 also lifted a drafting pattern from us**: *"a deferral records its reason and states
+  explicitly what it does not reopen"* — generalized from our Playwright/visual-regression
+  clause.
+- **Neither D3 nor D4 is implemented yet** — the 80% mandate is still live at
+  `docs/rules/testing-standards.md:77`.
+**So R20 is now: decide what, if anything, is left to push, and in what form** (issue, PR, or
+written hand-off) — most likely a review of D1–D8 for anything that misrepresents our
+position, plus the deltas R34 records. Upstream is adopting **SemVer** (D2); once it tags
+`v1.0.0` we can pin deliberately instead of tracking a moving `main`. **Do that.**
 
 ### R21 — Media picker can't select an image (R10 regression, live in prod)  (High)
 **Symptom (owner, 2026-08-03):** on a Proyecto's **Imagen** field, "elegir existente"
@@ -1445,23 +1589,59 @@ release; it's shared by prod + dev.
 breaking local `pnpm`/`payload` commands (e.g. `migrate:create`).
 **Acceptance criteria (stub):** `node -e 1` and `pnpm migrate:status` run cleanly.
 
-### R6 — Correct stale root CLAUDE.md hosting section  (Low)
-**Context:** Root `CLAUDE.md` "Hosting/Deployment" still says SiteGround via
-GitHub Actions + rsync / `.github/workflows/deploy.yml`; reality is Vercel + Neon +
-R2 (see INFRASTRUCTURE.md), and that workflow file doesn't exist.
-**Acceptance criteria (stub):** the section reflects the current stack and points to
-INFRASTRUCTURE.md / RELEASE.md.
+### R6 — Root `CLAUDE.md` misinforms agents  (Medium — raised from Low, 2026-08-10)
+**Re-verified 2026-08-10; worse than logged, hence the risk bump.** This is the file every
+agent reads *first*. It is wrong on three counts, not one:
+
+| `CLAUDE.md` claims | Reality |
+|---|---|
+| `:12` "Hosting: SiteGround (deployed via GitHub Actions + rsync)" | Vercel — two projects (`asecoroba-site`, `asecoroba-cms`) |
+| `:38` "Push to `main` triggers deploy via `.github/workflows/deploy.yml`" | **That file does not exist.** `ls .github/workflows/` → `ci.yml` only |
+| `:39` "Built files are rsync'd to SiteGround `public_html`" | `main`→Vercel Production, `preview`→Vercel Preview |
+
+An agent orienting today is told the wrong platform, the wrong mechanism, and a workflow
+file that isn't there. It survived this long because `INFRASTRUCTURE.md` and `RELEASE.md`
+are correct, so nobody reading *those* noticed.
+**Acceptance criteria (stub):** root `CLAUDE.md` no longer contains a false statement about
+deployment. **Strongly consider deleting the Deployment section entirely** and pointing at
+`INFRASTRUCTURE.md` + `RELEASE.md` — duplication is precisely what let this drift, and R30
+just spent a session on the same failure mode in two other files.
+**Sequencing:** R33 also edits root `CLAUDE.md` (precedence clause + the two missing
+pointers). Either fold R6 into R33, or land R33 first and do R6 immediately after —
+**do not run them concurrently on the same file.**
 **Re-confirmed by R21** (2026-08-04) as a live defect, independently: the cited
 `.github/workflows/deploy.yml` **does not exist** and deployment is Vercel-on-push. Logged
 there as a "new" finding — it is this item; no duplicate created. Two workers have now
 tripped over it, so it costs more than its Low rating suggests.
 
-### R7 — Fill governance placeholders  (Low)
-**Context:** `governance/docs/rules/domain-vocabulary.md` and root
-`guidelines/Guidelines.md` are still uncustomized templates.
-**Acceptance criteria (stub):** domain vocabulary + guidelines filled with real
-project terms (Categorías/Proyectos/case study, etc.). Note: `domain-vocabulary.md`
-lives in the **governance submodule** — changing it is a submodule commit.
+### R7 — Fill the project-local layer  (Low)  ← re-scoped 2026-08-10 (T4), depends on R33
+**Original context:** `governance/docs/rules/domain-vocabulary.md` and root
+`guidelines/Guidelines.md` are uncustomized templates. `domain-vocabulary.md` lives in the
+**submodule** — changing it is a submodule commit (**R20**'s remit, not this one).
+
+**Re-scoped after verifying what the bump brings.** `.claude/rules/` does not exist here
+(confirmed); the bump adds upstream templates for it. **Do not copy them in as-is** —
+measured, they are placeholder-dominated: `01-project-context.md` 13 placeholder lines / 32,
+`02-non-negotiables.md` 10 / 29, `03-environment.md` 14 / 45, in the shape
+`- [ ] [e.g., "PRs must be under 400 lines of diff"]`. An agent cannot reliably tell that
+from a real rule, and R7 has sat `todo` since 2026-07-30 for exactly that reason — **a
+placeholder file is worse than no file**, because it reads as configured.
+Write terse, real files instead. **All the content already exists**, scattered across
+`INFRASTRUCTURE.md`, `RELEASE.md` and Locked decisions:
+- `01-project-context.md` — React + Vite + Tailwind + shadcn, pnpm, Neon, **two Vercel
+  projects in one repo, two independent lockfiles**.
+- `02-non-negotiables.md` — CMS is a content editor only; never reintroduce the
+  page-builder; never `seed` prod; **direct (non-pooled) Neon endpoint for DDL** (the pooler
+  hangs); `dbGuard` must pass; public design stays pixel-identical (0.000%).
+- `03-environment.md` — `cms/.env` (dev) vs `cms/.env.prod` (git-ignored); the Homebrew Node
+  dyld issue (**R5**); pooler-hangs-on-DDL.
+**Note the upstream constraint (D3/LD-04):** `.claude/rules/` is read by Claude Code and
+nothing else, so it must carry project **context**, never a rule *override* — an override
+there would be invisible to other tools and would contradict `AGENTS.md`. **Additive only.**
+**`guidelines/Guidelines.md` — verified: 61 lines of untouched Figma Make boilerplate**,
+literally *"**Add your own guidelines here**"* followed by commented-out examples. It is a
+second, contradictory governance root sitting beside a real one. **Delete it or fill it; do
+not leave it.** Recommendation: delete — `.claude/rules/` + `CLAUDE.md` now cover its job.
 
 ---
 
