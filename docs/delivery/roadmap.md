@@ -210,7 +210,7 @@ Last updated: 2026-08-10
 | R27 | ↳ absorbed into R30 — RELEASE.md staleness | done (via R30) | docs | Low | — |
 | R32 | `export-content.ts` header mis-describes why `FIDELITY_GATE=0` exists | todo | docs/chore | Low | R30 |
 | R28 | Gate can lose its whole report when output is piped (`console.*` then `process.exit`) | done (preview) | full-stack | Medium | R13a |
-| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) — **fold in R32** | todo | full-stack | Low→**Medium** | R28 |
+| R31 | ~~Same `console.*`-then-`exit` in 3 more CMS scripts~~ — **premise disproved, closed without work** | closed (not a defect) | full-stack | — | R28 |
 | R39 | Scheduled non-required "is the exit-flush race still live?" job (multi-host sampling) | todo | devops/qa | Low | R37, R25 |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
 | R30 | Docs tell the truth: `docs/testing-standards.md` ×10 + RELEASE.md (absorbed R27) | done (preview) | qa/docs | Low | R29, R28 |
@@ -222,7 +222,7 @@ Last updated: 2026-08-10
 | R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
-| R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
+| R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | in-progress | docs | Medium | R33 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
@@ -1363,12 +1363,40 @@ after `console.*`, the exact shape R28 fixed. They were outside R28's named site
 correctly left alone. **`seed.ts` is the one that prints enough to matter.**
 **Now a one-line import each** — `cms/src/scripts/write-sync.ts` already exists and is mirrored,
 tested and documented. Cheap.
-**Premise sharpened by R37 (2026-08-10) — risk raised Low → Medium.** The exposure is not the
-~0.8 per-run rate R28 recorded; it is **p ≈ 0.9993 per job on Linux** (2,698 of 2,700 measured
-runs lose bytes). So these three scripts do not *occasionally* lose their output when piped —
-they lose it **essentially always**. `seed.ts` is the one that prints enough to matter, and it
-is the script most likely to be run with output redirected to a log. The fix is more clearly
-justified than the original entry implied.
+~~**Premise sharpened by R37 — risk raised Low → Medium.** These three scripts lose their
+output essentially always; `seed.ts` prints enough to matter.~~
+
+**❌ CLOSED WITHOUT WORK 2026-08-10 — the premise is false. Verified before emitting a prompt;
+no session was spent on it.** R28's bug is *buffered stdout/stderr discarded by an immediate
+`process.exit`*. It needs (a) output on a **pipe-backed stream** and (b) **enough of it** to
+pass the buffer boundary. None of the three scripts satisfies both:
+
+| Script | `console.*` | `payload.logger` | Verdict |
+|---|---|---|---|
+| `seed.ts` | **0** | **0** | **No stdout output at all.** Writes `/tmp/seed-report.json`. Nothing to lose. |
+| `backfill-thumbnails.ts` | **0** | 3 | Report goes to `/tmp/backfill-thumbnails-error.json`. |
+| `reset-media-list-prefs.ts` | **0** | 2 | One ~80-byte summary line before `exit(0)`. |
+
+Two independent reasons this is a non-defect:
+1. **`grep -c 'console\.'` returns 0 for all three.** The R28-shaped call does not exist here.
+   Both `seed.ts:6` and `backfill-thumbnails.ts:6` carry a header note — *"console output is
+   swallowed in this sandbox → results go to `/tmp/…`"* — so they had already routed around
+   output loss by writing files, years before R28 named the mechanism.
+2. **Even the one real candidate is far below the boundary.** `reset-media-list-prefs.ts:60-62`
+   logs a single interpolated line (~80 bytes) before `process.exit(0)` at `:73`. R28's own
+   measurement settles it: *"A test driven with a small message proves nothing: **55 bytes
+   survive unfixed, every time**"* (`exit-flush.test.ts:15`). The buffer boundary is 64 KiB on
+   macOS and ~146 KiB on the Linux runner. An 80-byte line is never at risk.
+`fs.writeFileSync` is also immune regardless — R28 measured *"Files were never affected —
+POSIX file writes are synchronous. It is pipes."*
+
+**Where the original claim came from:** R28's worker reported the three scripts *"all end in
+`process.exit(0)` with the same shape"*. The **exit** is the same shape; the **output** is not,
+and the output is the whole bug. Nobody grepped for `console.` until now. **Fifth instance of
+this project's recurring failure mode** — inherit a claim, restate it, never open the file.
+This time it was caught at prompt-writing rather than after a worker session, which is the
+verification discipline paying for itself.
+**R32 no longer folds in here** — it is a real, separately-verified item and now stands alone.
 **Note the R28 lesson when scoping:** the bug is `console.*` before **any** `process.exit`,
 including `exit(0)` — not just before a failing one.
 **Acceptance criteria (stub):** each script's output survives a pipe at >64 KiB; exit codes

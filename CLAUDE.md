@@ -61,9 +61,35 @@ sign-off, not a table row in a Deltas section.**
 
 ### Current overrides
 
-| Upstream rule file | Project file that wins | Deltas recorded in |
+**Every departure from `governance/` is recorded, with its reason, in
+`docs/delivery/governance-deltas.md`.** Read it before following an upstream rule that
+seems to contradict how this repo works — the reason is there so you do not "fix" the
+divergence back.
+
+| Upstream rule | Project file that wins | Deltas recorded in |
 |---|---|---|
 | `governance/docs/rules/testing-standards.md` | `docs/testing-standards.md` | its **§7** |
+| `governance/docs/rules/github-workflow.md` — issue links, 400-line PR cap, ≥1 reviewer | `docs/delivery/governance-deltas.md` | its **§1** |
+| `governance/docs/rules/session-and-context.md` — note location, 10-note cap, 30-day clean, no permanent notes | `docs/delivery/governance-deltas.md` | its **§2** |
+| `governance/.github/agents/testing-qa.agent.md` — coverage threshold (`:22`, `:39`, `:267`, `:304`) | `docs/testing-standards.md` §2 | `docs/delivery/governance-deltas.md` **§3** |
+| `governance/CLAUDE.md:131-135`, `:142-148` — plan-approval gate | `docs/delivery/task-prompt-template.md` | `docs/delivery/governance-deltas.md` **§4** |
+
+The three most likely to mislead a cold reader:
+
+- **`github-workflow.md:135`** — *"Request review from at least [1] reviewer."* **R2 set
+  branch protection to 0 required approvals** with `enforce_admins: true`, because the
+  owner is the only reviewer. Raising it looks like tightening and would make every PR
+  unmergeable. Branch protection is on the safety floor; **R25** forbids changing it.
+- **`session-and-context.md:130`** — *"Never keep session notes as a permanent knowledge
+  store."* **13 of our 17 notes are marked `**Permanent**`** and are where this project's
+  inherited-claim errors are recorded. Upstream's own note template permits
+  `Expiry: "permanent"` at `:110`, so it contradicts itself. Do not move, expire or delete
+  a session note; do not adopt the 10-note cap or the 30-day clean.
+- **`governance/CLAUDE.md:134`** — *"Wait for explicit approval before writing ANY code."*
+  Satisfied, earlier and in writing: the emitted task prompt **is** the plan and the human
+  pasting it **is** the approval. Approval is **never implicit** — work exceeding the
+  prompt's stated scope needs a **fresh prompt**, and an authorization phrase is a
+  separate mechanism that a pasted prompt never satisfies.
 
 **Worked example — the upstream rule most likely to mislead you.**
 `governance/docs/rules/testing-standards.md:77` mandates *"80% line coverage on new
