@@ -222,7 +222,7 @@ Last updated: 2026-08-10
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
-| R37 | **`exit-flush` vacuity guard is a required check that can red any PR at random** | todo | qa | **Medium** | R28 |
+| R37 | **`exit-flush` vacuity guard is a required check that can red any PR at random** | in-progress | qa | **Medium** | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
 | R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
@@ -964,6 +964,16 @@ keeping the fixed-path assertions gating; or retire the guard and keep its findi
 file header. **Decide deliberately; state which and why.**
 **Do not weaken the fixed-path tests** — "the report survives a pipe" is R28's actual
 deliverable and must keep gating.
+**The blast radius is exactly one test — conductor-verified 2026-08-10.** Of the 6 `it()`
+blocks in the file, only **`:180`** asserts the *unfixed* shape (`runs.some(r => r.report <
+PAYLOAD)`, `SAMPLES = 10`, `PAYLOAD = 200_000`). The four fixed-path tests (`:108`, `:122`,
+`:132`, `:141`) assert the **fix works** and are deterministic on both platforms per the
+file's own measurements; `:251` is a source-text mirror check. So the flaky surface is one
+assertion and the surgery is small — **do not restructure the suite.**
+**The rate that made this safe, from the file's own CI table:** `console.error, no prefill`
+→ `200000,146176,146176,146176,146176` = 4/5 runs lost bytes. At p=0.8 over 10 samples a
+false green is ~`1e-7`. Observing one on the first attempt means p has dropped a long way —
+**that measurement is the deliverable**, not a green suite.
 
 ### R35 — `full-stack.md` + `devops.md` agents  (Low)  ← T5, depends on R33
 **Context:** `.claude/agents/` holds exactly one agent, `qa.md` — and the cross-project audit
