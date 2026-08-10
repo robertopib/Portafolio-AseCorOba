@@ -190,11 +190,11 @@ Last updated: 2026-08-10
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
-| R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
+| R27 | ↳ **absorbed into R30** — RELEASE.md staleness (scope grew, see R30) | merged into R30 | docs | Low | — |
 | R28 | Gate can lose its whole report when output is piped (`console.*` then `process.exit`) | done (preview) | full-stack | Medium | R13a |
 | R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) | todo | full-stack | Low | R28 |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
-| R30 | `docs/testing-standards.md` two corrections: §4 unreachable layout + §1 risk-3 premise | todo | qa | Low | R29 |
+| R30 | Docs tell the truth: `docs/testing-standards.md` ×4 + **RELEASE.md (absorbs R27)** | in-progress | qa/docs | Low | R29, R28 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -1071,6 +1071,29 @@ the standard's substance or to any locked decision. Docs only.
    `@types/node`. That is now the third instance of the same shielding pattern
    (`tests/cms-twin.d.ts`, `tests/cms-publish-endpoint.d.ts`) and belongs in the layout section
    rather than being rediscovered per task.
+
+**All four re-verified 2026-08-09/10 against current `preview`:** §4's `cms/src/**/*.test.ts` is
+at `:318` while `vitest.config.ts` includes only `src/**` + `tests/**` (`:59`, `:61`); the
+risk-3 row is at `:73`; §8 currently has 9 gotchas. **Note §1's *fact table* row 3 is already
+fixed** — R12 corrected the R17 staleness there and left a dated "Updated" note. Only the
+**risk-3 row** is still wrong. Don't re-fix the fact table.
+
+**R27 ABSORBED HERE 2026-08-10, and its scope grew on inspection.** `RELEASE.md` is stale in two
+places, not one:
+- **Step 3 (`:41-46`) is a *production runbook* that describes behaviour that no longer exists.**
+  It says running `export-content.ts` **applies schema to prod** and tells the operator to answer
+  `y` to a *"DATA LOSS WARNING"*. Neither happens: `push:false` everywhere since 2026-07-30 and
+  schema comes from committed migrations (Locked decisions). `:30` likewise calls the script
+  "(schema push, read-only for data)". R13a appended an accurate ℹ️ note about the new exit code
+  **without** correcting the step around it, so the two now contradict each other. **This is the
+  riskiest doc in the repo to leave wrong** — it is typed at a prod database behind
+  `authorize db migration on production`.
+- **The whole "Automation plan (deferred)" section (`:70-82`) lists shipped work as pending.**
+  Verified against the roadmap: **Tier 1** (Payload migrations) shipped 2026-07-30 and was
+  confirmed live by **R8**; **Tier 2** (CI gate) shipped as **R2** and has since grown to **6
+  required checks** (R25); **Tier 4's email adapter** shipped as **R3a** (done, PROD). Still
+  genuinely outstanding: **Tier 3** (deploy ordering / auto pre-migration snapshot) and Tier 4's
+  **npm script wrappers** (= the open half of **R3**, tracked as R3b).
 
 ### R28 — The gate can lose its whole report when stdout is redirected  (Medium)
 **Context (found by R13b, 2026-08-07).** `console.error`/`console.warn` immediately followed by
