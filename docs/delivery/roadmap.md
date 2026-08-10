@@ -193,7 +193,7 @@ Last updated: 2026-08-10
 | R3c | Show/hide toggle on admin password inputs | todo | full-stack | Low | R3a |
 | R4 | Rotate shared Neon password + update envs | todo | devops (human) | Medium | — |
 | R5 | Fix local Homebrew Node (dyld/libsimdjson) | todo | chore (human) | Low | — |
-| R6 | Root `CLAUDE.md` misinforms agents: wrong platform, wrong mechanism, **nonexistent workflow file** | todo | docs | **Medium** (was Low) | — |
+| R6 | ↳ **folded into R38** — root `CLAUDE.md` misinforms agents (wrong platform, nonexistent workflow file) | in-progress (via R38) | docs | **Medium** (was Low) | — |
 | R7 | Fill governance placeholders (domain-vocabulary, Guidelines) | todo | docs | Low | — |
 | R8 | Restore prod CMS build (phantom `testdelta` import on `main`) + confirm migrations Tier 1 actually live | done (PROD) | devops | High | R1b |
 | R11 | Project-calibrated testing standards (`docs/testing-standards.md`) | done (preview) | qa | Medium | R2 |
@@ -224,9 +224,9 @@ Last updated: 2026-08-10
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
 | R40 | `governance/.claude/rules/` templates — **premise confirmed**: they load on the first Read under `governance/`; excluded | done (preview) | docs | **Medium** | R33 |
-| R41 | Committed `.claude/settings.json` for `claudeMdExcludes` — R40's fix is machine-local; revisits R37's gitignore | todo | devops | Low | R40, R37 |
+| R41 | ~~Committed `.claude/settings.json` for `claudeMdExcludes`~~ — **closed dormant, owner's decision** | closed (dormant) | devops | Low | R40, R37 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
-| R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
+| R38 | Root `CLAUDE.md`: override-hierarchy note (**+ R6 folded in**) — make the file agents read first correct and self-consistent | in-progress | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
 | R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
 
@@ -944,7 +944,26 @@ generalize `:116` to feature branches.
    superseded — and superseded *by a permanent note that says so* (`2026-07-31-R8.md:36`),
    which strengthens the delta rather than weakening it.
 
-### R38 — Upstream `governance/CLAUDE.md` denies our precedence clause is legal  (Medium)
+### R41 — Committed settings for `claudeMdExcludes`  (Low) — **CLOSED DORMANT 2026-08-10**
+**Owner's decision, taken with the exposure correctly scoped.** R40's fix is machine-local, but
+the affected population is far smaller than the outcome implied. Measured at ingest:
+- **123 commits, one contributor** — "every other contributor" is currently nobody.
+- **CI never loads Claude Code rules** (`grep -ciE 'claude|anthropic' .github/workflows/ci.yml`
+  → 0), so "every CI checkout" is not exposed either.
+- `~/.claude/settings.json` carries the same exclusion at **user level**, so any fresh clone
+  **on this machine** is already covered.
+Residual exposure is therefore **the owner on a different machine**, and nothing else.
+**Closed rather than done.** Reopen if a second contributor or a second machine appears.
+**⚠️ If it does recur it will be silent** — that is R40's whole finding, and `/context` cannot
+see it. The re-open test is in `docs/delivery/governance-deltas.md` (Maintenance step 5), and
+the answer is pinned to Claude Code **2.1.220**; re-run it rather than trusting the record.
+**A cleaner fix exists if this is ever reopened**, and it does *not* meaningfully reverse R37:
+put `claudeMdExcludes` alone in a **committed `.claude/settings.json`** (that file is Claude
+Code's *shared* settings by convention) and keep the machine-specific `GH_CONFIG_DIR` path and
+permission allowlist in the gitignored `.claude/settings.local.json`. R37 ignored that file
+because of its machine-specific *content*, not because repo policy may never be committed.
+
+### R38 — Root `CLAUDE.md`: override-hierarchy note, with R6 folded in  (Medium)
 **Found by R33's worker; conductor-verified 2026-08-10.** The bump landed an *Override
 Hierarchy* block at `governance/CLAUDE.md:19-29`:
 ```
@@ -973,6 +992,17 @@ violate the upstream hierarchy (it fills a gap the hierarchy omits; D3 ratifies 
 `governance/CLAUDE.md:19-29` citation. Cheap, and it pre-empts a future worker deciding our
 clause is illegal and "fixing" it. **Close this when upstream ships D3**, and check whether
 upstream's own wording makes our note redundant.
+
+**R6 FOLDED IN 2026-08-10.** Both edit root `CLAUDE.md`; the roadmap already warned *"do not
+run them concurrently on the same file."* They are also the same job — **making the file every
+agent reads first correct and self-consistent.** R6's three verified defects (wrong platform,
+a workflow file that does not exist, wrong mechanism) are in its own detail block above; do not
+re-derive them, but do re-verify before writing.
+**One extra reason R6 now matters more than its original Low suggested:** R40 proved that a
+governance read injects `governance/.claude/rules/01-project-context.md`, which asserts a
+`[framework]` + `[database]` + `[hosting]` stack. Root `CLAUDE.md` is the file that has to be
+*right* when a placeholder stack is sitting next to it in context. On this machine the
+exclusion suppresses it — on any other, it does not (**R41**, closed dormant).
 
 ### R37 — The `exit-flush` vacuity guard can red any PR at random  (Medium)
 **Found by R33's worker on a gitlink-plus-markdown PR — it went red on the first CI run and
