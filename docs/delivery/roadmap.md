@@ -223,7 +223,7 @@ Last updated: 2026-08-10
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
-| R40 | **`governance/.claude/rules/` templates auto-load into every session here** | todo | docs | **Medium** | R33 |
+| R40 | `governance/.claude/rules/` templates may auto-load here — **verify first** | in-progress | docs | **Medium** | R33 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
@@ -1066,9 +1066,29 @@ Two concrete harms, both cited:
 This is the R7 hazard realized: *a placeholder file is worse than no file, because it reads as
 configured.* R7 predicted it for files we might create; nobody checked whether the submodule's
 own copies were already being loaded.
-**Verify the loading claim first — it is the whole basis of the item.** Confirm whether Claude
-Code discovers `.claude/rules/` inside a submodule, and whether that is version-dependent. If
-it does not load, this drops to Low and becomes R20 feedback only.
+**⚠️ VERIFY THE LOADING CLAIM FIRST — the conductor's own evidence contradicts it (2026-08-10).**
+Checked against the Claude Code memory documentation and against this session:
+- `.claude/rules/` is documented as a **project-level** path — `<cwd>/.claude/rules/`. Ours
+  would be `./.claude/rules/`, which **does not exist**. `governance/.claude/rules/` sits in a
+  **subdirectory**, and CLAUDE.md discovery walks **up** the tree, not down.
+- The docs do acknowledge *"rules in nested `.claude/rules/` directories"* as a real category,
+  but describe them as loading **on demand** — when Claude reads files in that directory — not
+  at launch.
+- **Contrary evidence from this very session:** the conductor has read many files under
+  `governance/` (its `CLAUDE.md`, several `docs/rules/*`, the alignment docs) and
+  `governance/.claude/rules/` content has **never appeared as loaded instructions** — only as
+  explicit `git show` tool output. If on-demand nesting applied, it should have.
+So the premise is **plausible but unconfirmed, and version-dependent.** It is also not
+something that can be settled by grep: the documented check is **`/context`**, run in a live
+session, which lists what actually loaded.
+**If it IS real, the fix is documented and one line** — `claudeMdExcludes` in
+`.claude/settings.local.json`, which takes absolute-path globs:
+`{"claudeMdExcludes": ["**/governance/.claude/rules/**"]}`. Note `.claude/settings.json` is now
+git-ignored (R37 follow-up), so decide deliberately whether the exclusion should be
+machine-local or committed — a machine-local fix protects only the person who applies it.
+**If it is NOT loading, close as a non-issue and keep only the R20 feedback** — upstream still
+ships populated-*looking* templates at a path that at minimum *invites* this, which is a
+footgun for consumers who do create their own `.claude/rules/`.
 **Acceptance criteria (stub):** placeholder rules from the submodule no longer reach a session
 here as if authoritative — either a project `.claude/rules/` that overrides them (which is
 **R7**, so consider merging), or excluding the submodule's from discovery. **Do not edit
