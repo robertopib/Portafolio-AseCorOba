@@ -219,7 +219,10 @@ Last updated: 2026-08-10
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
 | R21 | Media picker unusable — "elegir existente" can't select (R10 regression) | done (PROD) | full-stack | High | R10 |
 | R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
-| R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
+| R23 | Content model: "Proyecto" conflates project + photo + placement (**split**) | split | full-stack | **High** | R12, R13 |
+| R23a | ↳ Target model + backfill mapping — **superseded in part: `Cliente` was missing** | done (preview) | full-stack | **High** | R13 |
+| R23a-ii | ↳ **Revise for the `Cliente` axis + owner-authored client worksheet** | in-progress | full-stack | **High** | R23a |
+| R23b | ↳ Implement: `Clientes` collection, migration, backfill, exporters byte-identical | todo | full-stack | **High** | R23a-ii |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
@@ -1521,6 +1524,46 @@ documented click away); no deep `dist/` imports without recording the upgrade ri
 `hasMany` is ever wanted, it's a separate item with a migration. Admin-only — pixel gate
 n/a, no schema.
 **Do first:** ship R21. This item is polish on top and must not delay the prod fix.
+
+### R23 target model — SETTLED BY THE OWNER 2026-08-10 (locked)
+**The owner corrected the model at the R23a review gate, which is exactly what that gate was
+for.** R23a's design assumed `Categoría → Proyecto → images`. Wrong: **a client's work spans
+several categories**, so `Cliente` cannot sit under `Categoría`. They are different axes.
+```
+Clientes (NEW collection)
+    ↑ relationship
+Proyecto ──→ Categoría   (exactly one)
+    └── images[]   media · title/alt · size · order · showOnHome / showOnPage
+```
+**Three decisions, owner-chosen 2026-08-10 — do not re-litigate:**
+1. **No product level.** A project holds images directly; the image title names the product.
+   Vinte-Vinte's 7 views are 7 images, not a nested product. Matches how the site renders —
+   every image is a card.
+2. **A project belongs to exactly one Categoría.** A client's branding work and photography
+   work are separate projects. Keeps every project rendering on exactly one page, so the
+   exporter and the public pages are unchanged.
+3. **`Clientes` is a real collection, not a text field.** This is the *root-cause fix*: the bug
+   is that grouping lives in a hand-typed string that drifts (`Ana Grace` vs `Ana Grace Salon
+   & Estética` split one salon into two projects). A relationship cannot drift, and renaming a
+   client becomes one edit.
+**Generative rule: one `Cliente` + one `Categoría` = one `Proyecto`** (default; genuine
+exceptions allowed). This **auto-resolves four of R23a's six open questions** — Ana Grace's
+split prefix, WodFest, Live Técnica Phicontour, and OFF DAY Trainer all collapse to "same
+client, same category, same project."
+**`Cliente` is CMS-only and invisible to the exporter, so byte-identical output still holds.**
+Categoría continues to drive the public pages exactly as today.
+**Model validated against real data (conductor, 2026-08-10):** **OFF DAY Trainer appears in
+both Branding and Web y Apps** — one client, two projects, two categories. Precisely the
+Adriana Muñoz shape the owner described, and R23a had filed it as "no action needed."
+
+**⚠️ CRITICAL FINDING — client is NOT recoverable from the strings, so the mapping cannot be
+machine-generated.** The owner's own example proves it: `Crackers D'Argent` and `Pan D'Argent`
+name the client, but **`Croissant Artesanal` and `Croissant Premium` carry no client marker at
+all** — yet all four are D'Argent's. Same for the gift boxes. R23a's mapping was built by
+prefix-grouping, which produces the wrong answer exactly where the owner corrected it.
+**Consequence for R23a-ii: the deliverable is a worksheet the owner *fills in*, not a mapping
+the owner *corrects*.** Pre-fill only where a client is unambiguously named; leave the rest
+blank rather than guessing, because a plausible wrong guess is harder to spot than a gap.
 
 ### R23 — Content model: a Proyecto is not a project (CMS-only regroup, Option A)  (High)
 **Raised by the owner 2026-08-04 while verifying R21.** Full analysis, with live-data
