@@ -190,11 +190,12 @@ Last updated: 2026-08-10
 | R17 | Site has no typechecker at all (no root tsconfig, no `typescript` dep) | done (preview) | devops | Medium | — |
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
-| R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
+| R27 | ↳ absorbed into R30 — RELEASE.md staleness | done (via R30) | docs | Low | — |
+| R32 | `export-content.ts` header mis-describes why `FIDELITY_GATE=0` exists | todo | docs/chore | Low | R30 |
 | R28 | Gate can lose its whole report when output is piped (`console.*` then `process.exit`) | done (preview) | full-stack | Medium | R13a |
-| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) | todo | full-stack | Low | R28 |
+| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) — **fold in R32** | todo | full-stack | Low | R28 |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
-| R30 | `docs/testing-standards.md` two corrections: §4 unreachable layout + §1 risk-3 premise | todo | qa | Low | R29 |
+| R30 | Docs tell the truth: `docs/testing-standards.md` ×10 + RELEASE.md (absorbed R27) | done (preview) | qa/docs | Low | R29, R28 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
 | R19 | `POST /api/publish` returns HTTP 200 when the deploy hook is unconfigured | todo | devops | Low | — |
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
@@ -752,8 +753,9 @@ identical: runtime guards plus the boundary.
   reporting.
 
 ### R19 — `POST /api/publish` returns 200 on an unconfigured hook  (Low)
-**Context (from R11):** `cms/src/payload.config.ts:41-62`. Auth is correct (403 when
-`!req.user`, `:48-50`), but a missing/wrong `VERCEL_DEPLOY_HOOK_URL` makes
+**Context (from R11):** ~~`cms/src/payload.config.ts:41-62`~~ — **the handler moved in R29 and
+now lives at `cms/src/endpoints/publish.ts:49-55`.** Auth is correct (403 when
+`!req.user`), but a missing/wrong `VERCEL_DEPLOY_HOOK_URL` makes
 `pingDeployHook` return `{ ok: false, reason: 'no-hook' }`
 (`cms/src/hooks/triggerDeploy.ts:24-25`) which the endpoint returns with **status 200**
 (`:52-55`, deliberately). ~~Editor sees success; nothing rebuilds.~~ Same shape as the R3a
@@ -1042,7 +1044,7 @@ including `exit(0)` — not just before a failing one.
 unchanged; no behaviour change. Regression coverage can reuse
 `tests/fidelity/exit-flush-probe.mjs`.
 
-### R30 — Two corrections to `docs/testing-standards.md`  (Low)
+### R30 — Make the docs tell the truth (testing-standards ×10 + RELEASE.md; absorbed R27)  (Low)
 **Both found by R29, 2026-08-07. The standard is binding, so a wrong line in it propagates into
 every task prompt that cites it — which is exactly how both of these caused damage.**
 1. **§4's file layout lists `cms/src/**/*.test.ts`, which the root runner cannot reach.**
@@ -1071,6 +1073,84 @@ the standard's substance or to any locked decision. Docs only.
    `@types/node`. That is now the third instance of the same shielding pattern
    (`tests/cms-twin.d.ts`, `tests/cms-publish-endpoint.d.ts`) and belongs in the layout section
    rather than being rediscovered per task.
+
+**All four re-verified 2026-08-09/10 against current `preview`:** §4's `cms/src/**/*.test.ts` is
+at `:318` while `vitest.config.ts` includes only `src/**` + `tests/**` (`:59`, `:61`); the
+risk-3 row is at `:73`; §8 currently has 9 gotchas. **Note §1's *fact table* row 3 is already
+fixed** — R12 corrected the R17 staleness there and left a dated "Updated" note. Only the
+**risk-3 row** is still wrong. Don't re-fix the fact table.
+
+**R27 ABSORBED HERE 2026-08-10, and its scope grew on inspection.** `RELEASE.md` is stale in two
+places, not one:
+- **Step 3 (`:41-46`) is a *production runbook* that describes behaviour that no longer exists.**
+  It says running `export-content.ts` **applies schema to prod** and tells the operator to answer
+  `y` to a *"DATA LOSS WARNING"*. Neither happens: `push:false` everywhere since 2026-07-30 and
+  schema comes from committed migrations (Locked decisions). `:30` likewise calls the script
+  "(schema push, read-only for data)". R13a appended an accurate ℹ️ note about the new exit code
+  **without** correcting the step around it, so the two now contradict each other. **This is the
+  riskiest doc in the repo to leave wrong** — it is typed at a prod database behind
+  `authorize db migration on production`.
+- **The whole "Automation plan (deferred)" section (`:70-82`) lists shipped work as pending.**
+  Verified against the roadmap: **Tier 1** (Payload migrations) shipped 2026-07-30 and was
+  confirmed live by **R8**; **Tier 2** (CI gate) shipped as **R2** and has since grown to **6
+  required checks** (R25); **Tier 4's email adapter** shipped as **R3a** (done, PROD). Still
+  genuinely outstanding: **Tier 3** (deploy ordering / auto pre-migration snapshot) and Tier 4's
+  **npm script wrappers** (= the open half of **R3**, tracked as R3b).
+
+**Status: done (preview)** 2026-08-10 — PR #21, squash `f7e3fed`. All 6 checks green, pixel
+0.000%/24, 151 tests unchanged, docs only. **Scope grew from 6 corrections to 11**, all the same
+class of defect and all in sections already being edited — the prompt invited reporting extras and
+the worker fixed them instead of queuing them, which was the right call for docs.
+**Beyond the six commissioned:** §4's opener still said *"Recommended, not adopted. No runner is
+installed"* (R12 installed it); §1's risk-2 detail and two §8 bullets still said neither fidelity
+gate can fail and that `export-content.ts`'s header lies (R13a/R13b closed both — collapsed into
+one bullet that keeps the *lesson*: never accept a green report as evidence a gate works);
+post-R29 line refs to the publish handler were stale in §1, §7 and §8 (it lives at
+`cms/src/endpoints/publish.ts` now); §2's sequence item 3 was still "new, ~20 lines" (R29 measured
+the extraction — kept visible, because **an untestable seam is part of the estimate**); and
+RELEASE.md step 1 generalized one past release's dropped columns into the standing checklist.
+**RELEASE.md step 3 redesigned, not just corrected.** Schema application is no longer an operator
+step — it is `payload migrate` inside the deploy's `ci:build` (`cms/package.json:19`). So step 3 is
+now **read-only pre-deploy verification with no authorization phrase** (confirm the migration is
+committed and wired, then `migrate:status:prod` shows the new one `Ran: No`; stop if it already
+says `Ran: Yes`), and **`authorize db migration on production` moved to step 4**, which now takes
+both phrases. That also relocates the downtime window — no longer "admin 500s from step 3 until
+step 4" but "old CMS code serves against the new schema for the length of `next build`". The R8
+failure shape is documented there too: a failed migration means `next build` never runs and Vercel
+keeps the last good deployment, **so prod looks healthy while serving old code**.
+The 2026-07-30 Context block was marked **superseded** rather than deleted — its premise ("dev uses
+Payload `push`, prod has no migration files") is *why* the manual runbook exists, and it is the
+sentence that made the rest of the file read as current.
+**Worth locking (generalisable):** the old rule "do not import CMS source from a root test" was
+**reworded, not deleted** — as written it now contradicts the alias pattern used twice. The real
+constraint was never the directory: it is the **transitive import graph reaching
+`payload`/`sharp`/`@aws-sdk/*`**, which the `tests` job cannot resolve because it installs root
+dependencies only (`ci.yml:265-266`). State the rule about the import graph, not the path.
+**Also corrected at ingest:** the prompt told the worker `pnpm lint` "is broken repo-wide (R9)".
+More precisely — the **root `package.json` has no `lint` script at all**
+(`ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL`), and `cms`'s `eslint .` exits 2 demanding a flat-config
+migration. R9's title says "flat-config missing", which is only half of it.
+
+**One proposed backlog item DECLINED at ingest — it is already a settled decision.** The outcome
+suggested filing "`check-migrations.mjs` check 6 is a WARN, not a gate" for a conscious decision.
+That decision was already made **deliberately, in R2**, and is recorded in two places: this
+roadmap (R2 detail — *"'schema change without a migration' is a **warning**, not a blocker,
+because schema-bearing files also carry admin-only changes"*) and the code itself
+(`scripts/ci/check-migrations.mjs:112-115` — *"Deliberately a warning, not a gate… Promoting this
+to a hard gate needs a real schema diff, which needs a live DB"*). Filing it would have invited a
+future worker to re-litigate a Locked decision. **Not a criticism of the finding** — noticing the
+gap between "assumed enforced" and "actually advisory" is exactly right, and the answer is that
+the gap is known and priced. No item created.
+
+### R32 — `export-content.ts` header mis-describes why `FIDELITY_GATE=0` exists  (Low)
+**Context (from R30, 2026-08-10):** `cms/src/scripts/export-content.ts:22-23` says the flag exists
+"for the RELEASE.md schema step, where the script is run against prod **for its side effects**".
+There are no schema side effects any more (R13a made it read-only; `push:false` since
+2026-07-30). The flag's actual job is that **a prod content diff is expected**, so a non-zero exit
+would break the operator's pipeline. R30 was forbidden from touching `cms/src/`, so it correctly
+left this alone. **Fold into R31** — same directory, same "stale claim in a CMS script" shape.
+**Acceptance criteria (stub):** the comment states the real reason. Comment-only; no behaviour
+change, and **do not touch the gate semantics** (Locked).
 
 ### R28 — The gate can lose its whole report when stdout is redirected  (Medium)
 **Context (found by R13b, 2026-08-07).** `console.error`/`console.warn` immediately followed by
