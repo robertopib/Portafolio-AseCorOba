@@ -629,6 +629,20 @@ For a human deciding what to promote into the governance submodule. **Nothing in
   **non-deterministic on Linux** (five runs gave 200000, 146176, 146176, 146176, 146176), the
   vacuity guard samples ~10 runs and asserts at least one loses bytes rather than asserting that
   a single run truncates. See `tests/fidelity/exit-flush.test.ts`.
+- **Sampling only defends against a per-run coin flip — check which one you have.** *(R37,
+  2026-08-10, correcting the last clause of the bullet above.)* That guard sized its 10 samples
+  against a "4 runs in 5" reading of the table, then went red on a PR whose diff was a gitlink
+  and one markdown file. Re-measured: **2,698 of 2,700 runs across 33 CI job executions lose
+  bytes (p = 0.9993)** — the bug is not gone, and the 5-run table simply had too few samples to
+  see the real shape. What actually varies is the **job**: ten consecutive full deliveries is a
+  ~5e-32 event under an i.i.d. per-run rate, and it happened in 1 of 13 `tests` jobs, so the
+  runs inside a job are **not independent** — the host is the draw. **Consequence worth
+  generalising: `SAMPLES` reduces a false verdict only when the samples are independent.** When
+  the flake is per-job, ten samples and a thousand have the same failure rate, and raising the
+  count buys a slower suite and nothing else. Before sizing a sampling gate, measure *across*
+  runs of the job, not just within one. R37 kept the assertion, dropped its gate
+  (`skipIf(env.CI)` — it is deterministic on macOS, where a developer runs it), and left the
+  four fixed-path tests gating; the full derivation is in the test file's header.
 - **A verification is only worth what its setup shares with the real thing.** *(R28's other
   lesson, and it is not about stdio.)* The bare-`writeSync` claim above was originally "verified"
   at 200 KB — in a scratch script that imported nothing else, which is the one condition under
