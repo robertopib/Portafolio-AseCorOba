@@ -10,7 +10,7 @@
 > `governance/.github/agents/delivery-planner.agent.md` +
 > `governance/docs/rules/session-and-context.md`.
 
-Last updated: 2026-08-07
+Last updated: 2026-08-10
 
 ---
 
@@ -191,7 +191,8 @@ Last updated: 2026-08-07
 | R25 | `typecheck` + `tests` → required checks (one branch-protection edit) | done (preview) | devops | Low | R17, R12 |
 | R26 | TypeScript major skew: root **7.0.2** vs `cms` **6.0.3** | todo | devops | Low | R17 |
 | R27 | RELEASE.md step 3 describes auto-push schema + a "DATA LOSS" prompt that no longer exist | todo | docs | Low | — |
-| R28 | Gate can lose its whole report when stdout is redirected (`console.*` then `process.exit`) | in-progress | full-stack | Medium | R13a |
+| R28 | Gate can lose its whole report when output is piped (`console.*` then `process.exit`) | done (preview) | full-stack | Medium | R13a |
+| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) | todo | full-stack | Low | R28 |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
 | R30 | `docs/testing-standards.md` two corrections: §4 unreachable layout + §1 risk-3 premise | todo | qa | Low | R29 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
@@ -1028,6 +1029,19 @@ flipped the PR `CLEAN → BLOCKED → CLEAN` for each new check independently. M
 to **Locked decisions** ("How to edit branch protection"). Full record:
 `.claude/session-notes/2026-08-06-R25.md`.
 
+### R31 — Same `console.*`-then-`exit` pattern in three more CMS scripts  (Low)
+**Context (from R28, 2026-08-10):** `cms/src/scripts/seed.ts:806`,
+`backfill-thumbnails.ts:90` and `reset-media-list-prefs.ts:73` all end in `process.exit(0)`
+after `console.*`, the exact shape R28 fixed. They were outside R28's named site list, so
+correctly left alone. **`seed.ts` is the one that prints enough to matter.**
+**Now a one-line import each** — `cms/src/scripts/write-sync.ts` already exists and is mirrored,
+tested and documented. Cheap.
+**Note the R28 lesson when scoping:** the bug is `console.*` before **any** `process.exit`,
+including `exit(0)` — not just before a failing one.
+**Acceptance criteria (stub):** each script's output survives a pipe at >64 KiB; exit codes
+unchanged; no behaviour change. Regression coverage can reuse
+`tests/fidelity/exit-flush-probe.mjs`.
+
 ### R30 — Two corrections to `docs/testing-standards.md`  (Low)
 **Both found by R29, 2026-08-07. The standard is binding, so a wrong line in it propagates into
 every task prompt that cites it — which is exactly how both of these caused damage.**
@@ -1046,6 +1060,17 @@ every task prompt that cites it — which is exactly how both of these caused da
 before anyone opened `PublishButton.tsx`. Fixing the source stops the next re-assertion.
 **Acceptance criteria (stub):** both corrected; §7's deltas table still consistent; no change to
 the standard's substance or to any locked decision. Docs only.
+**Two more additions, from R28 (2026-08-10) — fold into the same pass:**
+3. **§8 gotcha:** *a message written immediately before `process.exit` is truncated when output
+   is a pipe, and CI reads output through a pipe.* Add the sharp edge too: **a bare
+   `fs.writeSync` is not the fix** — it works only while the fd is blocking, and merely
+   importing from `node:process` flips it non-blocking. Point at `scripts/lib/write-sync.mjs`,
+   whose header already documents this at length.
+4. **§4** has no note that reaching Node builtins from a test needs a **scoped ambient**
+   declaration (`tests/node-builtins.d.ts`), because the root tsconfig deliberately omits
+   `@types/node`. That is now the third instance of the same shielding pattern
+   (`tests/cms-twin.d.ts`, `tests/cms-publish-endpoint.d.ts`) and belongs in the layout section
+   rather than being rediscovered per task.
 
 ### R28 — The gate can lose its whole report when stdout is redirected  (Medium)
 **Context (found by R13b, 2026-08-07).** `console.error`/`console.warn` immediately followed by
@@ -1080,6 +1105,52 @@ preserved: `process.exitCode = 1` (let Node exit naturally) and `fs.writeSync(2,
 result. Same class of bug and definitely real, but the exact zero-byte path is uncharacterised —
 possibly Linux/CI buffering or a different timing. **The worker should characterise it rather
 than assume my mechanism is the whole story.**
+
+**Status: done (preview)** 2026-08-10 — PR #19, squash `96b2419`. All 6 checks green, pixel
+0.000%/24, tests 143 → **151**, `tests` job 32 s. Fix is `scripts/lib/write-sync.mjs`
+(`writeAllSync` + a `console`-shaped `syncConsole` sink), hand-mirrored to
+`cms/src/scripts/write-sync.ts` for the same separate-Vercel-root reason as `fidelity.mjs`.
+Measured on the **real CLIs**, piped: `export-content` gate-ON went **65,530 → 240,891 bytes**;
+`fetch-content --gate` went **65,687 → 210,651**. Exit codes identical in all 8 modes — and true
+*by construction*, since no `process.exit` call or condition is in the diff. Only `console`
+references left in either script are comments (conductor-verified).
+
+**⚠️ CONDUCTOR ERROR — my verification was right about the wrong thing.** I told the worker
+"both candidate fixes verified at 200 KB", having measured `fs.writeSync` delivering 200,001
+bytes. **That result was an artifact of my scratch script importing nothing else.** A bare
+`fs.writeSync` delivers in full only while fd 2 is still **blocking**; libuv flips it to
+`O_NONBLOCK` the moment Node instantiates `process.stderr`, after which a bare `writeSync`
+truncates at 65,536 — *identical to the bug it was meant to fix*. Re-confirmed at ingest:
+adding a single `import { execPath } from 'node:process'` to my own repro drops it from
+**200,001 → 65,536 bytes**. An import is enough; no console call required. **Every real script
+is already in the truncating state**, so the offset loop + EAGAIN retry the worker wrote are the
+actual fix, not defensive garnish. They also replaced a busy-wait with `Atomics.wait` (measured
+1.01 s → 0.08 s user CPU against a reader stalled 1 s).
+**This is a different failure mode from the previous three** (`studioLabel`, the exit-code
+criterion, R19's premise). Those were claims inherited from a document without opening the code.
+This one I *did* measure — but under conditions that did not resemble the target. **Rule: a
+verification is only worth what its setup shares with the real thing. A scratch script is not a
+1,000-line script with imports.**
+**My platform generalisation was also wrong.** I reported a clean 65,536 truncation "every
+time"; that is macOS-specific. On **Linux / Node 24 the bug is non-deterministic** — five runs
+gave `200000, 146176, 146176, 146176, 146176`, i.e. sometimes no loss at all. The fix delivered
+200,000 5/5 on both platforms. This is why the worker's vacuity guard **samples 10 runs** and
+asserts at least one lost bytes, instead of asserting that a single run truncates: the strict
+form was written first, reddened CI, and was downgraded rather than shipped flaky. Correct call.
+
+**A fourth site I failed to list.** The prompt named three; the `FIDELITY_GATE=0` **warning**
+branch prints the same full report and falls through to the trailing `exit(0)`, truncating
+identically at exit code 0. Measured before/after: **65,528 → 240,980 bytes**. Lesson: I listed
+the sites that *exit non-zero* and missed the one that warns then exits zero — the bug is
+`console.*` before **any** `process.exit`, not before a failing one.
+
+**`fs.writeSync` chosen over `process.exitCode`, and the reasoning is worth keeping:**
+`export-content.ts` ends in an unconditional `process.exit(0)` that is **load-bearing** (Payload
+holds an open pg pool, so the process would not exit on its own) and would silently override an
+assigned `exitCode`. Proving otherwise needs a DB run this task forbade. Writing synchronously
+touches no exit-control flow, so the locked asymmetry is preserved **by construction** rather
+than by test. Applied to *all* output in both scripts, not just the exit-adjacent lines —
+mixing `writeSync` with buffered `console` reorders output.
 
 ### R29 — `POST /api/publish` handler unit test  (Low)
 **Context:** `docs/testing-standards.md` §2's recommended sequence, item 3 — **the last
