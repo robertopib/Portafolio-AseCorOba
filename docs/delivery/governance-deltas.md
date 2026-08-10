@@ -444,7 +444,8 @@ They are **unfilled templates**, and they read as rules:
   a project non-negotiable.
 - `governance/.claude/rules/01-project-context.md:8-9` — Name `[your-project-name]`,
   Stack `[framework] + [database] + [hosting]`. **Actively wrong** for a repo whose real
-  stack is stated in root `CLAUDE.md:13-16`.
+  stack is stated in root `CLAUDE.md:21-35` *(was `:13-16`; renumbered by **R38**, which
+  also corrected that block — it named the wrong hosting platform)*.
 - `03-environment.md` — placeholder runtime versions, env vars and reset commands for
   services this project does not run.
 
