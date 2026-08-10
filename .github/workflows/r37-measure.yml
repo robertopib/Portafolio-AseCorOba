@@ -1,14 +1,13 @@
 # TEMPORARY — roadmap R37 measurement scaffolding. Delete before the PR merges.
 #
-# Round 2. Round 1 (run 31374595602) measured p = 0.9967 over 300 samples in ONE
-# job — the opposite of the R37 premise, which expected the rate to have collapsed.
-# But PR #23's `tests` job really did see 10/10 deliver. So the open question is
-# whether the loss rate is a per-RUN coin flip (in which case sampling works) or a
-# per-JOB mode (in which case sampling inside one job buys nothing, because the
-# samples are not independent).
+# Round 3. Rounds 1-2 measured p = 1498/1500 across 13 job executions on 4 CPU
+# models — i.e. the bug reproduces essentially ALWAYS, the opposite of the R37
+# premise. Yet PR #23's `tests` job saw 10/10 runs deliver in full. Under an
+# i.i.d. per-run rate of 0.9987 that is a ~1e-29 event, so the runs cannot be
+# independent: the outcome is a property of the HOST, not of the run.
 #
-# 12 parallel jobs × 100 samples each answers that: a per-run rate gives 12 jobs all
-# near the same p; a per-job mode gives a bimodal split.
+# This round samples 20 more hosts and records the kernel state that would
+# explain it — the child's stderr fd type and the socket/pipe buffer sizes.
 name: R37 measurement (temporary)
 
 on:
@@ -19,12 +18,12 @@ on:
 
 jobs:
   measure:
-    name: "R37 loss rate — shard ${{ matrix.shard }}"
+    name: "R37 host mode — shard ${{ matrix.shard }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     steps:
       - uses: actions/checkout@v5
 
@@ -32,52 +31,60 @@ jobs:
         with:
           node-version: '24.15.0'
 
-      - name: Runner identity
+      - name: Kernel + host state
         run: |
-          echo "SHARD=${{ matrix.shard }} ImageVersion=$ImageVersion nproc=$(nproc)"
+          echo "SHARD=${{ matrix.shard }} nproc=$(nproc) ImageVersion=$ImageVersion"
           grep -m1 'model name' /proc/cpuinfo
+          echo "wmem_default=$(cat /proc/sys/net/core/wmem_default) wmem_max=$(cat /proc/sys/net/core/wmem_max)"
+          echo "rmem_default=$(cat /proc/sys/net/core/rmem_default) pipe_max=$(cat /proc/sys/fs/pipe-max-size)"
+          echo "pipe_user_pages_soft=$(cat /proc/sys/fs/pipe-user-pages-soft)"
           uname -r
 
-      # No pnpm install: the probe imports only scripts/lib/write-sync.mjs, which has
-      # no dependencies. Keeps 12 shards cheap and removes install noise from timing.
-      - name: Probe distribution
+      - name: Loss rate + child stderr fd type
         run: |
+          cat > /tmp/fdtype.mjs <<'EOF'
+          import fs from 'node:fs'
+          const s = fs.fstatSync(2)
+          process.stdout.write(`fd2 isFIFO=${s.isFIFO()} isSocket=${s.isSocket()}\n`)
+          EOF
           cat > /tmp/measure.mjs <<'EOF'
           import { spawnSync } from 'node:child_process'
           import { execPath } from 'node:process'
 
-          const PROBE = 'tests/fidelity/exit-flush-probe.mjs'
           const PAYLOAD = 200_000
-          const N = 100
+          const N = 50
 
-          function report(args) {
-            const r = spawnSync(execPath, [PROBE, ...args], {
-              encoding: 'utf8',
-              maxBuffer: 16 * 1024 * 1024,
-              timeout: 30_000,
-            })
+          const t = spawnSync(execPath, ['/tmp/fdtype.mjs'], { encoding: 'utf8' })
+          console.log(`CHILD_STDERR ${t.stdout.trim()}`)
+
+          const reports = Array.from({ length: N }, () => {
+            const r = spawnSync(
+              execPath,
+              ['tests/fidelity/exit-flush-probe.mjs', 'console', String(PAYLOAD), '1', '--fd=2'],
+              { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 30_000 },
+            )
             if (r.error) throw r.error
-            if (r.signal) throw new Error(`probe killed by ${r.signal}`)
             return r.stderr.split('P').length - 1
-          }
-
-          const args = ['console', String(PAYLOAD), '1', '--fd=2']
-          const reports = Array.from({ length: N }, () => report(args))
+          })
           const lost = reports.filter((b) => b < PAYLOAD).length
           const hist = new Map()
           for (const b of reports) hist.set(b, (hist.get(b) ?? 0) + 1)
+          console.log(`SHARD_RESULT p=${(lost / N).toFixed(3)} lost=${lost}/${N} hist=${JSON.stringify([...hist.entries()].sort((a, b) => b[0] - a[0]))}`)
 
-          console.log(`SHARD_RESULT p=${(lost / N).toFixed(3)} lost=${lost}/${N}`)
-          console.log(`hist ${JSON.stringify([...hist.entries()].sort((a, b) => b[0] - a[0]))}`)
-          // Is p stable within the job, or does it flip partway?
-          for (let i = 0; i < N; i += 20) {
-            const chunk = reports.slice(i, i + 20)
-            console.log(`  runs ${i}-${i + 19}: lost ${chunk.filter((b) => b < PAYLOAD).length}/20`)
+          // The gate as it is actually written: 10 samples, pass iff at least one loses.
+          // 5 independent evaluations, so a host in the no-loss mode shows up as GATE 0/5.
+          let green = 0
+          for (let g = 0; g < 5; g++) {
+            const ten = Array.from({ length: 10 }, () => {
+              const r = spawnSync(
+                execPath,
+                ['tests/fidelity/exit-flush-probe.mjs', 'console', String(PAYLOAD), '1', '--fd=2'],
+                { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 30_000 },
+              )
+              return r.stderr.split('P').length - 1
+            })
+            if (ten.some((b) => b < PAYLOAD)) green++
           }
-          // The fix, same job, same conditions — must be 100% delivered either way.
-          const fixed = Array.from({ length: 20 }, () =>
-            report(['sync', String(PAYLOAD), '1', '--fd=2']),
-          )
-          console.log(`FIX delivered ${fixed.filter((b) => b === PAYLOAD).length}/20`)
+          console.log(`GATE_GREEN ${green}/5`)
           EOF
           node /tmp/measure.mjs
