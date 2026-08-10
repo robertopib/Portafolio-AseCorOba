@@ -1,8 +1,14 @@
 # TEMPORARY — roadmap R37 measurement scaffolding. Delete before the PR merges.
 #
-# Re-measures the per-run byte-loss rate of the UNFIXED writer through a pipe on
-# the current CI runner, because tests/fidelity/exit-flush.test.ts's vacuity guard
-# went red on PR #23 and its docblock says: re-measure, do not "fix".
+# Round 2. Round 1 (run 31374595602) measured p = 0.9967 over 300 samples in ONE
+# job — the opposite of the R37 premise, which expected the rate to have collapsed.
+# But PR #23's `tests` job really did see 10/10 deliver. So the open question is
+# whether the loss rate is a per-RUN coin flip (in which case sampling works) or a
+# per-JOB mode (in which case sampling inside one job buys nothing, because the
+# samples are not independent).
+#
+# 12 parallel jobs × 100 samples each answers that: a per-run rate gives 12 jobs all
+# near the same p; a per-job mode gives a bimodal split.
 name: R37 measurement (temporary)
 
 on:
@@ -13,36 +19,28 @@ on:
 
 jobs:
   measure:
-    name: R37 — loss-rate distribution
+    name: "R37 loss rate — shard ${{ matrix.shard }}"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     steps:
       - uses: actions/checkout@v5
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '9.15.9'
 
       - uses: actions/setup-node@v5
         with:
           node-version: '24.15.0'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
       - name: Runner identity
         run: |
-          echo "ImageOS=$ImageOS  ImageVersion=$ImageVersion"
-          echo "runner-arch=$RUNNER_ARCH"
-          uname -a
-          node --version
-          nproc
-          echo "pipe-max-size: $(cat /proc/sys/fs/pipe-max-size)"
-          cat /proc/cpuinfo | grep -m1 'model name'
-          free -m | head -2
+          echo "SHARD=${{ matrix.shard }} ImageVersion=$ImageVersion nproc=$(nproc)"
+          grep -m1 'model name' /proc/cpuinfo
+          uname -r
 
-      - name: Install (frozen)
-        run: pnpm install --frozen-lockfile
-
-      - name: Probe distribution (standalone parent)
+      # No pnpm install: the probe imports only scripts/lib/write-sync.mjs, which has
+      # no dependencies. Keeps 12 shards cheap and removes install noise from timing.
+      - name: Probe distribution
         run: |
           cat > /tmp/measure.mjs <<'EOF'
           import { spawnSync } from 'node:child_process'
@@ -50,8 +48,9 @@ jobs:
 
           const PROBE = 'tests/fidelity/exit-flush-probe.mjs'
           const PAYLOAD = 200_000
+          const N = 100
 
-          function runProbe(args) {
+          function report(args) {
             const r = spawnSync(execPath, [PROBE, ...args], {
               encoding: 'utf8',
               maxBuffer: 16 * 1024 * 1024,
@@ -59,89 +58,26 @@ jobs:
             })
             if (r.error) throw r.error
             if (r.signal) throw new Error(`probe killed by ${r.signal}`)
-            const stream = args.includes('--fd=1') ? r.stdout : r.stderr
-            return { report: stream.split('P').length - 1, status: r.status }
+            return r.stderr.split('P').length - 1
           }
 
-          const CASES = [
-            ['console, no prefill  <-- THE GUARD', ['console', String(PAYLOAD), '1', '--fd=2'], 300],
-            ['console, warm', ['console', String(PAYLOAD), '1', '--fd=2', '--warm'], 100],
-            ['console, prefill 64K', ['console', String(PAYLOAD), '1', '--fd=2', '--prefill=65536'], 100],
-            ['bare fs.writeSync, warm', ['writeSync', String(PAYLOAD), '1', '--fd=2', '--warm'], 100],
-            ['syncConsole (the fix)', ['sync', String(PAYLOAD), '1', '--fd=2'], 100],
-          ]
+          const args = ['console', String(PAYLOAD), '1', '--fd=2']
+          const reports = Array.from({ length: N }, () => report(args))
+          const lost = reports.filter((b) => b < PAYLOAD).length
+          const hist = new Map()
+          for (const b of reports) hist.set(b, (hist.get(b) ?? 0) + 1)
 
-          for (const [label, args, n] of CASES) {
-            const reports = []
-            const t0 = Date.now()
-            for (let i = 0; i < n; i++) reports.push(runProbe(args).report)
-            const ms = Date.now() - t0
-            const lost = reports.filter((b) => b < PAYLOAD).length
-            const hist = new Map()
-            for (const b of reports) hist.set(b, (hist.get(b) ?? 0) + 1)
-            const rows = [...hist.entries()].sort((a, b) => b[0] - a[0])
-            console.log(`\n=== ${label} — n=${n}, ${ms}ms ===`)
-            console.log(`lost bytes in ${lost}/${n} runs  => per-run loss rate p = ${(lost / n).toFixed(4)}`)
-            console.log(`min=${Math.min(...reports)} max=${Math.max(...reports)}`)
-            for (const [bytes, count] of rows) console.log(`  ${String(bytes).padStart(7)} : ${count}`)
-            console.log(`  first 20 runs: ${reports.slice(0, 20).join(',')}`)
+          console.log(`SHARD_RESULT p=${(lost / N).toFixed(3)} lost=${lost}/${N}`)
+          console.log(`hist ${JSON.stringify([...hist.entries()].sort((a, b) => b[0] - a[0]))}`)
+          // Is p stable within the job, or does it flip partway?
+          for (let i = 0; i < N; i += 20) {
+            const chunk = reports.slice(i, i + 20)
+            console.log(`  runs ${i}-${i + 19}: lost ${chunk.filter((b) => b < PAYLOAD).length}/20`)
           }
+          // The fix, same job, same conditions — must be 100% delivered either way.
+          const fixed = Array.from({ length: 20 }, () =>
+            report(['sync', String(PAYLOAD), '1', '--fd=2']),
+          )
+          console.log(`FIX delivered ${fixed.filter((b) => b === PAYLOAD).length}/20`)
           EOF
           node /tmp/measure.mjs
-
-      - name: Guard outcome under the real runner (vitest, 15 repeats)
-        run: |
-          fails=0
-          for i in $(seq 1 15); do
-            if pnpm exec vitest run tests/fidelity/exit-flush.test.ts --reporter=dot >/tmp/v.log 2>&1; then
-              echo "run $i: PASS"
-            else
-              fails=$((fails+1))
-              echo "run $i: FAIL"
-              grep -E "shape the fix rejects|AssertionError|expected" /tmp/v.log | head -5
-            fi
-          done
-          echo "=== exit-flush.test.ts failed $fails / 15 runs ==="
-
-      - name: Probe distribution INSIDE vitest (contended, as the suite sees it)
-        run: |
-          cat > /tmp/inside.test.ts <<'EOF'
-          import { spawnSync } from 'node:child_process'
-          import { execPath } from 'node:process'
-          import { fileURLToPath } from 'node:url'
-          import { expect, it } from 'vitest'
-
-          const PROBE = fileURLToPath(new URL('./exit-flush-probe.mjs', import.meta.url))
-          const PAYLOAD = 200_000
-
-          it('measures inside vitest', () => {
-            const reports: number[] = []
-            for (let i = 0; i < 200; i++) {
-              const r = spawnSync(execPath, [PROBE, 'console', String(PAYLOAD), '1', '--fd=2'], {
-                encoding: 'utf8',
-                maxBuffer: 16 * 1024 * 1024,
-                timeout: 30_000,
-              })
-              reports.push(r.stderr.split('P').length - 1)
-            }
-            const lost = reports.filter((b) => b < PAYLOAD).length
-            const hist = new Map<number, number>()
-            for (const b of reports) hist.set(b, (hist.get(b) ?? 0) + 1)
-            console.log(`INSIDE VITEST: lost ${lost}/200  p=${(lost / 200).toFixed(4)}`)
-            for (const [bytes, count] of [...hist.entries()].sort((a, b) => b[0] - a[0])) {
-              console.log(`  ${bytes} : ${count}`)
-            }
-            expect(reports.length).toBe(200)
-          }, 300_000)
-          EOF
-          cp /tmp/inside.test.ts tests/fidelity/zz-r37-inside.test.ts
-          pnpm exec vitest run tests/fidelity/zz-r37-inside.test.ts 2>&1 | tail -40
-          rm tests/fidelity/zz-r37-inside.test.ts
-
-      - name: Full suite runtime (§6 budget check)
-        run: |
-          for i in 1 2 3; do
-            start=$(date +%s)
-            pnpm test >/tmp/full.log 2>&1 && r=PASS || r=FAIL
-            echo "full pnpm test run $i: $r in $(( $(date +%s) - start ))s"
-          done
