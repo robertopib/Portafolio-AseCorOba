@@ -220,8 +220,10 @@ Last updated: 2026-08-10
 | R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
 | R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
-| R33 | **Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md`** (T1+T2) | in-progress | devops/docs | **Medium** | — |
-| R34 | Record deltas for the 3 incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
+| R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
+| R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
+| R37 | **`exit-flush` vacuity guard is a required check that can red any PR at random** | todo | qa | **Medium** | R28 |
+| R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
 | R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
 
@@ -854,6 +856,19 @@ produced less governance rather than more"*) but adds two things the prompt's dr
 **Also verified for T2:** root `CLAUDE.md` points at neither `governance/AGENTS.md` (which
 did not exist at our pin) nor `docs/testing-standards.md`. Both must be added.
 
+**Status: done (preview)** 2026-08-10 — PR #23, squash `582e637`. Tip matched `fddf95b`
+exactly. Gitlink-only move confirmed at ingest: `git ls-tree origin/preview governance` →
+`fddf95b…`, and no tracked file inside the submodule changed. `CLAUDE.md` +58/−2. All 6
+checks green, pixel 0.000%/24, 151 tests, no lockfile change.
+**The reader test was met the right way.** Rather than a bare table row, the clause names the
+trap: *"`governance/docs/rules/testing-standards.md:77` mandates 80% line coverage… **That
+mandate does not apply to this repository.**"* A row saying "testing-standards.md is
+overridden" would not tell a cold reader *which* rule to disregard. Adopt that pattern for
+future overrides — **name the rule, not just the file.**
+**Worker correctly refused to silently merge the conductor's planning commit** and rebased
+instead, flagging that `a5b6104` was unmerged. Right call; the roadmap on `preview` had no
+R33–R36 rows until this ingest landed them.
+
 ### R34 — Deltas for the incoming files that conflict with our practice  (Medium)
 **The bump's real risk is not the 80% rule — that one is known. It is the three files that
 contradict settled practice quietly.** All verified against `origin/main`:
@@ -875,6 +890,81 @@ contradict settled practice quietly.** All verified against `origin/main`:
 it, with the reason. **Do not edit `governance/`.** Where we keep our practice, say so and
 why; where upstream is better, adopt it deliberately.
 
+**WIDENED to 5 by R33's ingest, 2026-08-10. Conductor answers to the questions R33 raised —
+these are decided, not open:**
+
+4. **Plan-approval gate — RECORD AS A DELTA, and it is a strong one, not a dodge.**
+   `governance/CLAUDE.md:131-135` requires presenting a plan and *"Wait for explicit approval
+   before writing ANY code — even single-line fixes"*, plus a second approval before creating
+   any file (`:143-148`). Verified. Our answer: **the emitted task prompt *is* the plan, and
+   the human pasting it into a worker session *is* the explicit approval.** That is not a
+   lighter reading — it is the gate performed earlier and in writing. The prompt states scope,
+   acceptance criteria, an explicit "Do not touch" list and the verification bar; a human reads
+   it and chooses to run it. The conductor playbook's rule that a turn never ends with only
+   discussion is the same requirement from the other side. **What we must NOT do is let a
+   worker infer that approval is implicit** — the delta should say the approval is real,
+   located at prompt-paste time, and that anything exceeding the prompt's stated scope still
+   needs a fresh one.
+5. **`release-and-deployment.md:116` — *"Never run `git push` before `gh pr create`"*.**
+   Record as **not adopted**, one line. Not executable for a new branch (`gh pr create` needs a
+   pushed head); scoped to promotion PRs it is merely unusual. No behaviour change.
+
+**Q4 from R33 (a sixth coverage site — `.github/skills/test-coverage.skill.md:103`) is NOT an
+R34 item.** It is upstream's blast-radius list being incomplete, which is feedback for
+**R20**, not a delta for us: nothing here loads `governance/.github/skills/`.
+
+### R38 — Upstream `governance/CLAUDE.md` denies our precedence clause is legal  (Medium)
+**Found by R33's worker; conductor-verified 2026-08-10.** The bump landed an *Override
+Hierarchy* block at `governance/CLAUDE.md:19-29`:
+```
+CLAUDE.md (this file)          ← Cannot be overridden
+  └── AGENTS.md
+       └── .claude/rules/      ← Project-local overrides (additive only)
+            └── docs/rules/
+                 └── .github/agents/
+```
+followed by *"No layer may contradict this file. If a conflict exists, this file wins."*
+So the file **every worker is told to read first** asserts that the precedence section R33
+just landed is not permitted. That is why this is **not** folded into R34: R34 records deltas
+against *rule files*; this is a contradiction at the governance **root**, about whether our
+override mechanism exists at all.
+**Conductor's reading, and the answer to work from:** the hierarchy describes layers *within*
+`governance/` and **does not contemplate a downstream project file at all** — every layer it
+names is upstream except `.claude/rules/`, which it neuters as "additive only". So this is a
+**gap**, not a head-on collision, and it is precisely the gap upstream **D3** was written to
+fill. D3 sides with us (*"the strict rule was not obeyed, it was routed around, and it
+produced less governance rather than more"*) but **is not implemented at `fddf95b`**.
+**We keep our clause.** R11's evidence stands, D3 endorses it, and reverting would re-expose
+us to the live 80% mandate.
+**Acceptance criteria (stub):** a short note *inside* root `CLAUDE.md`'s own precedence
+section — that is where the contradiction is visible — explaining why the clause does not
+violate the upstream hierarchy (it fills a gap the hierarchy omits; D3 ratifies it), with the
+`governance/CLAUDE.md:19-29` citation. Cheap, and it pre-empts a future worker deciding our
+clause is illegal and "fixing" it. **Close this when upstream ships D3**, and check whether
+upstream's own wording makes our note redundant.
+
+### R37 — The `exit-flush` vacuity guard can red any PR at random  (Medium)
+**Found by R33's worker on a gitlink-plus-markdown PR — it went red on the first CI run and
+green on a re-run of the same job against an unchanged tree.** Conductor-verified: the guard
+at `tests/fidelity/exit-flush.test.ts:185` asserts `runs.some(r => r.report < PAYLOAD)` over
+`SAMPLES` runs — i.e. **at least one of ten runs must reproduce a platform race.** R28
+measured a ~4-in-5 per-run loss rate on Linux, which puts an all-ten-deliver false green near
+`1e-7`. Hitting it on the first attempt means the real rate on the current runner
+(`ubuntu-24.04`, Node 24.15.0) is far below 0.8.
+**The test's own docblock is right and should be respected:** *"IF THIS GOES RED, do not
+'fix' it. It means the platform changed — re-measure and decide whether `write-sync.mjs`
+still earns its keep."* **Do not raise `SAMPLES` to make it pass** without re-measuring; that
+converts a real signal into noise suppression.
+**But there is a design question above the measurement, and it is the actual decision:** this
+is a **required check** (R25), so a platform-change signal costs a blocked PR and a re-run
+every time it fires. A test whose job is to detect that the environment stopped exhibiting a
+bug is valuable — as a *reported* signal, not a *gate*. Options: re-measure and raise
+`SAMPLES` if the rate is merely lower; move this one case out of the gating suite while
+keeping the fixed-path assertions gating; or retire the guard and keep its finding in the
+file header. **Decide deliberately; state which and why.**
+**Do not weaken the fixed-path tests** — "the report survives a pipe" is R28's actual
+deliverable and must keep gating.
+
 ### R35 — `full-stack.md` + `devops.md` agents  (Low)  ← T5, depends on R33
 **Context:** `.claude/agents/` holds exactly one agent, `qa.md` — and the cross-project audit
 names it **the best-shaped agent across all four projects**: real tool names, `model: opus`,
@@ -886,9 +976,17 @@ cleanly, because the boundary was written down.
 **Most prompts this session named `full-stack` or `devops` as the agent to load, and neither
 exists** — the worker got the label and no persona.
 **Acceptance criteria (stub):** `full-stack.md` and `devops.md` in `qa.md`'s shape, each with
-its own negative scope fence. **After R33** they can be based on the 244–332-line upstream
-personas rather than the 86-line versions at our pin. Keep them terse — the value is the
-fence, not the length.
+its own negative scope fence. Keep them terse — the value is the fence, not the length.
+**⚠️ Premise corrected by R33's worker, measured at `fddf95b`:** ~~base them on the expanded
+upstream personas~~ — the expansion is real (861→2,911 lines) but **H12/F12's shape changes
+are decided upstream and NOT implemented.** Measured across the 10 personas: **1 of 10** has
+an `## Out of scope` fence (`product-owner`), **0 of 10** carry `model:`, **0 of 10** have the
+*"The one thing to get right"* opener. The new `devops.agent.md` (220 lines) is a useful
+**content** source — CI/CD debugging protocol, environment-parity checklist, secret rotation —
+but its Project Context table is 10 placeholder rows and it has **no fence**.
+**So: take content from upstream, take the shape from our own `qa.md`.** That is the artifact
+the cross-project audit called the best-shaped agent of the four projects, and the fence is
+why R11 shipped rules-only and R12 shipped the runner without either bleeding into the other.
 
 ### R36 — Move `docs/testing-standards.md` to the mirrored path  (Low)  ← deferred from R33
 **Context (upstream D3/LD-04):** upstream prefers project overrides at the **mirrored path**
@@ -901,6 +999,18 @@ Our flat `docs/testing-standards.md` works but no gate can check it. Upstream co
 immediately re-breaks all of them for a benefit that only materializes once upstream ships
 the `verify-governance` gate. **Do this when upstream lands D3**, ideally in the same pass
 that adopts the gate.
+**⚠️ ALSO BLOCKED ON UPSTREAM BEING SELF-CONSISTENT — conductor-verified 2026-08-10.** As of
+`fddf95b`, `governance/CLAUDE.md` forbids **every available placement** of a project override:
+`:603` *"Never create documentation at `docs/` root"* (rules out our current
+`docs/testing-standards.md`), `:605` *"Never put project-specific rules in `docs/rules/` (use
+`.claude/rules/`)"* (rules out the mirrored path **LD-04 explicitly chose**), and the override
+hierarchy at `:23` makes `.claude/rules/` *"additive only"* — while D3's own reasoning rejects
+that directory as a rule surface because it is read by Claude Code and nothing else, making an
+override invisible to other tools and contradicting `AGENTS.md`.
+Upstream contradicts itself, and R36 would be moving a file **from one forbidden location to
+another**. **Do not act until upstream resolves `:605` against LD-04** — flag it via **R20**.
+Staying put is currently the least-wrong option, and it is the one R30's citations already
+point at.
 **Acceptance criteria (stub):** file moved, every citation updated (grep, don't guess), the
 §7 deltas table intact, no substance change.
 
