@@ -222,7 +222,8 @@ Last updated: 2026-08-10
 | R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
-| R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | in-progress | docs | Medium | R33 |
+| R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
+| R40 | **`governance/.claude/rules/` templates auto-load into every session here** | todo | docs | **Medium** | R33 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
@@ -914,6 +915,34 @@ these are decided, not open:**
 R34 item.** It is upstream's blast-radius list being incomplete, which is feedback for
 **R20**, not a delta for us: nothing here loads `governance/.github/skills/`.
 
+**Status: done (preview)** 2026-08-10 — PR #28, squash `ba8fea5`.
+`docs/delivery/governance-deltas.md`, 476 lines; `CLAUDE.md`'s overrides table gains 4 rows
+plus the three rules most likely to mislead a cold reader, cited by line (R33's convention).
+6/6 checks, pixel 0.000%, submodule untouched (`fddf95b`, inner status empty).
+**The placement was better-justified than my recommendation.** I proposed
+`docs/delivery/governance-deltas.md` as the least-bad of four boxed-in options. The worker
+found it is **affirmatively sanctioned**: `governance/CLAUDE.md:597-598` routes *"a decision
+that must not be re-litigated"* to `docs/delivery/`, and `:569` calls that directory *"Backlog
+SSOT and settled decisions."* Upstream endorses the location it forbids everywhere else.
+**Delta #5 confirmed NOT a conflict**, with a corroboration I had not found:
+`governance/CLAUDE.md:374` orders *"commit → verify → push → PR"* for ordinary PRs, so `:116`
+and `:374` are consistent **only if** `:116` is promotion-scoped — which its own heading
+(`:108 ## Promotion PR Workflow`) already says. Recorded as *applies, complied with*, kept out
+of the overrides table, and carrying forward **the mis-reading rather than the rule**: do not
+generalize `:116` to feature branches.
+
+**⚠️ TWO CONDUCTOR ERRORS, both corrected by the worker with measurements:**
+1. **"R13b and R30 both exceeded 400 lines"** — R13b did (PR #15 = **3,742**); **R30 did not**
+   (PR #21 = 296+64 = **360**, comfortably under). Verified at ingest via `gh pr view`.
+   Replaced with four measured examples that do exceed: #15 (3,742), #13 (768), #19 (624),
+   #14 (592). The claim was right in direction and wrong in its second instance — I reached
+   for a recent PR without measuring it.
+2. **"11 of 18 session notes are permanent"** — it is **13 of 17**. The 18th file is
+   `README.md`, the template, which I counted as a note. Verified at ingest: `ls | wc -l` = 18,
+   minus README = 17, `grep -l Permanent` = 13. The four unmarked ones (R1b/R1c/R1d/R10) are
+   superseded — and superseded *by a permanent note that says so* (`2026-07-31-R8.md:36`),
+   which strengthens the delta rather than weakening it.
+
 ### R38 — Upstream `governance/CLAUDE.md` denies our precedence clause is legal  (Medium)
 **Found by R33's worker; conductor-verified 2026-08-10.** The bump landed an *Override
 Hierarchy* block at `governance/CLAUDE.md:19-29`:
@@ -1020,6 +1049,33 @@ bullet asserted the loss is per-run non-deterministic and that the guard "sample
 Both halves are now measured false, and leaving a **binding** standard describing a mechanism
 that does not exist is exactly the failure R30 was created to fix. Dated correction in place,
 house style, nothing else touched. Right call.
+
+### R40 — `governance/.claude/rules/` templates auto-load into every session here  (Medium)
+**Found by R34's worker, 2026-08-10 — the most consequential thing the bump brought, and it
+was on nobody's list.** The bump added four files under `governance/.claude/rules/`. This repo
+has **no `.claude/rules/` of its own**, and the worker reports observing all four **in its own
+loaded context** during the session. If that holds generally, every session here is being
+handed placeholder rules as if they were configuration.
+Two concrete harms, both cited:
+- `governance/.claude/rules/02-non-negotiables.md:17` re-smuggles
+  `[e.g., "PRs must be under 400 lines of diff"]` — **the exact cap R34 §1.3 just recorded as
+  not adopted**, re-entering by a second door.
+- `governance/.claude/rules/01-project-context.md:8-9` asserts `[your-project-name]` /
+  `[framework]` + `[database]` + `[hosting]` — a **wrong stack** injected into a repo whose
+  root `CLAUDE.md` states the real one.
+This is the R7 hazard realized: *a placeholder file is worse than no file, because it reads as
+configured.* R7 predicted it for files we might create; nobody checked whether the submodule's
+own copies were already being loaded.
+**Verify the loading claim first — it is the whole basis of the item.** Confirm whether Claude
+Code discovers `.claude/rules/` inside a submodule, and whether that is version-dependent. If
+it does not load, this drops to Low and becomes R20 feedback only.
+**Acceptance criteria (stub):** placeholder rules from the submodule no longer reach a session
+here as if authoritative — either a project `.claude/rules/` that overrides them (which is
+**R7**, so consider merging), or excluding the submodule's from discovery. **Do not edit
+`governance/`.** Either way it is also **R20** feedback: upstream ships populated-*looking*
+templates at an auto-loaded path, which is a footgun for every consumer, not just us.
+**Interaction with R7:** R7 plans to write real `.claude/rules/` files. If they land first and
+shadow the submodule's, R40 may close itself — check before doing both.
 
 ### R39 — Scheduled "is the exit-flush race still live?" job  (Low)
 **Context (from R37, 2026-08-10):** the vacuity guard's *finding* is worth a standing signal —
