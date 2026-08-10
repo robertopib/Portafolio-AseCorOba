@@ -53,7 +53,7 @@ is blocked on upstream, not on us.
 | 3 | `.github/agents/testing-qa.agent.md` — coverage threshold | **Dropped** (persona re-import of an already-dropped rule) | [§3](#3-testing-qaagentmd--the-coverage-threshold-re-imported-by-the-persona) |
 | 4 | `CLAUDE.md:131-135`, `:142-148` — plan-approval gate | **Satisfied differently, not dropped** | [§4](#4-claudemd131-135--the-plan-approval-gate) |
 | 5 | `docs/rules/release-and-deployment.md:116` — no `git push` before `gh pr create` | **Not a delta — applies as written** | [§5](#5-release-and-deploymentmd116--push-before-pr-not-a-delta) |
-| — | Further conflicts found in the same bump, not on the R34 list | recorded, some deferred | [§6](#6-also-found-in-the-fddf95b-bump) |
+| — | Further conflicts found in the same bump, not on the R34 list | recorded; **§6.1 verified and fixed by R40**, rest deferred | [§6](#6-also-found-in-the-fddf95b-bump) |
 
 All five verified by reading the files at submodule commit `fddf95b` (bumped from
 `e85041e` by **R33**, 2026-08-10 — 14 commits, 45 files).
@@ -400,13 +400,42 @@ but unnecessary.
 Conflicts and hazards from the same 45-file bump that were **not** on the R34 list. Found
 while verifying the five above. Recorded so the next bump starts from a complete picture.
 
-### 6.1 Four upstream template files are being loaded into every Claude Code session ⚠️
+### 6.1 Four upstream template files load on the first read under `governance/` ⚠️
 
 The bump added `governance/.claude/rules/01-project-context.md`,
 `02-non-negotiables.md`, `03-environment.md` and `README.md` (all `A` at this bump).
-**This repo has no `.claude/rules/` of its own**, and these are being picked up as
-project-local rules in live sessions — verified by observing them in this session's
-loaded context.
+**This repo has no `.claude/rules/` of its own.**
+
+**Verified by experiment in R40 (2026-08-10), Claude Code `2.1.220`, macOS.** The
+original wording here — *"loaded into every Claude Code session"*, *"picked up as
+project-local rules"* — named the wrong mechanism and rested on the unfalsifiable
+*"observing them in this session's loaded context"*. Right conclusion, wrong reason. The
+measured behaviour:
+
+| # | Fresh session did | Four files injected? |
+|---|---|---|
+| A | Nothing — cold, no tool calls | **NO** |
+| B | Read tool on `governance/CLAUDE.md` | **YES** — all four |
+| C | Read tool on `governance/docs/rules/github-workflow.md` (three levels deep, not the rules dir) | **YES** — all four |
+| D | Read tool on `docs/delivery/roadmap.md` only, nothing under `governance/` | **NO** |
+| E | Read tool on `governance/CLAUDE.md`, with the exclusion below applied | **NO** |
+
+So they do **not** load at session start. They load **on demand, the moment any file
+anywhere under `governance/` is opened with the Read tool**, and they arrive as
+system-reminders that read as instructions. Because every task prompt in this repo opens
+with *"Read `governance/CLAUDE.md` first"*, **in practice that is every worker session.**
+
+**Two traps this experiment exposed — both matter more than the result:**
+
+1. **`/context` cannot detect this.** Its **Memory Files** table after a governance read
+   is byte-identical to a cold session's, while all four files are demonstrably in
+   context. It tabulates session-start memory only. R40's own prompt named `/context` as
+   *the* documented check; used alone it returns a **false negative** and would have
+   closed this as a non-issue.
+2. **Only the Read tool triggers the injection.** `cat`, `sed` and `git show` read the
+   same bytes and fire nothing. This is the whole explanation for the contradictory
+   evidence that made R40 a task: the reports came from different tools, and both were
+   accurate.
 
 They are **unfilled templates**, and they read as rules:
 
@@ -427,11 +456,37 @@ This is also **evidence for a claim root `CLAUDE.md` already makes**: `.claude/r
 the wrong surface for governance, because it is loaded by one tool, invisible to the
 others, and — as here — can inject content nobody chose. Worth sending upstream via
 **R20**: shipping populated-looking templates at an auto-loaded path is a footgun for
-every consumer, and they should be `.example` files or live outside `.claude/`.
+every consumer, and they should be `.example` files or live outside `.claude/`. R40
+**strengthens** that feedback rather than retiring it — the templates reach a consumer
+who never opted in, through a path no one configured.
 
-*Not fixed here — out of R34's scope, and the fix is a project decision (add our own
-`.claude/rules/`, or exclude the submodule's) rather than a delta. Suggested as a new
-backlog item.*
+**The fix, applied in R40.** One documented key, verified as row E above and again against
+the real settings files on both a shallow (`governance/CLAUDE.md`) and a deep
+(`governance/docs/rules/…`) read:
+
+```json
+"claudeMdExcludes": ["**/governance/.claude/rules/**"]
+```
+
+Scoped to `.claude/rules/` only — `governance/CLAUDE.md` and `governance/docs/rules/*`
+still read normally, which is required, since they are the files every prompt sends
+workers to.
+
+**Who is protected: this machine only.** The key is set in `.claude/settings.local.json`
+and in the user-level `~/.claude/settings.json`. **Both are machine-local** —
+`.gitignore:25-27` ignores *both* project settings files, by a deliberate **R37**
+decision. Every fresh clone, every other contributor and every CI checkout still loads
+all four on the first governance read. A shared fix needs a *committed* settings file,
+which would reverse R37. **Not reversed here** — raised as **R41** so it is decided
+deliberately rather than by side effect.
+
+**This is not fixed by R7, and R7 does not make it moot.** R40 tested the shadowing
+question directly on a throwaway fixture with a project `.claude/rules/` *and* a
+submodule one, each carrying a unique sentinel: **both loaded.** The project-level file
+loaded at session start, the submodule's still injected on the governance read. The
+mechanism is keyed to the directory of the file being read, not to a missing project
+rules dir, so a project `.claude/rules/` **adds** a load rather than replacing one. R7
+keeps its full value and R40 had to be fixed independently.
 
 ### 6.2 Path collision: upstream now ships its own `docs/delivery/`
 
@@ -473,4 +528,9 @@ When a future submodule bump lands:
    override; a non-conflict like §5 stays here.
 4. Re-verify existing entries still cite the right lines — line numbers move when upstream
    edits a file. A stale citation is an inherited-claim error waiting to happen.
+5. **If the bump adds or moves anything under a `.claude/` directory, re-run §6.1's test**
+   — the behaviour is version-dependent, and §6.1's answer is pinned to Claude Code
+   `2.1.220`. The test is: fresh session, **Read tool** on a file under `governance/`, then
+   ask what was auto-injected. **Not `/context`** (blind to on-demand loads) and **not
+   `cat`/`git show`** (they do not trigger it). Widen `claudeMdExcludes` if the path moved.
 5. **Never edit `governance/`.** Promotion upstream is **R20**.

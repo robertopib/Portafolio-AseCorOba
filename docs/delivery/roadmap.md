@@ -223,7 +223,8 @@ Last updated: 2026-08-10
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
-| R40 | `governance/.claude/rules/` templates may auto-load here — **verify first** | in-progress | docs | **Medium** | R33 |
+| R40 | `governance/.claude/rules/` templates — **premise confirmed**: they load on the first Read under `governance/`; excluded | done (preview) | docs | **Medium** | R33 |
+| R41 | Committed `.claude/settings.json` for `claudeMdExcludes` — R40's fix is machine-local; revisits R37's gitignore | todo | devops | Low | R40, R37 |
 | R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
@@ -1050,7 +1051,7 @@ Both halves are now measured false, and leaving a **binding** standard describin
 that does not exist is exactly the failure R30 was created to fix. Dated correction in place,
 house style, nothing else touched. Right call.
 
-### R40 — `governance/.claude/rules/` templates auto-load into every session here  (Medium)
+### R40 — `governance/.claude/rules/` templates load on the first Read under `governance/`  (Medium)
 **Found by R34's worker, 2026-08-10 — the most consequential thing the bump brought, and it
 was on nobody's list.** The bump added four files under `governance/.claude/rules/`. This repo
 has **no `.claude/rules/` of its own**, and the worker reports observing all four **in its own
@@ -1066,21 +1067,26 @@ Two concrete harms, both cited:
 This is the R7 hazard realized: *a placeholder file is worse than no file, because it reads as
 configured.* R7 predicted it for files we might create; nobody checked whether the submodule's
 own copies were already being loaded.
-**⚠️ VERIFY THE LOADING CLAIM FIRST — the conductor's own evidence contradicts it (2026-08-10).**
-Checked against the Claude Code memory documentation and against this session:
-- `.claude/rules/` is documented as a **project-level** path — `<cwd>/.claude/rules/`. Ours
+~~**⚠️ VERIFY THE LOADING CLAIM FIRST — the conductor's own evidence contradicts it
+(2026-08-10).**~~ **Resolved — see the verified block below. The worker was right, the
+conductor's contrary evidence was real but measured a different thing.** The challenge is kept
+because the *reason* the two disagreed is the durable finding:
+- ~~`.claude/rules/` is documented as a **project-level** path — `<cwd>/.claude/rules/`. Ours
   would be `./.claude/rules/`, which **does not exist**. `governance/.claude/rules/` sits in a
-  **subdirectory**, and CLAUDE.md discovery walks **up** the tree, not down.
+  **subdirectory**, and CLAUDE.md discovery walks **up** the tree, not down.~~ True of
+  *session-start* discovery, and irrelevant: the load is on demand, not at launch.
 - The docs do acknowledge *"rules in nested `.claude/rules/` directories"* as a real category,
   but describe them as loading **on demand** — when Claude reads files in that directory — not
-  at launch.
-- **Contrary evidence from this very session:** the conductor has read many files under
-  `governance/` (its `CLAUDE.md`, several `docs/rules/*`, the alignment docs) and
-  `governance/.claude/rules/` content has **never appeared as loaded instructions** — only as
-  explicit `git show` tool output. If on-demand nesting applied, it should have.
-So the premise is **plausible but unconfirmed, and version-dependent.** It is also not
-something that can be settled by grep: the documented check is **`/context`**, run in a live
-session, which lists what actually loaded.
+  at launch. **This was the correct reading**, and it is broader than it sounds: reading a file
+  anywhere under `governance/` is enough, not just inside the rules dir.
+- ~~**Contrary evidence from this very session:** … has **never appeared as loaded
+  instructions** — only as explicit `git show` tool output.~~ **`git show` is exactly why.**
+  Only the **Read tool** triggers the injection; `cat`, `sed` and `git show` read the same
+  bytes and fire nothing. The conductor's observation was accurate and its inference was not.
+- ~~the documented check is **`/context`**~~ — **`/context` cannot see this.** Its **Memory
+  Files** table after a governance read is byte-identical to a cold session's while all four
+  files sit in context. Following the prompt's own recommended method would have closed R40 on
+  a false negative.
 **If it IS real, the fix is documented and one line** — `claudeMdExcludes` in
 `.claude/settings.local.json`, which takes absolute-path globs:
 `{"claudeMdExcludes": ["**/governance/.claude/rules/**"]}`. Note `.claude/settings.json` is now
@@ -1094,8 +1100,85 @@ here as if authoritative — either a project `.claude/rules/` that overrides th
 **R7**, so consider merging), or excluding the submodule's from discovery. **Do not edit
 `governance/`.** Either way it is also **R20** feedback: upstream ships populated-*looking*
 templates at an auto-loaded path, which is a footgun for every consumer, not just us.
-**Interaction with R7:** R7 plans to write real `.claude/rules/` files. If they land first and
-shadow the submodule's, R40 may close itself — check before doing both.
+**Interaction with R7:** R7 plans to write real `.claude/rules/` files. ~~If they land first and
+shadow the submodule's, R40 may close itself — check before doing both.~~ **Tested: they do not
+shadow. R7 is unaffected and keeps its full value** — see below.
+
+**✅ VERIFIED AND FIXED 2026-08-10 — Claude Code `2.1.220`, macOS 25.5.0.**
+Five fresh headless sessions (`claude -p`, tools restricted to `Read`), cwd = repo root:
+
+| # | Session did | Four files injected? |
+|---|---|---|
+| A | Nothing — cold, no tool calls | **NO** |
+| B | Read tool on `governance/CLAUDE.md` | **YES** — all four |
+| C | Read tool on `governance/docs/rules/github-workflow.md` (deep, not the rules dir) | **YES** — all four |
+| D | Read tool on `docs/delivery/roadmap.md` only | **NO** |
+| E | B, with `claudeMdExcludes` applied | **NO** |
+
+**Verdict: the premise is TRUE.** Not at session start — **on demand, on the first Read of any
+file under `governance/`.** Since every task prompt here opens with *"Read
+`governance/CLAUDE.md` first"*, that is effectively every worker session, and R34's worker was
+reporting real behaviour.
+
+**Fix applied:** `"claudeMdExcludes": ["**/governance/.claude/rules/**"]` in
+`.claude/settings.local.json` **and** in user-level `~/.claude/settings.json`. Re-verified
+against the real files (not the `--settings` flag) on both a shallow and a deep governance
+read. The glob is scoped to the rules dir, so `governance/CLAUDE.md` and
+`governance/docs/rules/*` still read normally — confirmed, since every prompt depends on them.
+
+**Who is protected: this machine only.** `.gitignore:25-27` ignores **both** project settings
+files (R37). Every fresh clone, every other contributor and every CI checkout still loads all
+four. A shared fix needs a committed settings file, which would reverse R37 — **not reversed
+here; raised as R41.**
+
+**R7 shadowing, tested rather than reasoned:** a throwaway `/tmp` fixture with a project
+`.claude/rules/` *and* a submodule `governance/.claude/rules/`, each holding a unique sentinel.
+**Both loaded** — the project one at session start, the submodule one on the governance read.
+The mechanism keys off the directory of the file being read, not off a missing project rules
+dir, so a project `.claude/rules/` **adds** a load rather than replacing one.
+
+**Two methodological findings, recorded in `.claude/session-notes/2026-08-10-R40.md`
+(permanent) because they generalise past this item:** `/context` is blind to on-demand loads,
+and reading via `cat`/`sed`/`git show` bypasses instruction injection entirely. Any future
+"is X loaded?" check must use the **Read tool** or it measures nothing. **Full write-up:**
+`docs/delivery/governance-deltas.md` §6.1.
+
+**R20 feedback stands and is strengthened** — upstream ships populated-*looking* templates at a
+path that injects them into consumers who never opted in. They should be `.example` files or
+live outside `.claude/`.
+
+### R41 — R40's fix is machine-local; a shared one needs a committed settings file  (Low)
+**Context (from R40, 2026-08-10):** R40 stopped the four upstream template files from being
+injected, with `"claudeMdExcludes": ["**/governance/.claude/rules/**"]`. The key works, is
+verified, and is **invisible to everyone else** — it lives in `.claude/settings.local.json`
+and `~/.claude/settings.json`, and `.gitignore:25-27` ignores both project settings files. A
+fresh clone, a second contributor, or a CI checkout still loads all four placeholder rules on
+the first Read under `governance/`, including the 400-line PR cap §1.3 explicitly dropped.
+
+**The tension, stated so it is decided rather than drifted into.** R37 git-ignored
+`.claude/settings.json` for a good reason: it held **machine-local tool permissions**, which
+are per-operator and do not belong in the repo. `claudeMdExcludes` is the opposite kind of
+thing — it is **project configuration**, true for anyone who clones this repo, and it is only
+correct if it is shared. The R37 decision and this need are both right; they just want
+different files.
+
+**Options, none chosen — this needs the owner, not a worker:**
+1. Un-ignore `.claude/settings.json` and commit it holding **only** `claudeMdExcludes`, keeping
+   `settings.local.json` ignored for permissions. Narrowest reversal of R37, and it puts the
+   two kinds of setting in the two files the tool already distinguishes.
+2. Leave it machine-local and accept that only the owner is protected — defensible while the
+   owner is the sole contributor (root `CLAUDE.md` notes exactly that for reviewers), but it
+   silently expires the moment anyone else clones, and CI is already a second "contributor".
+3. Wait for **R20** to fix it upstream. Correct in principle, unbounded in time, and it does
+   nothing for the current submodule pin.
+
+**Acceptance criteria (stub):** a decision recorded with its reason; if option 1, a committed
+`.claude/settings.json` containing nothing but the exclusion, `.gitignore` narrowed to
+`settings.local.json` only, R37's note updated to say why the split exists, and the exclusion
+re-verified from a clean clone. **Do not silently reverse R37** — whatever is chosen, the
+reason goes in `docs/delivery/governance-deltas.md`.
+**Note:** the underlying behaviour is version-dependent (measured on Claude Code `2.1.220`).
+If this sits for a while, re-run §6.1's test before acting on it.
 
 ### R39 — Scheduled "is the exit-flush race still live?" job  (Low)
 **Context (from R37, 2026-08-10):** the vacuity guard's *finding* is worth a standing signal —
@@ -1929,6 +2012,12 @@ Write terse, real files instead. **All the content already exists**, scattered a
 **Note the upstream constraint (D3/LD-04):** `.claude/rules/` is read by Claude Code and
 nothing else, so it must carry project **context**, never a rule *override* — an override
 there would be invisible to other tools and would contradict `AGENTS.md`. **Additive only.**
+**R40 does not close R7, and R7 does not close R40 (tested 2026-08-10).** R40 measured the
+upstream templates actually loading, and tested the shadowing question on a fixture holding
+both a project and a submodule `.claude/rules/`: **both loaded.** So writing these files does
+**not** displace the submodule's — it adds a second load on top. Two consequences for R7:
+its value is undiminished (the placeholders were never going to be shadowed away), and it must
+not be scoped as "this also fixes R40" — R40 was fixed separately, by exclusion.
 **`guidelines/Guidelines.md` — verified: 61 lines of untouched Figma Make boilerplate**,
 literally *"**Add your own guidelines here**"* followed by commented-out examples. It is a
 second, contradictory governance root sitting beside a real one. **Delete it or fill it; do
