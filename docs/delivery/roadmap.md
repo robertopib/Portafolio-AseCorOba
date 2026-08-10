@@ -1083,6 +1083,15 @@ because the *reason* the two disagreed is the durable finding:
   instructions** — only as explicit `git show` tool output.~~ **`git show` is exactly why.**
   Only the **Read tool** triggers the injection; `cat`, `sed` and `git show` read the same
   bytes and fire nothing. The conductor's observation was accurate and its inference was not.
+  **Second, independent reason it was inapplicable — found at ingest.** The conductor *did* use
+  the Read tool on `governance/CLAUDE.md`, once: during the T1–T6 planning session. That was
+  **before R33 bumped the submodule**, when the pin was `e85041e` — which contains **no
+  `.claude/` directory at all** (`git -C governance ls-tree e85041e .claude/` → empty).
+  Injection was impossible. Every governance read *after* the bump used `sed`, `git show` or
+  `ls`. So the evidence was doubly inapplicable: wrong tool, and before the files existed.
+  **The lesson is not "the conductor was careless" — it is that "I looked and saw nothing" is
+  only evidence if you can state what would have made it visible.** Neither condition was
+  checked before the observation was offered as a counter-argument.
 - ~~the documented check is **`/context`**~~ — **`/context` cannot see this.** Its **Memory
   Files** table after a governance read is byte-identical to a cold session's while all four
   files sit in context. Following the prompt's own recommended method would have closed R40 on
