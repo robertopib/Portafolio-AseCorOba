@@ -21,3 +21,7 @@ screenshots
 # TS incremental build cache
 cms/tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# Claude Code local tool permissions — machine-local, not project config (R37)
+.claude/settings.json
+.claude/settings.local.json
