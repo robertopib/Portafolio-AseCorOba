@@ -210,7 +210,8 @@ Last updated: 2026-08-10
 | R27 | ↳ absorbed into R30 — RELEASE.md staleness | done (via R30) | docs | Low | — |
 | R32 | `export-content.ts` header mis-describes why `FIDELITY_GATE=0` exists | todo | docs/chore | Low | R30 |
 | R28 | Gate can lose its whole report when output is piped (`console.*` then `process.exit`) | done (preview) | full-stack | Medium | R13a |
-| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) — **fold in R32** | todo | full-stack | Low | R28 |
+| R31 | Same `console.*`-then-`exit` pattern in 3 more CMS scripts (`seed`, `backfill-thumbnails`, `reset-media-list-prefs`) — **fold in R32** | todo | full-stack | Low→**Medium** | R28 |
+| R39 | Scheduled non-required "is the exit-flush race still live?" job (multi-host sampling) | todo | devops/qa | Low | R37, R25 |
 | R29 | `POST /api/publish` handler unit test (§2 item 3) — closes risk 3 | done (preview) | qa/devops | Low | R12 |
 | R30 | Docs tell the truth: `docs/testing-standards.md` ×10 + RELEASE.md (absorbed R27) | done (preview) | qa/docs | Low | R29, R28 |
 | R18 | No error boundary in `src/` — one missing CMS field blanks the whole page | todo | full-stack | Medium | — |
@@ -222,7 +223,7 @@ Last updated: 2026-08-10
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the **5** incoming upstream files that conflict with our practice | todo | docs | Medium | R33 |
-| R37 | **`exit-flush` vacuity guard is a required check that can red any PR at random** | todo | qa | **Medium** | R28 |
+| R37 | `exit-flush` vacuity guard no longer gates — samples aren't independent | done (preview) | qa | Medium | R28 |
 | R38 | Upstream `governance/CLAUDE.md` override hierarchy denies our precedence clause is legal | todo | docs | Medium | R33 |
 | R35 | `.claude/agents/full-stack.md` + `devops.md` in `qa.md`'s shape (T5) | todo | docs | Low | R33 |
 | R36 | Move `docs/testing-standards.md` → `docs/rules/` mirrored path (upstream D3/LD-04) | todo | docs | Low | R33, upstream D3 landing |
@@ -964,6 +965,76 @@ keeping the fixed-path assertions gating; or retire the guard and keep its findi
 file header. **Decide deliberately; state which and why.**
 **Do not weaken the fixed-path tests** — "the report survives a pipe" is R28's actual
 deliverable and must keep gating.
+**The blast radius is exactly one test — conductor-verified 2026-08-10.** Of the 6 `it()`
+blocks in the file, only **`:180`** asserts the *unfixed* shape (`runs.some(r => r.report <
+PAYLOAD)`, `SAMPLES = 10`, `PAYLOAD = 200_000`). The four fixed-path tests (`:108`, `:122`,
+`:132`, `:141`) assert the **fix works** and are deterministic on both platforms per the
+file's own measurements; `:251` is a source-text mirror check. So the flaky surface is one
+assertion and the surgery is small — **do not restructure the suite.**
+~~**The rate that made this safe:** 4/5 runs lost bytes, so at p=0.8 over 10 samples a false
+green is ~`1e-7`, and observing one means p has dropped a long way.~~ **← BOTH PREMISES ABOVE
+ARE MEASURED FALSE. Conductor error; see the status block.** *"That measurement is the
+deliverable, not a green suite"* was the one part that held, and it is what produced the fix.
+
+**Status: done (preview)** 2026-08-10 — PR #25, squash `1e3e85d` (+ follow-up PR #26,
+`5775150`). Guard is now `it.skipIf(env.CI)` at `:269`; the four fixed-path tests are
+byte-identical and still gate; `SAMPLES` unchanged at 10. Three consecutive green CI runs
+(33/32/26 s, vitest ~3.9 s — well inside the §6 60 s budget). 6/6 checks, pixel 0.000%/24.
+
+**⚠️ CONDUCTOR ERROR — I reasoned from an unexamined model, and it inverted the conclusion.**
+I wrote that a first-attempt false green "means the real rate has dropped a long way". The
+arithmetic (`0.2^10 ≈ 1e-7`) was correct; **the model was not.** `0.2^10` assumes the ten
+samples are **independent Bernoulli trials**. They are not.
+**Measured: 2,698 of 2,700 runs across 33 job executions still lose bytes — p = 0.9993.** The
+bug did not weaken at all; if anything R28's 5-run table *understated* it. The flakiness comes
+from the samples sharing a job: **the mode is drawn per CI job, not per run.** It is a race
+between the child's single `try_write` and the parent's reader, so on a host already draining
+the pipe, nothing ever queues — and then all ten runs deliver in full. 33 of 33 measured jobs
+sat at p ≈ 1; **none straddled.** Ten consecutive full deliveries would be a ~5e-32 event under
+independence, and it happened in **1 of 13** `tests` job executions.
+**The decisive consequence: raising `SAMPLES` could never have worked.** On a loss-mode job the
+guard is green at `SAMPLES=1`; on a no-loss job it is red at `SAMPLES=1000`. Ten samples and a
+thousand have the *same* false-red rate — the observed ~1-in-13. My prompt told the worker not
+to raise `SAMPLES` without measuring, which was right for the wrong reason: it is not merely
+unjustified, it is **provably ineffective**.
+**Lesson, and it is a new failure mode for this project's list.** The earlier four errors were
+*citing a document instead of the code*. This one is **citing a model instead of the
+mechanism** — I applied i.i.d. Bernoulli to a process whose whole subject matter is a
+scheduling race, without asking whether the trials could be correlated. **Before reasoning
+probabilistically about a flaky test, establish what the unit of randomness actually is.**
+
+**Decision shipped: option 2, `skipIf(env.CI)`** — keep the assertion, drop the gate. Rejected,
+each recorded in the file: *raise `SAMPLES`* (measured ineffective); *delete it* (the vacuity
+risk is real — on a no-loss host the four fixed-path tests **pass vacuously**, so ~1 job in 13
+they prove nothing, and noticing exactly that is the guard's purpose); *its own non-required
+job* (needs a workflow change **and** a required-checks decision — correctly deferred to R25).
+`skipIf(env.CI)` beats a local-only opt-in flag on **discoverability**: it runs on every plain
+`pnpm test` on a developer machine, so it cannot rot unnoticed — and **macOS is where it is
+deterministic** (100/100 lost bytes) rather than a per-job coin flip. Good reasoning; the
+weakest option would have been the one that made CI green fastest.
+**Mechanism worth keeping:** the child's fd 2 is a **`socketpair`, not a FIFO** (measured
+`isFIFO=false isSocket=true` on all 20 hosts), sized by `net.core.wmem_default` = 212,992 —
+which is why Linux plateaus at 146,176 while macOS truncates at a clean 65,536.
+**Scope note, accepted:** the worker also corrected `docs/testing-standards.md` §8, whose R28
+bullet asserted the loss is per-run non-deterministic and that the guard "samples ~10 runs".
+Both halves are now measured false, and leaving a **binding** standard describing a mechanism
+that does not exist is exactly the failure R30 was created to fix. Dated correction in place,
+house style, nothing else touched. Right call.
+
+### R39 — Scheduled "is the exit-flush race still live?" job  (Low)
+**Context (from R37, 2026-08-10):** the vacuity guard's *finding* is worth a standing signal —
+if the platform ever stops truncating, `write-sync.mjs`'s justification changes and the four
+fixed-path tests start passing vacuously. But **a per-PR check structurally cannot deliver
+that signal**: it gets exactly one host draw, and R37 measured that the loss mode is drawn
+**per job**, so a single job's result is a coin flip on host state rather than a measurement.
+**Right shape:** a scheduled (cron) job sampling across several hosts and reporting the
+aggregate rate — many job executions, not many runs inside one.
+**⚠️ To mean anything it needs a required-checks decision, which is R25's territory and needs
+a real rejected-push verification** (R2's precedent: an apply returned success and protected
+nothing). R37 correctly recommended rather than acted.
+**Acceptance criteria (stub):** a non-required scheduled job reporting the aggregate loss rate
+across ≥10 job executions; a stated threshold at which a human should revisit
+`write-sync.mjs`; no change to the required-checks list without going through R25.
 
 ### R35 — `full-stack.md` + `devops.md` agents  (Low)  ← T5, depends on R33
 **Context:** `.claude/agents/` holds exactly one agent, `qa.md` — and the cross-project audit
@@ -1292,6 +1363,12 @@ after `console.*`, the exact shape R28 fixed. They were outside R28's named site
 correctly left alone. **`seed.ts` is the one that prints enough to matter.**
 **Now a one-line import each** — `cms/src/scripts/write-sync.ts` already exists and is mirrored,
 tested and documented. Cheap.
+**Premise sharpened by R37 (2026-08-10) — risk raised Low → Medium.** The exposure is not the
+~0.8 per-run rate R28 recorded; it is **p ≈ 0.9993 per job on Linux** (2,698 of 2,700 measured
+runs lose bytes). So these three scripts do not *occasionally* lose their output when piped —
+they lose it **essentially always**. `seed.ts` is the one that prints enough to matter, and it
+is the script most likely to be run with output redirected to a log. The fix is more clearly
+justified than the original entry implied.
 **Note the R28 lesson when scoping:** the bug is `console.*` before **any** `process.exit`,
 including `exit(0)` — not just before a failing one.
 **Acceptance criteria (stub):** each script's output survives a pipe at >64 KiB; exit codes
