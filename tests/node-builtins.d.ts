@@ -50,6 +50,12 @@ declare module 'node:child_process' {
 declare module 'node:process' {
   /** Absolute path to the node binary running this process. */
   export const execPath: string
+  /**
+   * Only `CI` is ever read, by exit-flush.test.ts's vacuity guard (R37). Imported
+   * rather than reached through a global for the reason in the header: a
+   * `declare const process` would leak Node's globals into every file in src/**.
+   */
+  export const env: Record<string, string | undefined>
 }
 
 declare module 'node:url' {
