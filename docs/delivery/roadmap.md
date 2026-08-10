@@ -219,7 +219,9 @@ Last updated: 2026-08-10
 | R20 | Promote R11's testing deltas upstream into the governance submodule | todo | docs | Low | R11 |
 | R21 | Media picker unusable — "elegir existente" can't select (R10 regression) | done (PROD) | full-stack | High | R10 |
 | R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
-| R23 | **Content model: "Proyecto" conflates project + photo + placement — CMS-only regroup (Option A)** | todo | full-stack | **High** | R12, R13 |
+| R23 | Content model: "Proyecto" conflates project + photo + placement (**split → R23a/R23b**) | split | full-stack | **High** | R12, R13 |
+| R23a | ↳ **Design the target model + owner-reviewable backfill mapping** (no schema change) | in-progress | full-stack | **High** | R13 |
+| R23b | ↳ Implement Option A: parent entity, migration, backfill, exporters flatten byte-identical | todo | full-stack | **High** | R23a |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
@@ -1523,9 +1525,42 @@ n/a, no schema.
 **Do first:** ship R21. This item is polish on top and must not delay the prod fix.
 
 ### R23 — Content model: a Proyecto is not a project (CMS-only regroup, Option A)  (High)
+**⚠️ SPLIT 2026-08-10 into R23a + R23b.** Option A is a **schema change with a backfill over
+live production data**, and the analysis itself says the grouping *"needs a one-off mapping the
+owner should eyeball"*. That is a human decision gate, not something a worker should infer
+mid-migration — "Set Regalo Vinte-Vinte - Vista 1…7" becoming one project is obvious;
+"Crackers D'Argent" becoming a one-image project is a content judgement only the owner can
+make. **R23a produces the design and that mapping for review; R23b executes it.** Getting it
+wrong means reversing a migration on prod.
+
+**Conductor re-verification, 2026-08-10 — the analysis is six days old and every claim holds.**
+Measured independently from **committed content** (the analysis measured live `cms-preview`;
+the two agree exactly):
+- `content/sections/photography.json`: **`page.projects` = 12, `home.projects` = 6, all 6 home
+  images also in page → 18 rows for 12 distinct images.** Defect (b) confirmed to the number.
+- The Vinte-Vinte grouping is visible in committed `alt` text — `"Set Regalo Vinte-Vinte -
+  Vista 1"` … `"Vista 7"`, seven rows bound only by a typed prefix. Defect (a) confirmed.
+- **57 image rows across all committed sections** (branding 25, photography 18, marketing 8,
+  web-apps 6), matching the analysis's "58 Proyectos" — the 58th is the case study, which has
+  no image row.
+- `placement` options `home` / `page` / `both` confirmed at `cms/src/collections/Projects.ts`
+  (~`:66-78`).
+**⚠️ Two corrections to the analysis's citations:**
+1. **`export-content.ts:753` is stale.** R13a split that file: it is now a **128-line CLI**,
+   and the reconstruction lives in **`cms/src/scripts/export-emit.ts` (1,172 lines)**, where
+   `group` is read around `:287-308`. Any prompt citing the old line sends a worker to the
+   wrong file.
+2. **The output shape is NOT uniform, which the analysis understates.** Photography, marketing
+   and web-apps emit `projects[]` of `{image, alt, category}`. **Branding emits four
+   differently-named arrays** — `sportsProjects` (5), `adrianaMunozProjects` (6),
+   `anaGraceProjects` (4), `logoProjects` (5) — whose items are `{id, src, alt, category}`,
+   plus `home.images[]` of `{src, alt}`. So "flatten back to byte-identical JSON" means
+   reproducing **three different shapes**, not one. This is the single largest hidden cost in
+   Option A and it must be scoped before any schema is designed.
+
 **Raised by the owner 2026-08-04 while verifying R21.** Full analysis, with live-data
 evidence and two costed options: **`docs/delivery/analysis-projects-vs-photos.md`** (142
-lines — read it before writing the task prompt; it is the spec).
+lines — read it; it is the spec, subject to the two corrections above).
 **The problem:** one `Projects` row encodes **three unrelated concerns** — which asset,
 which project it belongs to, and where it appears. A portfolio's unit of work is a project
 containing many images; here the unit is a single image card, so a real project cannot be
