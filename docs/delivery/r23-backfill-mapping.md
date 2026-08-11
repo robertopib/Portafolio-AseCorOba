@@ -176,11 +176,11 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 
 | # | id | Archivo | Texto de la fila | Grupo | Dónde | **CLIENTE** |
 |---|---|---|---|---|---|---|
-| **B1** | 9 | `phibrows-course.png` | Curso Phibrows - Material Promocional | `adrianaMunoz` | página | |
-| **B2** | 12 | `phibrows-before-after.png` | Curso Phibrows - Antes y Después | `adrianaMunoz` | página | |
-| **B3** | 14 | `live-microblading.png` | Live con Ana Oprea - Técnica Microblading | `adrianaMunoz` | página | |
-| **B4** | 15 | `live-phibrows-shading.png` | Live con Stefany Galeano - Phibrows Shading | `adrianaMunoz` | página | |
-| **B5** | 16 | `snaga-relay.png` | SNAGA Team Relay 9th Anniversary | `sports` | página | |
+| **B1** | 9 | `phibrows-course.png` | Curso Phibrows - Material Promocional | `adrianaMunoz` | página | **Adriana Muñoz** |
+| **B2** | 12 | `phibrows-before-after.png` | Curso Phibrows - Antes y Después | `adrianaMunoz` | página | **Adriana Muñoz** |
+| **B3** | 14 | `live-microblading.png` | Live con Ana Oprea - Técnica Microblading | `adrianaMunoz` | página | **Adriana Muñoz** |
+| **B4** | 15 | `live-phibrows-shading.png` | Live con Stefany Galeano - Phibrows Shading | `adrianaMunoz` | página | **Adriana Muñoz** |
+| **B5** | 16 | `snaga-relay.png` | SNAGA Team Relay 9th Anniversary | `sports` | página | **Crossfit SNAGA** |
 
 > **Por qué están en blanco.** B1/B2: «Phibrows» es la **técnica** de la que trata el curso, no
 > quien lo encarga. B3/B4: Ana Oprea y Stefany Galeano son las **invitadas** del directo
@@ -212,16 +212,16 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 
 | # | Archivo | Texto de la fila | Dónde | **CLIENTE** |
 |---|---|---|---|---|
-| **B6** | `croissant.png` | Croissant Artesanal | ambas | |
-| **B7** | `croissant-packaging.png` | Croissant Premium | ambas | |
-| **B8** | `gift-box-1.png` | Caja de Regalo Navideña | ambas | |
-| **B9** | `gift-box-vinte-1.png` | Set Regalo Vinte-Vinte - Vista 1 | página | |
-| **B10** | `gift-box-vinte-2.png` | Set Regalo Vinte-Vinte - Vista 2 | página | |
-| **B11** | `gift-box-vinte-3.png` | Set Regalo Vinte-Vinte - Vista 3 | página | |
-| **B12** | `gift-box-vinte.png` | Set Regalo Vinte-Vinte - Vista 4 | **ambas** | |
-| **B13** | `gift-box-vinte-4.png` | Set Regalo Vinte-Vinte - Vista 5 | página | |
-| **B14** | `gift-box-vinte-5.png` | Set Regalo Vinte-Vinte - Vista 6 | página | |
-| **B15** | `gift-box-vinte-6.png` | Set Regalo Vinte-Vinte - Vista 7 | página | |
+| **B6** | `croissant.png` | Croissant Artesanal | ambas | **D'Argent** |
+| **B7** | `croissant-packaging.png` | Croissant Premium | ambas | **D'Argent** |
+| **B8** | `gift-box-1.png` | Caja de Regalo Navideña | ambas | **Todo en caja** |
+| **B9** | `gift-box-vinte-1.png` | Set Regalo Vinte-Vinte - Vista 1 | página | **Todo en caja** |
+| **B10** | `gift-box-vinte-2.png` | Set Regalo Vinte-Vinte - Vista 2 | página | **Todo en caja** |
+| **B11** | `gift-box-vinte-3.png` | Set Regalo Vinte-Vinte - Vista 3 | página | **Todo en caja** |
+| **B12** | `gift-box-vinte.png` | Set Regalo Vinte-Vinte - Vista 4 | **ambas** | **Todo en caja** |
+| **B13** | `gift-box-vinte-4.png` | Set Regalo Vinte-Vinte - Vista 5 | página | **Todo en caja** |
+| **B14** | `gift-box-vinte-5.png` | Set Regalo Vinte-Vinte - Vista 6 | página | **Todo en caja** |
+| **B15** | `gift-box-vinte-6.png` | Set Regalo Vinte-Vinte - Vista 7 | página | **Todo en caja** |
 
 > **B6/B7:** tú dijiste que estos dos son de D'Argent aunque el texto no lo diga. No lo he
 > rellenado porque **la única prueba es tu palabra, no el texto** — y ese es el punto de esta
@@ -250,8 +250,8 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 
 | # | Archivo | Texto de la fila | Dónde | **CLIENTE** |
 |---|---|---|---|---|
-| **B16** | `concert-banner.png` | Banner de Evento - Concierto | ambas | |
-| **B17** | `fisioterapia-cards.png` | Tarjetas de Presentación - Fisioterapia | ambas | |
+| **B16** | `concert-banner.png` | Banner de Evento - Concierto | ambas | **—** |
+| **B17** | `fisioterapia-cards.png` | Tarjetas de Presentación - Fisioterapia | ambas | **—** |
 
 > **B16:** «Concierto» es el tipo de evento, no quien lo encarga.
 > **B17:** «Fisioterapia» es la disciplina. ⚠️ **Podría ser FisioEquina**, que ya es cliente en
@@ -277,7 +277,7 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 
 | # | Archivo | Texto de la fila | Dónde | **CLIENTE** |
 |---|---|---|---|---|
-| **B18** | `live-betting.png` | Live Betting App - UI/UX Mobile | ambas | |
+| **B18** | `live-betting.png` | Live Betting App - UI/UX Mobile | ambas | **—** |
 
 > El texto describe el **producto** («app de apuestas en directo»), no quién lo encargó.
 
