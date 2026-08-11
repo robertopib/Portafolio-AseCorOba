@@ -32,6 +32,15 @@
  * emitters (R17 — it predates studioLabelVisible/roleLabelVisible), and reading a
  * pre-existing staleness as induced divergence is exactly the trap the roadmap
  * warns about. Committed content is R13a's gate's business, not this test's.
+ *
+ * ONE SEMANTICS BLOCK LIVES HERE TOO (R46, at the bottom). Everything above
+ * compares the twins to EACH OTHER and is deliberately blind to what they emit —
+ * two emitters that share a bug agree perfectly, which is precisely how R46's
+ * `placement: 'both'` bug survived: both twins dropped the row, byte-identically,
+ * and this file stayed green. So the placement assertions run over BOTH twins'
+ * output, asserting a value rather than an agreement. They belong here because
+ * `beforeAll` has already driven both reconstructions over the fixture — a
+ * separate file would re-run them for nothing (standard §6: ≤ 60 s).
  */
 import { beforeAll, describe, expect, it } from 'vitest'
 import { main as restMain } from '../../scripts/fetch-content.mjs'
@@ -216,3 +225,100 @@ describe('the comparison itself', () => {
     expect(problems[0]).toContain('content/site.json — emitted by the REST twin only')
   })
 })
+
+// ---------------------------------------------------------------------------
+// R46 — what `placement: 'both'` MEANS. See the header note: the equivalence
+// assertions above cannot see this, because both twins were wrong in the same
+// way. Every assertion runs against both twins, so a fix applied to one side
+// only fails here as well as in the byte comparison.
+// ---------------------------------------------------------------------------
+
+/**
+ * Emitted image paths for the fixture rows these assertions turn on. The two
+ * `both` rows own their media outright (cms-state.ts media 8 and 9), so finding
+ * one of these paths in an array proves WHICH row put it there. Asserting on a
+ * shared image instead is how the first draft of the CategoryGallery test below
+ * passed with the bug still in place.
+ */
+const BOTH_WEBAPPS = '/images/theta.png' // projects#113 — placement 'both', web-apps, ungrouped
+const HOME_ONLY_WEBAPPS = ['/images/alpha.png', '/images/beta.jpg'] // #110, #111
+const PAGE_ONLY_WEBAPPS = '/images/gamma.webp' // #112
+const GROUPED_BOTH_BRANDING = '/images/iota.png' // projects#107 — 'both' AND group 'logos'
+
+/** Read lazily: `rest`/`local` are only populated in `beforeAll`. */
+const twins: Record<string, () => Record<string, string>> = {
+  REST: () => rest,
+  'Local API': () => local,
+}
+
+for (const [twinName, output] of Object.entries(twins)) {
+  describe(`placement 'both' means both — ${twinName} twin (R46)`, () => {
+    const webApps = () => JSON.parse(output()['sections/web-apps.json'])
+    const branding = () => JSON.parse(output()['sections/branding.json'])
+
+    // Regression: `projByKey` filtered on exact equality (`p.placement ===
+    // placement`), so a row saved as 'both' — the admin's "Ambas" — matched
+    // neither 'home' nor 'page' and was emitted into NEITHER array, while
+    // categories.json (`page || both`) still listed it. Live in production:
+    // projects#581 / 1.jpg was invisible on the photography page and its home
+    // preview, both of which read sections/photography.json.
+    it("emits a 'both' row into the home array AND the page array", () => {
+      const { home, page } = webApps()
+      expect(home.projects.map((p: any) => p.image)).toContain(BOTH_WEBAPPS)
+      expect(page.projects.map((p: any) => p.image)).toContain(BOTH_WEBAPPS)
+    })
+
+    // Regression: the already-correct filter must not be broken while fixing
+    // the other two. categories.json is the one place `both` has always worked.
+    it("keeps the 'both' row in categories.json", () => {
+      const cat = JSON.parse(output()['categories.json']).categories.find(
+        (c: any) => c.slug === 'web-apps',
+      )
+      expect(cat.projects.map((p: any) => p.image)).toContain(BOTH_WEBAPPS)
+    })
+
+    // Regression: the cheapest wrong fix is to widen both filters until every
+    // row matches every placement. That would pass the assertion above and
+    // silently duplicate the entire catalogue onto the home page. These two
+    // tests are the reason the fix has to be a disjunct on 'both' specifically.
+    it("leaves 'home'-only rows out of the page array", () => {
+      const { home, page } = webApps()
+      const homeImages = home.projects.map((p: any) => p.image)
+      const pageImages = page.projects.map((p: any) => p.image)
+      for (const img of HOME_ONLY_WEBAPPS) {
+        expect(homeImages).toContain(img)
+        expect(pageImages).not.toContain(img)
+      }
+    })
+
+    it("leaves 'page'-only rows out of the home array", () => {
+      const { home, page } = webApps()
+      expect(page.projects.map((p: any) => p.image)).toContain(PAGE_ONLY_WEBAPPS)
+      expect(home.projects.map((p: any) => p.image)).not.toContain(PAGE_ONLY_WEBAPPS)
+    })
+
+    // Regression: `projByKey`'s group clause is `group ? p.group === group :
+    // !p.group`, and widening the PLACEMENT test must not leak into it. A
+    // grouped 'both' row belongs to its branding page slot; branding's
+    // `home.images` is the ungrouped list and must not acquire it.
+    it("respects the group clause for a grouped 'both' row", () => {
+      const { home, page } = branding()
+      expect(page.logoProjects.map((p: any) => p.src)).toContain(GROUPED_BOTH_BRANDING)
+      expect(home.images.map((i: any) => i.src)).not.toContain(GROUPED_BOTH_BRANDING)
+    })
+
+    // Regression: `resolveGalleryCards` — the second, independent filter, one
+    // per twin (the roadmap recorded it as existing only on the Local side) —
+    // carried the same exact-equality test, so a 'both' row also vanished from
+    // every CategoryGallery block on a Página.
+    it("resolves a 'both' row into a CategoryGallery block", () => {
+      const cards = JSON.parse(output()['pages.json'])
+        .pages.flatMap((p: any) => p.blocks)
+        .filter((b: any) => b.blockType === 'categoryGallery')
+        .flatMap((b: any) => b.content.projects ?? [])
+      // Vacuity floor: an empty card set would satisfy nothing below.
+      expect(cards.length).toBeGreaterThan(0)
+      expect(cards.map((c: any) => c.src)).toContain(BOTH_WEBAPPS)
+    })
+  })
+}

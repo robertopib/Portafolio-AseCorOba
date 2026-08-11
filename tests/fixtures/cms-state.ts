@@ -20,9 +20,9 @@
  *   - Localized values present, empty-string, and missing entirely (`loc()`'s
  *     `?? ''` fallback, and the `v.es || v.en` guards that decide whether a key
  *     is emitted at all).
- *   - Proyectos at every `placement` — `home`, `page`, and `both` (only
- *     categories.json reads `both`) — grouped and ungrouped, with and without
- *     `title` / `size` / `group`.
+ *   - Proyectos at every `placement` — `home`, `page`, and `both` (which since
+ *     R46 lands in the home array AND the page array, and in categories.json)
+ *     — grouped and ungrouped, with and without `title` / `size` / `group`.
  *   - A `categoryGallery` per layoutVariant that matters: `branding:sports` and
  *     `branding:beauty` (which concatenates two groups), `branding:logos`, and a
  *     `:home` variant, which is the only path that resolves `intro` from the
@@ -54,6 +54,15 @@ const media = [
   { id: 5, filename: 'epsilon.jpg', url: '/api/media/file/epsilon.jpg' },
   { id: 6, filename: 'zeta.png', url: '/api/media/file/zeta.png' },
   { id: 7, filename: 'eta.png', url: '/api/media/file/eta.png' },
+  // R46: 8 and 9 are used by EXACTLY ONE project each — the two `placement:
+  // 'both'` rows. Every other media id above is shared by several rows, so an
+  // assertion naming one cannot tell which row produced it. That is not
+  // hypothetical: R46's first draft asserted on `delta.png`, which the branding
+  // `sports` row also emits, and the CategoryGallery assertion passed with the
+  // bug still in place. A dedicated file makes "this image appeared here" mean
+  // "the `both` row reached here".
+  { id: 8, filename: 'theta.png', url: '/api/media/file/theta.png' },
+  { id: 9, filename: 'iota.png', url: '/api/media/file/iota.png' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -341,15 +350,25 @@ const projects = [
   { id: 104, category: 10, type: 'image', placement: 'page', group: 'adrianaMunoz', order: 1, image: 5, alt: L('Adriana 1', 'Adriana 1'), categoryLabel: L('Belleza', 'Beauty') },
   { id: 105, category: 10, type: 'image', placement: 'page', group: 'anaGrace', order: 1, image: 6, alt: L('Ana Grace 1', 'Ana Grace 1'), categoryLabel: L('Belleza', 'Beauty') },
   { id: 106, category: 10, type: 'image', placement: 'page', group: 'logos', order: 1, image: 7, alt: L('Logo 1', 'Logo 1'), categoryLabel: L('Logos', 'Logos'), title: L('Logo uno', 'Logo one') },
+  // R46: a `both` row that ALSO has a group. `both` widens the placement test
+  // only — the group clause (`group ? p.group === group : !p.group`) is
+  // untouched, so this belongs to the logos page slot and must stay OUT of
+  // branding's ungrouped `home.images`. Pins the fix against being widened
+  // into "match everything".
+  { id: 107, category: 10, type: 'image', placement: 'both', group: 'logos', order: 2, image: 9, alt: L('Logo 2', 'Logo 2'), categoryLabel: L('Logos', 'Logos') },
 
   // -- web-apps: home + page, one with a title (the `title.es || title.en` arm)
   { id: 110, category: 11, type: 'image', placement: 'home', order: 1, image: 1, title: L('App A', 'App A'), alt: L('App A', 'App A'), categoryLabel: L('Web', 'Web') },
   { id: 111, category: 11, type: 'image', placement: 'home', order: 2, image: 2, title: L('', ''), alt: L('App B', 'App B'), categoryLabel: L('Web', 'Web') },
   { id: 112, category: 11, type: 'image', placement: 'page', order: 1, image: 3, alt: L('Web 1', 'Web 1'), categoryLabel: L('Web', 'Web') },
-  // placement 'both': ONLY categories.json reads it (`page` OR `both`), so the
-  // sections/web-apps.json page list must NOT contain it. A twin that widened
-  // one filter and not the other diverges here.
-  { id: 113, category: 11, type: 'image', placement: 'both', order: 3, image: 4, alt: L('Web 2', 'Web 2'), categoryLabel: L('Web', 'Web') },
+  // placement 'both'. Until R46 this comment read "ONLY categories.json reads
+  // it … the sections/web-apps.json page list must NOT contain it" — that was
+  // the BUG written down as intent: exact-equality filters dropped the row from
+  // both section arrays while categories.json showed it. It must now appear in
+  // sections/web-apps.json `home` AND `page`, in categories.json, and in a
+  // CategoryGallery block scoped to either placement. A twin that widened one
+  // filter and not the other diverges here.
+  { id: 113, category: 11, type: 'image', placement: 'both', order: 3, image: 8, alt: L('Web 2', 'Web 2'), categoryLabel: L('Web', 'Web') },
 
   // -- fotografía + marketing: minimal but present in both placements --
   { id: 120, category: 13, type: 'image', placement: 'home', order: 1, image: 5, title: L('Foto A', 'Photo A'), alt: L('Foto A', 'Photo A'), categoryLabel: L('Foto', 'Photo') },
