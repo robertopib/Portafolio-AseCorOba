@@ -224,7 +224,8 @@ Last updated: 2026-08-10
 | R23a-ii | ↳ Revise for the `Cliente` axis + client worksheet — **blocked: 18 cells need the owner** | done (preview) | full-stack | **High** | R23a |
 | R23b | ↳ Implement Option A (**split**) | split | full-stack | **High** | R23a-ii |
 | R23b-i | ↳↳ Additive migration + backfill — **done on preview/dev; PROD PENDING** | done (preview) | full-stack | **High** | R23a-ii |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i |
+| R45 | **Production pre-flight: does prod match the worksheet?** (read-only, no phrase) | in-progress | devops | **High** | R23b-i |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
@@ -1594,6 +1595,46 @@ home order equals page order in all four categorías. **False for branding:** ho
 offset is a constant 1 and `fisio-equina` occupies slot 4 — but **R23b-ii's `flatten()` must not
 assume the two sequences are the same numbers.** R23b-i handled it correctly; R23b-ii will hit
 it head-on. **Fold this into R23b-ii's prompt.**
+
+### R45 — Production pre-flight: does prod match the worksheet?  (High)
+**Raised by the owner 2026-08-11:** *"content edits have been done in production like the brand
+name, so how can we reliably ensure those changes are not lost once we promote?"*
+
+**First, the reassuring half — verified, not reasoned.** **Promoting code cannot lose production
+content.** `vercel.json`'s `buildCommand` is `node scripts/fetch-content.mjs && pnpm build`, and
+`fetch-content.mjs:107` reads `PAYLOAD_API_URL`, which is scoped per Vercel environment. So the
+production site **rebuilds from the production CMS on every deploy**; committed `content/*.json`
+is overwritten at build time and exists only as a deterministic CI fixture (CI deliberately never
+runs `fetch-content` — Locked decision). An edit made in the prod admin is re-fetched on the next
+build.
+
+**The real exposure is the migration, and it already fails safe.** Promoting to `main` runs
+`payload migrate` inside `ci:build`, applying R23b-i's backfill to the **production** database.
+That backfill asserts the database holds exactly **57** image rows
+(`cms/src/migrations/20260811_114118_r23_clientes_images.ts:213-214`) and the first write is at
+`:364` — so a mismatch **aborts before touching data**. `ci:build` then fails, `next build` never
+runs, and Vercel keeps the last good deployment (the **R8** shape, documented in RELEASE.md).
+**So the failure mode is not lost content — it is a red deploy and a stuck promotion**, found at
+the worst possible moment.
+
+**Why prod plausibly differs, and this is the point of the item.** The worksheet's 40 images and
+57 rows were derived from **committed content**, which is stale against *both* databases.
+**Dev turned out to hold 41 photographs** — R23b-i found a stray `Gemini_Generated_Image_…png`
+test upload and repaired it. **Prod is a third, unexamined state**, and the owner has confirmed
+content was edited there. If prod holds rows the worksheet never described, they receive no
+parent — and **R23b-ii's cleanup, which deletes the 17 duplicate rows and drops the old columns,
+is where content could genuinely be lost.**
+
+**Acceptance criteria (stub):** a read-only reconciliation of production against the worksheet —
+row count, distinct media count, and per-categoría breakdown — with a clear verdict: *the backfill
+fits prod as-is*, or *these specific rows are unaccounted for*. **No writes, no migration, no
+deploy.** `export-content.ts` has been genuinely read-only since **R13a** (zero
+`writeFileSync(path.join(CONTENT_DIR` in either it or `export-emit.ts`; everything goes to
+`OUT_DIR = /tmp/export-out`), and **R30** rewrote RELEASE.md step 3 as read-only pre-deploy
+verification with **no authorization phrase**.
+**Sequencing this protects:** pre-flight → fix any gap in the worksheet → R23b-ii on preview →
+**one** promotion carrying both migrations, so prod migrates once rather than twice → cleanup only
+after byte-identity is proven **on prod**, not just dev.
 
 ### R43 — Dev CMS diverges from committed content in 3 files  (Medium)
 **Found by R23b-i, and unrelated to it** — identical verdicts before and after the migration, so
