@@ -160,6 +160,25 @@ Last updated: 2026-08-10
   nothing else must learn that upstream is non-binding — otherwise it reads the still-live
   80% coverage mandate (`governance/docs/rules/testing-standards.md:77`, re-imported 3× by
   `testing-qa.agent.md`) as law and writes exactly the tests our standard forbids.
+- **Owner reviews on preview before ANY promotion to production** (locked 2026-08-11, at the
+  owner's instruction: *"this is how the pipeline should always work"*).
+  **Nothing reaches production that the owner has not seen on `preview` first.** This closes a
+  real hole rather than restating existing practice: `RELEASE.md`'s owner spot-check was
+  **step 6 — after production deployed**, so the runbook had the owner discovering problems in
+  production. It is now **step 0**, before the pre-flight.
+  - Review surfaces: the public site at `preview.ase-cor-oba.site`, and — for schema or
+    content-model work, which is frequently invisible on the site — the CMS admin at
+    `cms-preview.ase-cor-oba.site`.
+  - **A change that is deliberately invisible on preview must say so, and say what to inspect
+    instead.** "Nothing to see" is a finding to state, never a step to skip. An additive
+    migration is the normal case (R23b-i: the site was byte-identical *by design*, and the
+    evidence was 20 parents and 16 clients in the admin).
+  - **Reviewing is not authorising.** `authorize production deploy` is a *separate* gate that
+    comes afterwards; typing it does not imply a review happened, and a review does not imply
+    consent to deploy.
+  - **Conductor obligation:** every task prompt whose change could reach production must state
+    what the owner should look at on preview — or state plainly that there is nothing to see
+    and why.
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -225,7 +244,8 @@ Last updated: 2026-08-10
 | R23b | ↳ Implement Option A (**split**) | split | full-stack | **High** | R23a-ii |
 | R23b-i | ↳↳ Additive migration + backfill — **done on preview/dev; PROD PENDING** | done (preview) | full-stack | **High** | R23a-ii |
 | R45 | Production pre-flight — **VERDICT: backfill does NOT fit prod (58/41 vs 57/40)** | done (preview) | devops | **High** | R23b-i |
-| R46 | **`placement: 'both'` honoured by one exporter, dropped by the other — a live render bug** | todo | full-stack | **Medium** | — |
+| R46 | `placement: 'both'` honoured by one exporter, dropped by the other | done (preview) | full-stack | Medium | — |
+| R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
@@ -1705,6 +1725,82 @@ explained render change. **That is an owner decision, not an implementation deta
 **Acceptance criteria (stub):** the two filters agree; a `both` row appears in exactly the
 places the admin label promises. If fixed *before* R23b-ii, the collision disappears and
 byte-identity stays clean — which is the cheapest ordering.
+
+**OWNER DECISION 2026-08-11: fix R46 first.** Confirmed the cheapest ordering.
+**Conductor-verified before emitting — both twins share the identical inconsistency:**
+
+| | `sections/*.json` | `categories.json` |
+|---|---|---|
+| REST (`scripts/fetch-content.mjs`) | `:264` exact equality | `:741` `page \|\| both` |
+| Local API (`cms/src/scripts/export-emit.ts`) | `:292` exact equality | `:827` `page \|\| both` |
+
+They agree with each other today, which is why `twin-equivalence` is green. **Changing one and
+not the other turns that test red — correctly.** The Local twin also has a second site,
+`resolveGalleryCards` at `:312`, which the REST twin reaches through `projByKey`; both need the
+same treatment.
+**Effect on the gates, worked out in advance so nobody misreads a green run:** CI's
+`pixel-parity` builds from **committed** `content/*.json`, which contains **no `both` row**
+(CI never runs `fetch-content` — Locked). So **CI stays 0.000% and that is not evidence the fix
+worked.** The visible change happens when production next rebuilds and re-fetches: *Sesiones
+privadas* starts appearing on the photography page, which is the intended outcome.
+
+**Status: done (preview)** 2026-08-11 — PR #44, squash `97e599a`. Tests **161 → 173**. Both
+twins changed identically; `twin-equivalence` green, and **proven rather than asserted** —
+reverting only the REST twin reddens it, naming `pages.json`, `sections/branding.json` and
+`sections/web-apps.json`. Regression demo: with the fix reverted in both twins, **6 failed /
+13 passed, 3 failures per twin, symmetric**. Pixel 0.000%, **and the worker correctly reported
+that as proving nothing here.**
+
+**⚠️ CONDUCTOR ERROR — it was four filter sites, not three.** My R46 detail and prompt both said
+*"the REST twin reaches `resolveGalleryCards` through `projByKey`"*. **It does not.** Verified at
+ingest: the REST twin has its **own** copy at `scripts/fetch-content.mjs:273`, structurally
+parallel to the Local twin's `export-emit.ts:312`. So the map is:
+
+| | `projByKey` | `resolveGalleryCards` |
+|---|---|---|
+| REST — `fetch-content.mjs` | `:264` | **`:273`** |
+| Local API — `export-emit.ts` | `:292` | `:312` |
+
+The worker fixed all four after checking with the owner. **R23b-ii inherits this corrected map** —
+a task that patched only three sites would have left one path emitting the old behaviour.
+
+**The finding worth generalizing — an assertion that passes with the bug still in place.** The
+worker's first draft asserted on fixture media `delta.png`, which the branding `sports` row also
+emits, so the CategoryGallery assertion **passed before the fix was applied**. Media 1–7 are each
+shared by several fixture projects, so an assertion naming one cannot say *which row* produced
+it. Fixed here by giving the two `both` rows dedicated media (`theta.png`, `iota.png`) and
+recording why in the fixture comment. **Generalises → R48.**
+**Also added: a grouped `both` row (`projects#107`)**, so the fix cannot be widened into "match
+everything" and still pass. Good instinct — the group clause is untouched and now proven so.
+**Where the semantics block lives matters:** it is in `twin-equivalence.test.ts`, whose other
+assertions compare the twins *to each other* and are therefore blind to what they emit — which is
+exactly how this bug survived. Both twins were wrong **byte-identically** and the file stayed
+green. A test that only checks agreement cannot catch a shared mistake.
+
+**⚠️ Owner-facing consequence of this fix, on the next production rebuild.** *Sesiones privadas*
+(`1.jpg`, `projects#581`) will begin appearing in **three** places: the photography category page
+gallery, the landing-page photography preview (`sections/photography.json` `home`), and any
+CategoryGallery block scoped to that categoría. R45 recorded its `alt`/`categoryLabel` as
+**empty** and its `order: 1` as **colliding with `croissant.png`** — so it will render with a
+blank caption in a contested sort position. **An admin content edit, not a code fix.**
+
+**CI infrastructure hiccup, not a code problem.** On the first attempt `Repo integrity` and
+`Site` completed every step including `Complete job`, but the check-runs never reported a
+conclusion, leaving the PR `BLOCKED` while the run itself read `completed/success`. Re-running
+cleared it. **Second CI infra flake this session** — the first was five jobs cancelled while
+queued (PR #14). Both times the fix was a re-run and nothing was bypassed. Worth knowing before
+debugging a red that isn't.
+
+### R48 — Fixture media 1–7 are shared, so assertions on them can pass vacuously  (Low)
+**Found by R46, the hard way.** Its first-draft assertion named `delta.png` and **passed with
+the bug still in place**, because the branding `sports` row emits that image too. In
+`tests/fixtures/cms-state.ts`, media 1–7 are each referenced by several projects, so an
+assertion naming one cannot establish *which row* produced it. R46 fixed this for its own two
+rows by giving them dedicated media (`theta.png`, `iota.png`).
+**Acceptance criteria (stub):** audit existing fixture-based assertions for the same trap; where
+one names a shared image, either point it at dedicated media or assert something that
+distinguishes the producing row. **Do not mass-rewrite** — only where an assertion could pass
+vacuously. The fixture comment R46 added is the explanation to reuse.
 
 ### R47 — Prod's brand rename is half-done  (Low, content)
 **Found by R45.** Both databases now read `Oriana Cordero Obando`, but prod's `ui.json`
