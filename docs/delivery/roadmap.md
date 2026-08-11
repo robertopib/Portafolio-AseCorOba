@@ -224,7 +224,10 @@ Last updated: 2026-08-10
 | R23a-ii | ↳ Revise for the `Cliente` axis + client worksheet — **blocked: 18 cells need the owner** | done (preview) | full-stack | **High** | R23a |
 | R23b | ↳ Implement Option A (**split**) | split | full-stack | **High** | R23a-ii |
 | R23b-i | ↳↳ Additive migration + backfill — **done on preview/dev; PROD PENDING** | done (preview) | full-stack | **High** | R23a-ii |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i |
+| R45 | Production pre-flight — **VERDICT: backfill does NOT fit prod (58/41 vs 57/40)** | done (preview) | devops | **High** | R23b-i |
+| R46 | **`placement: 'both'` honoured by one exporter, dropped by the other — a live render bug** | todo | full-stack | **Medium** | — |
+| R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
@@ -1594,6 +1597,122 @@ home order equals page order in all four categorías. **False for branding:** ho
 offset is a constant 1 and `fisio-equina` occupies slot 4 — but **R23b-ii's `flatten()` must not
 assume the two sequences are the same numbers.** R23b-i handled it correctly; R23b-ii will hit
 it head-on. **Fold this into R23b-ii's prompt.**
+
+### R45 — Production pre-flight: does prod match the worksheet?  (High)
+**Status: done (preview)** 2026-08-11 — report at `docs/delivery/r45-production-preflight.md`.
+**VERDICT: the R23b-i backfill does NOT fit production.** Prod holds **58 image rows / 41
+distinct media** against the migration's expected **57 / 40**, so two pre-write assertions fail
+(`:214` row count, `:240` unknown media). Promoting today aborts the migration, fails
+`ci:build`, and Vercel keeps the last good deployment — **a stuck promotion, no content at
+risk**, exactly as predicted. **Every other pre-write check passes on prod**, and the same
+script against dev returns 57/40 clean, so the divergence is production-only.
+**The unaccounted row:** `projects#581` — `Sesión producto` / `Sesiones privadas`,
+`fotografia-producto`, media 71 `1.jpg`, created **2026-08-10**. It is the **only
+`placement: 'both'` row in either database** (→ **R46**), its `order: 1` collides with
+`croissant.png`, and `alt`/`categoryLabel` are empty.
+**14 more are staged** — `2.jpg`…`15.jpg`, uploaded to prod in the same batch, not yet attached
+to a project. **Placing any one moves the counts again, so the pre-flight must be re-run
+immediately before promoting, not once.**
+
+**The owner's literal question, answered empirically.** The deployed bundle
+`/assets/index-DXhnfjR3.js` already contains `Oriana Cordero Obando`, `Sesiones privadas` and
+`/images/1.jpg` — conductor-verified by fetching the live site. **Prod-admin edits from
+2026-08-10 are live and have survived every deploy since. Promotion cannot lose them.**
+
+**R43 is resolved and its framing was backwards.** Three-way comparison:
+- **Brand name — prod and dev AGREE (`Oriana`); `content/site.json` is the stale outlier.** I
+  had recorded committed content as a candidate source of truth. It is not. (→ **R47** for the
+  half-finished English string.)
+- **`pages.json` — prod matches *committed's* structure (13 home blocks); dev has 8**, missing
+  five `portfolioIntro` blocks. So **`preview` renders a materially different home page than
+  production**, and dev is the outlier here — the reverse of the brand case.
+- `case-studies.json`: prod and dev identical, committed stale. `categories.json`,
+  `sections/photography.json`, `ui.json`: prod is the outlier (it holds `1.jpg` / the rename).
+**R43's own path counts are not comparable** to these — different differ. The *relationships*
+are the finding.
+
+**⚠️ Correction to RELEASE.md step 3, worth folding into R27/R44.** `export-content.ts` **cannot
+be run against prod from a branch carrying an unapplied schema migration** — it boots Payload
+with *that branch's* config, whose `projects` query selects `cliente_id` and joins
+`projects_images`, columns prod does not have until the migration runs. It failed at that query,
+before touching anything. R30 rewrote step 3 as read-only verification; the note now needs the
+caveat that the optional export is unusable in exactly the situation you most want it.
+The worker substituted `SELECT`-only queries replicating **every** pre-write assertion, plus
+`fetch-content.mjs`'s `main()` against the deployed prod API. Better instruments for the job.
+
+
+**Raised by the owner 2026-08-11:** *"content edits have been done in production like the brand
+name, so how can we reliably ensure those changes are not lost once we promote?"*
+
+**First, the reassuring half — verified, not reasoned.** **Promoting code cannot lose production
+content.** `vercel.json`'s `buildCommand` is `node scripts/fetch-content.mjs && pnpm build`, and
+`fetch-content.mjs:107` reads `PAYLOAD_API_URL`, which is scoped per Vercel environment. So the
+production site **rebuilds from the production CMS on every deploy**; committed `content/*.json`
+is overwritten at build time and exists only as a deterministic CI fixture (CI deliberately never
+runs `fetch-content` — Locked decision). An edit made in the prod admin is re-fetched on the next
+build.
+
+**The real exposure is the migration, and it already fails safe.** Promoting to `main` runs
+`payload migrate` inside `ci:build`, applying R23b-i's backfill to the **production** database.
+That backfill asserts the database holds exactly **57** image rows
+(`cms/src/migrations/20260811_114118_r23_clientes_images.ts:213-214`) and the first write is at
+`:364` — so a mismatch **aborts before touching data**. `ci:build` then fails, `next build` never
+runs, and Vercel keeps the last good deployment (the **R8** shape, documented in RELEASE.md).
+**So the failure mode is not lost content — it is a red deploy and a stuck promotion**, found at
+the worst possible moment.
+
+**Why prod plausibly differs, and this is the point of the item.** The worksheet's 40 images and
+57 rows were derived from **committed content**, which is stale against *both* databases.
+**Dev turned out to hold 41 photographs** — R23b-i found a stray `Gemini_Generated_Image_…png`
+test upload and repaired it. **Prod is a third, unexamined state**, and the owner has confirmed
+content was edited there. If prod holds rows the worksheet never described, they receive no
+parent — and **R23b-ii's cleanup, which deletes the 17 duplicate rows and drops the old columns,
+is where content could genuinely be lost.**
+
+**Acceptance criteria (stub):** a read-only reconciliation of production against the worksheet —
+row count, distinct media count, and per-categoría breakdown — with a clear verdict: *the backfill
+fits prod as-is*, or *these specific rows are unaccounted for*. **No writes, no migration, no
+deploy.** `export-content.ts` has been genuinely read-only since **R13a** (zero
+`writeFileSync(path.join(CONTENT_DIR` in either it or `export-emit.ts`; everything goes to
+`OUT_DIR = /tmp/export-out`), and **R30** rewrote RELEASE.md step 3 as read-only pre-deploy
+verification with **no authorization phrase**.
+**Sequencing this protects:** pre-flight → fix any gap in the worksheet → R23b-ii on preview →
+**one** promotion carrying both migrations, so prod migrates once rather than twice → cleanup only
+after byte-identity is proven **on prod**, not just dev.
+
+### R46 — `placement: 'both'` is honoured by one exporter and dropped by the other  (Medium)
+**Found by R45; conductor-verified in source 2026-08-11. This is a live production render bug,
+not a theoretical one.**
+- `categories.json` honours it — `scripts/fetch-content.mjs:741`:
+  `p.placement === 'page' || p.placement === 'both'`.
+- `sections/*.json` does **not** — `:264` filters on **exact equality** (`p.placement ===
+  placement`), so a `both` row matches neither `'home'` nor `'page'` and **lands in neither
+  array**.
+`src/app/pages/ProductPhotographyProjects.tsx:6` imports `content/sections/photography.json`,
+so a `both` row is **invisible on the photography page** while still appearing in
+`categories.json`. Confirmed against the deployed production bundle
+(`/assets/index-DXhnfjR3.js`): `images/1.jpg` and `Sesiones privadas` are both present, yet
+`sections/photography.json` still reads 6 home / 12 page.
+**The owner hit this by choosing the obvious option.** `both` is offered in the admin
+(`Projects.ts`, "Ambas") and it half-works. Every other two-placement photograph in either
+database is stored as **two rows** — `1.jpg` is the only `both` row that exists.
+**⚠️ This collides with R23b-ii's byte-identity proof, and the collision is unavoidable.**
+R23's model replaces `placement` with per-image `showOnHome`/`showOnPage`. A `both` row becomes
+`true`/`true`, and the new exporter would emit it into **both** arrays — which is *different*
+from today's output, where it appears in neither. So while a `both` row exists, R23b-ii must
+either **reproduce the bug** to hold byte-identity, or **fix it** and accept a deliberate,
+explained render change. **That is an owner decision, not an implementation detail.**
+**Acceptance criteria (stub):** the two filters agree; a `both` row appears in exactly the
+places the admin label promises. If fixed *before* R23b-ii, the collision disappears and
+byte-identity stays clean — which is the cheapest ordering.
+
+### R47 — Prod's brand rename is half-done  (Low, content)
+**Found by R45.** Both databases now read `Oriana Cordero Obando`, but prod's `ui.json`
+`en.nav.brand` still reads **`Asenat Cordero Obando`** — the Spanish string was changed and the
+English one was not. Conductor-verified against the live bundle: **both names ship in
+`/assets/index-DXhnfjR3.js`**, so the English navigation currently shows the old name.
+One admin edit; the owner's call, not a code change. **Note for R43:** this makes
+`content/site.json` (`Asenat`) the stale outlier, not the source of truth — prod and dev agree.
 
 ### R43 — Dev CMS diverges from committed content in 3 files  (Medium)
 **Found by R23b-i, and unrelated to it** — identical verdicts before and after the migration, so
