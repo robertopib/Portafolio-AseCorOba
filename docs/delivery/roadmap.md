@@ -247,7 +247,8 @@ Last updated: 2026-08-10
 | R46 | `placement: 'both'` honoured by one exporter, dropped by the other | done (preview) | full-stack | Medium | — |
 | R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45 |
+| R49 | **Make R23b-i's backfill survive a prod/dev row-count difference** (blocks promotion) | in-progress | full-stack | **High** | R23b-i, R45 |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45, R49 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
@@ -1699,6 +1700,33 @@ verification with **no authorization phrase**.
 **Sequencing this protects:** pre-flight → fix any gap in the worksheet → R23b-ii on preview →
 **one** promotion carrying both migrations, so prod migrates once rather than twice → cleanup only
 after byte-identity is proven **on prod**, not just dev.
+
+### R49 — Make R23b-i's backfill survive a prod/dev row-count difference  (High)
+**Blocks the promotion, and would surface at the worst possible moment.** R23b-i's migration
+hard-codes `EXPECTED = { images: 40, clients: 16, projects: 20, sourceRows: 57 }`
+(`20260811_114118_r23_clientes_images.ts:34`) and aborts on any mismatch. **Prod holds 58/41**
+(R45), and prod's `migrate:status` shows this migration as **`Ran: No`** — so promoting runs it
+as written and aborts.
+**Answering `1.jpg`'s client later does not fix it.** The counts are baked into a file that is
+already written. And **widening the constant to 58/41 breaks dev, which has 57/40.** One
+constant cannot satisfy two databases that legitimately differ — and they will keep differing,
+because the owner edits production.
+**The assertion is testing the wrong thing.** Its real job is *"no row is silently orphaned"*,
+not *"there are exactly N rows"*. A set comparison in one direction — **every row in the
+database has a worksheet entry** — holds on both databases and keeps the safety property:
+prod gaining an unknown row still aborts. Worksheet entries with no matching row become
+informational (dev simply lacks `1.jpg`), not fatal.
+**Editing the migration is legitimate here, and only because rollback works.** The rule against
+modifying an applied migration protects one applied somewhere you cannot roll back. This one is
+applied **on dev only** (prod: `Ran: No`), dev is disposable, and R23b-i **demonstrated** `down`
+→ `up` clean and idempotent. That demonstration is what makes this cheap instead of a crisis.
+**Verified before scoping:** the migration already handles `placement: 'both'` correctly —
+`:217-218` map it to both `onPage` and `onHome`, feeding `showOnPage`/`showOnHome` at
+`:300-301`. So `1.jpg` needs no special handling beyond being *known*.
+**Acceptance criteria (stub):** the same migration applies cleanly to both a 57/40 and a 58/41
+database; `1.jpg` is in the worksheet as `—` (own project, no client — the owner parked its real
+client and the new model makes reassignment a dropdown); the map is regenerated, not hand-edited;
+dev is rolled back and re-applied; and the R45 pre-flight script reports prod would now pass.
 
 ### R46 — `placement: 'both'` is honoured by one exporter and dropped by the other  (Medium)
 **Found by R45; conductor-verified in source 2026-08-11. This is a live production render bug,
