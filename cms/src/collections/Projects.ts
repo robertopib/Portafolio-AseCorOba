@@ -35,7 +35,7 @@ export const Projects: CollectionConfig = {
     group: 'Portafolio',
     description:
       'Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.',
-    defaultColumns: ['internalTitle', 'category', 'type', 'placement', 'group', 'order'],
+    defaultColumns: ['internalTitle', 'cliente', 'category', 'type', 'placement', 'group', 'order'],
   },
   defaultSort: 'order',
   fields: [
@@ -47,6 +47,26 @@ export const Projects: CollectionConfig = {
       label: 'Categoría',
       admin: {
         description: '¿A qué categoría pertenece este proyecto?',
+      },
+    },
+    {
+      // R23b-i. `hasMany: false` with a single `relationTo` is what keeps this a plain FK
+      // column on `projects` rather than a `projects_rels` join table — the same shape
+      // `category` above already has. Making it hasMany would buy multi-client projects,
+      // which owner decision 2 rules out.
+      //
+      // DELIBERATELY NOT `required`. The UX/UI case study has no client, and a genuinely
+      // client-less piece must stay representable. A required relationship would also turn
+      // an unanswered worksheet cell into a migration crash; the backfill fails loudly on
+      // the *cell* instead (r23-target-model.md §5.2), which is where that check belongs.
+      name: 'cliente',
+      type: 'relationship',
+      relationTo: 'clients',
+      hasMany: false,
+      label: 'Cliente',
+      admin: {
+        description:
+          '¿Para quién se hizo este trabajo? Un cliente puede tener proyectos en varias categorías; cada uno es un proyecto aparte.',
       },
     },
     {
@@ -82,8 +102,12 @@ export const Projects: CollectionConfig = {
       type: 'text',
       label: 'Grupo',
       admin: {
+        // Reworded in R23b-i. It used to say "subgrupo", which is what invited R23a to read
+        // it as a proto-project. It is not: `sports` holds three unrelated clients. A group
+        // selects a LAYOUT SLOT on the branding page — a third axis, distinct from both
+        // Categoría and Cliente (r23-target-model.md §3.1).
         description:
-          'Solo para Branding: subgrupo (sports, adrianaMunoz, anaGrace, logos).',
+          'Solo para Branding: en qué sección de la página aparece este proyecto (sports, adrianaMunoz, anaGrace, logos).',
       },
     },
     {
@@ -159,6 +183,137 @@ export const Projects: CollectionConfig = {
       admin: {
         description: 'La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").',
       },
+    },
+
+    // ================= IMÁGENES DEL PROYECTO (R23b-i) =================
+    // The level the model was missing. A Proyecto is a client's body of work in one
+    // categoría; each photograph is a row here, not a Proyecto of its own. The 7-view
+    // Vinte-Vinte shoot becomes ONE editable record — the acceptance criterion R23 is
+    // judged against.
+    //
+    // AN ARRAY FIELD, NOT A SECOND COLLECTION (r23-target-model.md §3.3). A collection
+    // would re-create seven records plus a parent and split editing across two admin
+    // lists — the problem restated in tidier language. The one thing a collection buys,
+    // a referenceable cover, is not needed: the home-flagged image IS the cover (§3.2).
+    //
+    // WHY PLACEMENT LIVES HERE AND NOT ON THE PARENT. Two rows disprove parent-level
+    // placement: `WodFest Costa Rica` puts TWO of its images on home, and
+    // `fisio-equina.png` is on home and in no page array at all. A parent-level flag can
+    // say "this project appears on home", not "these two of its images do".
+    //
+    // NOT READ BY ANYTHING YET. R23b-i lands the data; both exporters still read the old
+    // top-level `image`/`alt`/`order`/… columns above. R23b-ii switches them over and then
+    // drops those columns. That split is the safety argument — see the roadmap.
+    {
+      name: 'images',
+      type: 'array',
+      label: 'Imágenes',
+      labels: { singular: 'Imagen', plural: 'Imágenes' },
+      admin: {
+        description:
+          'Las fotografías de este proyecto, en orden. Cada una es una tarjeta en la web.',
+      },
+      fields: [
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          label: 'Imagen',
+          admin: { description: 'La fotografía.' },
+        },
+        {
+          name: 'alt',
+          type: 'text',
+          localized: true,
+          label: 'Texto alternativo (accesibilidad)',
+          admin: {
+            description: 'El texto de la tarjeta en la página de la categoría.',
+          },
+        },
+        {
+          name: 'categoryLabel',
+          type: 'text',
+          localized: true,
+          label: 'Etiqueta de categoría',
+          admin: {
+            description: 'La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Packaging").',
+          },
+        },
+        {
+          name: 'order',
+          type: 'number',
+          required: true,
+          label: 'Orden',
+          admin: {
+            // For Branding this number IS the card id published in
+            // content/sections/branding.json (1,2,3,5,…,21 — the gap at 4 is real and must
+            // survive). Renumbering changes published output; do not tidy the sequence.
+            description:
+              'Número para ordenar las tarjetas dentro de la categoría (el menor aparece primero).',
+          },
+        },
+        {
+          name: 'size',
+          type: 'select',
+          label: 'Tamaño (masonry)',
+          admin: {
+            description: 'Cuánto espacio ocupa la tarjeta en la cuadrícula.',
+          },
+          options: [
+            { label: 'Pequeño', value: 'small' },
+            { label: 'Mediano', value: 'medium' },
+            { label: 'Grande', value: 'large' },
+            { label: 'Ancho', value: 'wide' },
+            { label: 'Alto', value: 'tall' },
+          ],
+        },
+        {
+          name: 'showOnPage',
+          type: 'checkbox',
+          // Defaulted on because 39 of the 40 existing photographs are on their category
+          // page; an image added with everything off would appear nowhere, silently.
+          defaultValue: true,
+          label: 'Mostrar en la página de la categoría',
+          admin: { description: '¿Aparece esta imagen en la página de su categoría?' },
+        },
+        {
+          name: 'showOnHome',
+          type: 'checkbox',
+          label: 'Mostrar en la vista previa de inicio',
+          admin: {
+            description:
+              '¿Aparece también en la vista previa de esta categoría en la página de inicio?',
+          },
+        },
+        {
+          // Home and the category page carry DIFFERENT text for the same photograph — four
+          // distinct strings per photo, not one shown twice (§2.2). Marketing's home card
+          // reads title "Brochure Corporativo" / label "Material Impreso - Grupo Santa Fe",
+          // while its page card reads alt "Brochure Corporativo - Grupo Santa Fe" / label
+          // "Material Impreso". Collapsing the duplication means keeping all four.
+          // Branding is the exception: its home cards carry neither, so both stay empty.
+          name: 'homeTitle',
+          type: 'text',
+          localized: true,
+          label: 'Título en inicio',
+          admin: {
+            description:
+              'Solo si aparece en inicio: el título de la tarjeta allí, que suele ser distinto del texto alternativo.',
+            condition: (_, sibling) => Boolean(sibling?.showOnHome),
+          },
+        },
+        {
+          name: 'homeCategoryLabel',
+          type: 'text',
+          localized: true,
+          label: 'Etiqueta de categoría en inicio',
+          admin: {
+            description:
+              'Solo si aparece en inicio: la etiqueta pequeña allí, que suele incluir el nombre del cliente.',
+            condition: (_, sibling) => Boolean(sibling?.showOnHome),
+          },
+        },
+      ],
     },
 
     // ================= CASE STUDY BODY (inline post body) =================

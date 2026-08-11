@@ -1,6 +1,13 @@
 # R23 — Client worksheet: who was each image made for?
 
-> **Status: waiting on the owner. Nothing has been changed.** This file is the human decision
+> **Status: COMPLETED by the owner and EXECUTED by R23b-i on 2026-08-11.** All 40 cells are
+> answered; [§6](#6-firma) records the sign-off. This file is no longer a request — it is the
+> **durable source** the migration was built from: `cms/src/lib/r23/parseWorksheet.ts` parses it,
+> `cms/src/lib/r23/clientMap.generated.ts` is the committed result, and
+> `tests/unit/r23-worksheet.test.ts` fails in CI if the two ever diverge. **Editing §2 changes
+> what a re-run of the migration would do** — regenerate the map and re-read §5.4 first.
+>
+> This file is the human decision
 > gate that **R23a-ii** exists to produce and **R23b** will execute. Design rationale lives in
 > [r23-target-model.md](r23-target-model.md); the original problem statement is
 > [analysis-projects-vs-photos.md](analysis-projects-vs-photos.md).
@@ -521,10 +528,25 @@ independiente del conductor y con [§1](#el-recuento-57-filas-40-imágenes).
 ## 6. Firma
 
 **R23b no puede empezar hasta que las 18 casillas de las tablas B tengan un nombre o un `—`.**
+✅ **Cumplido.**
 
 | | |
 |---|---|
-| Casillas rellenadas por el propietario | ` ___ / 18` |
-| Excepciones declaradas ([§4](#4-lo-que-la-regla-no-resuelve), 1.5) | *ninguna / …* |
-| `FisioEquina` solo en inicio ([§4](#4-lo-que-la-regla-no-resuelve), 1.6) | *pendiente* |
-| Fecha | |
+| Casillas rellenadas por el propietario | **18 / 18** — 40 / 40 contando las tablas A |
+| Excepciones declaradas ([§4](#4-lo-que-la-regla-no-resuelve), 1.5) | **ninguna** — se aplica la regla generativa tal cual |
+| `FisioEquina` solo en inicio ([§4](#4-lo-que-la-regla-no-resuelve), 1.6) | **sigue abierta, y no bloquea** — se conservó como está (`showOnHome`, `showOnPage: false`). Cambiarlo es un clic, cuando quieras |
+| Fecha | 2026-08-11 (ejecutado en R23b-i) |
+
+**Resultado de aplicar la hoja:** **16 clientes · 20 proyectos · 40 imágenes**, desde 57 filas.
+Se verificó automáticamente, no a ojo — [§5.3](r23-target-model.md#53-verification-in-order)
+comprobación 0 vive ahora en `tests/unit/r23-worksheet.test.ts`.
+
+> **Dos cosas que conviene saber al releer esta hoja.**
+>
+> 1. **`Todo en caja` es un proyecto de 8 imágenes, no de 7.** B8 (`Caja de Regalo Navideña`) y
+>    las siete vistas B9–B15 llevan el mismo cliente y la misma categoría, así que la regla las
+>    une en **un solo proyecto**. El criterio de aceptación de R23 hablaba de «7 imágenes»; el
+>    número correcto bajo tus respuestas es 8, y las 7 vistas sí son **un único registro**, que
+>    era lo que importaba.
+> 2. **`Tarjetas de Presentación - Fisioterapia` (B17) quedó como `—`**, así que **no** es
+>    FisioEquina. Eso cierra la duda que planteaba [§2.3](#23-marketing-360--4-imágenes-8-filas).
