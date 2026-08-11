@@ -256,12 +256,17 @@ export async function main({
   const slugOf = (p) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
   const byOrder = (docs) => [...docs].sort((a, b) => a.order - b.order)
 
+  // R46: `both` ("Ambas" in the admin) means the row belongs to the home array
+  // AND the page array, which is what the label promises. It used to be exact
+  // equality, so a `both` row matched neither 'home' nor 'page' and landed in
+  // NEITHER — while categories.json (`page || both`, below) showed it. Same
+  // shape as that filter; keep the two in step.
   const projByKey = (slug, placement, group) =>
     allProjects.filter(
       (p) =>
         slugOf(p) === slug &&
         p.type === 'image' &&
-        p.placement === placement &&
+        (p.placement === placement || p.placement === 'both') &&
         (group ? p.group === group : !p.group),
     )
 
@@ -270,7 +275,10 @@ export async function main({
     let docs = allProjects.filter((p) => {
       if (slugOf(p) !== slug) return false
       if (p.type !== 'image') return false
-      if (placement && placement !== 'all' && p.placement !== placement) return false
+      // R46: a `both` row satisfies a 'home' filter and a 'page' filter alike.
+      // ('all' already short-circuits above.)
+      if (placement && placement !== 'all' && p.placement !== placement && p.placement !== 'both')
+        return false
       if (group) return p.group === group
       return true
     })

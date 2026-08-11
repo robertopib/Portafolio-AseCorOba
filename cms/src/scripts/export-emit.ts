@@ -284,19 +284,25 @@ export async function main({
   const slugOf = (p: any) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
   const byOrder = (docs: any[]) => [...docs].sort((a, b) => a.order - b.order)
 
+  // R46: `both` ("Ambas" in the admin) means the row belongs to the home array
+  // AND the page array, which is what the label promises. It used to be exact
+  // equality, so a `both` row matched neither 'home' nor 'page' and landed in
+  // NEITHER — while categories.json (`page || both`, below) showed it. Same
+  // shape as that filter; keep the two in step.
   const projByKey = (slug: string, placement: string, group?: string) =>
     (allProjects.docs as any[]).filter(
       (p) =>
         slugOf(p) === slug &&
         p.type === 'image' &&
-        p.placement === placement &&
+        (p.placement === placement || p.placement === 'both') &&
         (group ? p.group === group : !p.group),
     )
 
   /**
    * Resolve a CategoryGallery block's Proyectos into the front-end card shape.
-   * Filters by category slug + placement ('all' = no placement filter) +
-   * optional grupo, orders by `order`, applies maxItems, and returns cards
+   * Filters by category slug + placement ('all' = no placement filter; a
+   * `both` row matches either 'home' or 'page' — R46) + optional grupo,
+   * orders by `order`, applies maxItems, and returns cards
    * carrying image path, localized alt/categoryLabel/title, size and group.
    */
   const resolveGalleryCards = (opts: {
@@ -309,7 +315,10 @@ export async function main({
     let docs = (allProjects.docs as any[]).filter((p) => {
       if (slugOf(p) !== slug) return false
       if (p.type !== 'image') return false
-      if (placement && placement !== 'all' && p.placement !== placement) return false
+      // R46: a `both` row satisfies a 'home' filter and a 'page' filter alike.
+      // ('all' already short-circuits above.)
+      if (placement && placement !== 'all' && p.placement !== placement && p.placement !== 'both')
+        return false
       if (group) return p.group === group
       return true
     })
