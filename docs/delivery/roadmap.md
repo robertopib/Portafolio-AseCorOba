@@ -247,7 +247,9 @@ Last updated: 2026-08-10
 | R46 | `placement: 'both'` honoured by one exporter, dropped by the other | done (preview) | full-stack | Medium | — |
 | R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
-| R49 | **Make R23b-i's backfill survive a prod/dev row-count difference** (blocks promotion) | in-progress | full-stack | **High** | R23b-i, R45 |
+| R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
+| R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
+| R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45, R49 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
@@ -1727,6 +1729,39 @@ applied **on dev only** (prod: `Ran: No`), dev is disposable, and R23b-i **demon
 database; `1.jpg` is in the worksheet as `—` (own project, no client — the owner parked its real
 client and the new model makes reassignment a dropdown); the map is regenerated, not hand-edited;
 dev is rolled back and re-applied; and the R45 pre-flight script reports prod would now pass.
+
+**Status: done (preview)** 2026-08-11 — PR #46, squash `7ae97f8`. Tests **173 → 181**. Dev
+rolled back and re-applied; counts identical to R23b-i's table; export 14/14 byte-identical by
+the freeze/re-run instrument. **Prod evidenced read-only: 58/41, every pre-write assertion
+passes, projected 16 clients · 21 parents · 41 images.** The 58/41 blocker is closed.
+
+**Conductor confirmation, requested by the worker.** They flagged the unit test's change from
+set-equality to directional as *"not a weakening, but the conductor should confirm it reads that
+way."* **Confirmed, and it is formally equivalent.** The old assertion was `A === B`. The new one
+is `B ⊆ A` (no photograph lacks an answer) **and** `(A \ B) === PRODUCTION_ONLY`, pinned by
+name, sorted, exact. Those two conjoined are the original statement with the difference made an
+explicit reviewed allowlist instead of implicitly empty — when the list is empty they are
+identical. An unexpected stray still fails **by name**; a missing answer still fails. The only
+erosion path is appending to `PRODUCTION_ONLY` casually, and the file already says *"Adding to
+this list is a deliberate act, never a fixup."* Good flag; right answer.
+
+**A real bug found on the way, and it is the worksheet's own failure mode.**
+`parseWorksheet` matched `endsWith('.png')`, so `1.jpg` would have been **silently dropped** —
+no error, no entry, and the migration would then have aborted naming a row the worksheet
+"didn't describe" when in fact the parser had discarded it. Now a regex, with a test. This is
+exactly the class of silent-skip the worksheet exists to prevent.
+
+**Better evidence than the prompt asked for: the abort rolls back the DDL too.** After a failed
+`payload migrate` on dev, `clients`, `projects_images`, `projects_images_locales`,
+`projects.cliente_id` and `enum_projects_images_size` were **all absent** and `migrate:status`
+still read `Ran: No`. So the production failure mode is a clean red build with **nothing
+half-applied** — which materially de-risks the promotion, and was previously only inferred.
+
+**Design decision worth carrying into R23b-ii:** the reconciliation is a **pure importable
+library function** (`cms/src/lib/r23/reconcile.ts`), not inline migration code. That is why the
+prod pre-flight could **import the real `reconcile()`** rather than hand-mirror the migration's
+checks — R45's script mirrored them, which is precisely the drift shape R13b warns about. Prefer
+importable over mirrored wherever a check has to run in two places.
 
 ### R46 — `placement: 'both'` is honoured by one exporter and dropped by the other  (Medium)
 **Found by R45; conductor-verified in source 2026-08-11. This is a live production render bug,
