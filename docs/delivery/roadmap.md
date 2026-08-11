@@ -250,7 +250,8 @@ Last updated: 2026-08-10
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-ii | ↳↳ **Exporter flattening + byte-identity proof** (no cleanup) | in-progress | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-iii | ↳↳ Cleanup migration — drop old columns + duplicate rows, **after prod byte-identity** | todo | full-stack | **High** | R23b-ii, promotion |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
@@ -1702,6 +1703,21 @@ verification with **no authorization phrase**.
 **Sequencing this protects:** pre-flight → fix any gap in the worksheet → R23b-ii on preview →
 **one** promotion carrying both migrations, so prod migrates once rather than twice → cleanup only
 after byte-identity is proven **on prod**, not just dev.
+
+### R23b-ii / R23b-iii — why the cleanup was split out  (conductor, 2026-08-11)
+**`r23-target-model.md` contradicts itself, and the careful half wins.**
+- **§5.1 (`:546-547`)**: the old `placement`/`image`/`alt`/`categoryLabel`/`order`/`size`
+  columns *"stay in place, unused, until a follow-up migration removes them once byte-identity
+  has been proved on `preview` **and** production."*
+- **§7 (`:679`)**: *"R23b-ii — exporter flattening + byte-identity proof **+ cleanup**."*
+§5.1 is right and §7 is a summary that lost a condition. **Production is not migrated until the
+promotion**, so "byte-identity proved on production" cannot be true while R23b-ii is being
+written. Shipping the cleanup in the same promotion that switches the exporters would drop the
+fallback columns and delete the 17 duplicate rows **in the same deploy that first exercises the
+new emitters against production data** — with no way back except a Neon branch restore.
+**So: R23b-ii is exporters + proof, and R23b-iii is the cleanup, after a successful promotion
+and a byte-identity check against production.** The columns sitting unused for one release is
+the cheapest insurance available.
 
 ### R49 — Make R23b-i's backfill survive a prod/dev row-count difference  (High)
 **Blocks the promotion, and would surface at the worst possible moment.** R23b-i's migration
