@@ -6,7 +6,7 @@
  * Guarded by: tests/unit/r23-worksheet.test.ts, which re-parses the worksheet and fails if
  * this file has drifted from it.
  *
- * 40 images · 16 distinct clients · 20 projects
+ * 41 images · 16 distinct clients · 21 projects
  * (one Cliente + one Categoría = one Proyecto; each `cliente: null` is its own project).
  */
 import type { WorksheetEntry } from './parseWorksheet'
@@ -45,6 +45,7 @@ export const R23_CLIENT_MAP: readonly WorksheetEntry[] = [
   { categoria: "fotografia-producto", archivo: "gift-box-vinte-4.png", cliente: "Todo en caja" },
   { categoria: "fotografia-producto", archivo: "gift-box-vinte-5.png", cliente: "Todo en caja" },
   { categoria: "fotografia-producto", archivo: "gift-box-vinte-6.png", cliente: "Todo en caja" },
+  { categoria: "fotografia-producto", archivo: "1.jpg", cliente: null },
   { categoria: "marketing-360", archivo: "santa-fe-brochure.png", cliente: "Grupo Santa Fe" },
   { categoria: "marketing-360", archivo: "basketball-mural.png", cliente: "PAS Eagles" },
   { categoria: "marketing-360", archivo: "concert-banner.png", cliente: null },

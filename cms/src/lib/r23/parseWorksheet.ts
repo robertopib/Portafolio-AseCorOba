@@ -59,6 +59,13 @@ const SECTIONS: Record<string, { slug: string; label: string }> = {
   '2.4': { slug: 'web-apps', label: 'Web y Apps' },
 }
 
+/**
+ * What counts as an `Archivo` cell rather than a stray note row. It was `.png` only until R49:
+ * the 40 photographs the owner signed off are all PNG, but `1.jpg` was uploaded to production
+ * afterwards, and a media filename's extension is whatever the owner's file had.
+ */
+const IMAGE_FILE = /\.(png|jpe?g|webp|avif)$/i
+
 /** Strip markdown emphasis/code decoration from one table cell. */
 const cell = (s: string) => s.replace(/\*\*/g, '').replace(/`/g, '').trim()
 
@@ -121,7 +128,7 @@ export function parseWorksheet(md: string): WorksheetEntry[] {
       if (!section) throw new Error(`parseWorksheet: table row outside any "### 2.x" section: ${line}`)
 
       const file = c[cols.archivo]
-      if (!file || !file.endsWith('.png')) continue // e.g. a stray note row
+      if (!file || !IMAGE_FILE.test(file)) continue // e.g. a stray note row
 
       const answer = cols.cliente === null ? heading : c[cols.cliente]
       if (answer === null || answer === undefined || answer === '') {
