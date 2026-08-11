@@ -222,7 +222,9 @@ Last updated: 2026-08-10
 | R23 | Content model: "Proyecto" conflates project + photo + placement (**split**) | split | full-stack | **High** | R12, R13 |
 | R23a | ↳ Target model + backfill mapping — **superseded in part: `Cliente` was missing** | done (preview) | full-stack | **High** | R13 |
 | R23a-ii | ↳ Revise for the `Cliente` axis + client worksheet — **blocked: 18 cells need the owner** | done (preview) | full-stack | **High** | R23a |
-| R23b | ↳ Implement: `Clientes` collection, migration, backfill, exporters byte-identical | todo | full-stack | **High** | R23a-ii |
+| R23b | ↳ Implement Option A (**split → R23b-i / R23b-ii**) | split | full-stack | **High** | R23a-ii |
+| R23b-i | ↳↳ **Additive migration + backfill, exporters untouched** — preview/dev only | in-progress | full-stack | **High** | R23a-ii |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity proof + cleanup migration | todo | full-stack | **High** | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
