@@ -222,7 +222,11 @@ Last updated: 2026-08-10
 | R23 | Content model: "Proyecto" conflates project + photo + placement (**split**) | split | full-stack | **High** | R12, R13 |
 | R23a | ↳ Target model + backfill mapping — **superseded in part: `Cliente` was missing** | done (preview) | full-stack | **High** | R13 |
 | R23a-ii | ↳ Revise for the `Cliente` axis + client worksheet — **blocked: 18 cells need the owner** | done (preview) | full-stack | **High** | R23a |
-| R23b | ↳ Implement: `Clientes` collection, migration, backfill, exporters byte-identical | todo | full-stack | **High** | R23a-ii |
+| R23b | ↳ Implement Option A (**split**) | split | full-stack | **High** | R23a-ii |
+| R23b-i | ↳↳ Additive migration + backfill — **done on preview/dev; PROD PENDING** | done (preview) | full-stack | **High** | R23a-ii |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i |
+| R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
+| R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
 | R34 | Record deltas for the 5 incoming upstream files that conflict with our practice | done (preview) | docs | Medium | R33 |
@@ -1524,6 +1528,95 @@ documented click away); no deep `dist/` imports without recording the upgrade ri
 `hasMany` is ever wanted, it's a separate item with a migration. Admin-only — pixel gate
 n/a, no schema.
 **Do first:** ship R21. This item is polish on top and must not delay the prod fix.
+
+### R23b-i — Additive migration + backfill  (High) — **done (preview) 2026-08-11**
+PR #40, squash `51b9e6b`. **16 clients · 20 parents · 40 `projects_images` · from 57 rows** —
+computed, and matching the conductor's cross-check exactly. `cliente_id` set on 17; 16 < 17
+because OFF DAY Trainer spans two categorías. All of §5.3's checks 0–7 pass. Both exporters
+byte-unchanged. Pixel 0.000%/24. Tests 151 → **161**. **Production is untouched and pending.**
+**Rollback demonstrated, not just written** — all six objects present → absent → present, and
+the export is byte-identical after the full `down`/`up` cycle, so the backfill is idempotent.
+That requirement paid for itself: see the `down` defect below.
+**Bonus verification worth keeping:** `GET /api/clients` → **403** while `GET /api/projects` →
+**200**. `Cliente` is CMS-only *by demonstration*, not by assumption.
+
+**⚠️ CONDUCTOR ERROR — my headline acceptance criterion was unachievable, on any database.**
+I wrote that `git diff --exit-code content/` coming back clean was *"the single most important
+criterion in the task."* It can never be clean. Verified at ingest:
+- `scripts/fetch-content.mjs:218` writes `JSON.stringify(recon, null, 2)`.
+- The committed files are **hand-formatted**: `content/sections/web-apps.json:17` reads
+  `"title": { "es": "OFF DAY Trainer", "en": "OFF DAY Trainer" },` — a nested object compacted
+  onto one line, which `JSON.stringify(…, null, 2)` cannot produce.
+- **Nothing in this repo has ever compared emitted bytes to committed bytes.** R13a's gate
+  compares *parsed* objects (`fetch-content.mjs:1164`, `deepDiff(recon, JSON.parse(committedRaw))`)
+  and R13b's twin-equivalence compares the two emitters **to each other**. I invented a
+  byte-level gate against committed files without checking that it could ever pass.
+**The worker's replacement is strictly better than what I asked for:** freeze the export
+*before* the migration, re-run *after*, prove all 14 files byte-identical. That isolates the
+backfill from pre-existing drift, which `git diff` conflates. Result: **14/14 identical**, tree
+`sha256 c2a8291…`, confirmed on **both** twins. **Adopt this instrument for R23b-ii** — the
+question "did my change alter the output?" is not the same question as "does the output match
+what was committed months ago."
+**Root cause, and it is the same shape as R13a's exit-code criterion:** an acceptance criterion
+written without checking the mechanism it depends on. **Rule: before making a command the
+headline gate, run it once.**
+
+**Two more corrections to my prompt, both the worker's:**
+1. **My smoke test named the wrong number.** I asked that `Set Regalo Vinte-Vinte` open as one
+   record with **7** images. It has **8** — the owner assigned `Caja de Regalo Navideña` (B8) to
+   the same client, so the rule merges it. Not discretionary: 7 would imply 21 parents, not 20.
+   The check came from the design doc, written *before* the owner answered; I carried it
+   forward unchecked. The 7 views *are* one record, which was the intent.
+2. **`payload migrate:create` emits a broken `down` for a new collection** (→ **R44**). It
+   generated `DROP TABLE "clients" CASCADE` followed by `DROP CONSTRAINT
+   "projects_cliente_id_clients_id_fk"` — the CASCADE has already removed that constraint, so
+   `down` fails with *constraint … does not exist*. **Measured, not theorised.** §5.4 predicted
+   exactly this FK-ordering hazard, and requiring a demonstrated rollback is what caught it.
+
+**Decisions worth keeping:**
+- **The worksheet is parsed, not transcribed** — a wrong client on the right file yields a wrong
+  project that *looks* correct. `parseWorksheet()` is pure and unit-tested, and that test **is**
+  §5.3 check 0, now permanent in CI rather than a one-off.
+- **The backfill lives in the migration**, not a `payload run` script — prod applies via
+  `payload migrate` and preview via `ci:build`, so a script would land schema without data.
+- **`fisio-equina`'s `order` is derived, not copied.** It is the one image with no page row.
+  Within a categoría the home and page sequences differ by a constant offset; applying it lands
+  it on exactly the missing page number, **4**. Both facts are asserted in the migration —
+  either failing aborts.
+- **One dev-data repair, owner-approved:** the `fotografia-producto` order-0 card pointed at
+  `Gemini_Generated_Image_…png`, a test upload present in neither `content/` nor
+  `public/images`, which made the DB show **41** photographs against the worksheet's 40.
+  Repointed to `crackers.png` with preconditions asserted first. It *reduced* pre-existing drift.
+
+**⚠️ HIGH — a correction that blocks R23b-ii's correctness.** The target model's §2.4/§3.2 say
+home order equals page order in all four categorías. **False for branding:** home is **0-based**
+(`0,1,2,3,4`), page is **1-based with a gap** (`1,2,3,5,…,21`). The substance survives — the
+offset is a constant 1 and `fisio-equina` occupies slot 4 — but **R23b-ii's `flatten()` must not
+assume the two sequences are the same numbers.** R23b-i handled it correctly; R23b-ii will hit
+it head-on. **Fold this into R23b-ii's prompt.**
+
+### R43 — Dev CMS diverges from committed content in 3 files  (Medium)
+**Found by R23b-i, and unrelated to it** — identical verdicts before and after the migration, so
+this is pre-existing. But **`preview` renders the dev values**, so it is what a visitor to the
+preview site currently sees:
+- **`site.json` — the brand name differs.** Committed is `Asenat Cordero Obando`
+  (conductor-verified at ingest); dev reads **`Oriana Cordero Obando`**. Two paths.
+- **`pages.json` — 589 differing paths**, including a page with **8 blocks against the committed
+  13**.
+- **`case-studies.json` — 39 differing paths.**
+**Someone has to decide which side is right**, and it is a content judgement, not a code fix.
+If dev is right, committed content is stale and a `fetch-content` run should be committed. If
+committed is right, the dev CMS has drifted or been edited experimentally.
+**Do not "fix" this inside R23b-ii** — it would contaminate the byte-identity proof, which is
+that task's entire safety argument.
+
+### R44 — `payload migrate:create` emits a broken `down` for new collections  (Low)
+**Context (R23b-i, 2026-08-11):** reproducible. The generator emits `DROP TABLE <new> CASCADE`
+and then a `DROP CONSTRAINT` the CASCADE already removed, so `down` fails. It cost R23b-i one
+failed rollback before being corrected to drop in FK order with the new table last.
+**Acceptance criteria (stub):** a note in the migration runbook (`RELEASE.md`, or wherever
+R27 lands) telling the next author to **execute `down` before trusting it** whenever a migration
+adds a collection. Docs only — do not attempt to patch Payload.
 
 ### R23 target model — SETTLED BY THE OWNER 2026-08-10 (locked)
 **The owner corrected the model at the R23a review gate, which is exactly what that gate was
