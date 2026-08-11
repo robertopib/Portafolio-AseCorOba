@@ -225,7 +225,7 @@ Last updated: 2026-08-10
 | R23b | ↳ Implement Option A (**split**) | split | full-stack | **High** | R23a-ii |
 | R23b-i | ↳↳ Additive migration + backfill — **done on preview/dev; PROD PENDING** | done (preview) | full-stack | **High** | R23a-ii |
 | R45 | Production pre-flight — **VERDICT: backfill does NOT fit prod (58/41 vs 57/40)** | done (preview) | devops | **High** | R23b-i |
-| R46 | **`placement: 'both'` honoured by one exporter, dropped by the other — a live render bug** | todo | full-stack | **Medium** | — |
+| R46 | **`placement: 'both'` honoured by one exporter, dropped by the other — a live render bug** | in-progress | full-stack | **Medium** | — |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity + cleanup migration | todo | full-stack | **High** | R23b-i, R45 |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
@@ -1705,6 +1705,24 @@ explained render change. **That is an owner decision, not an implementation deta
 **Acceptance criteria (stub):** the two filters agree; a `both` row appears in exactly the
 places the admin label promises. If fixed *before* R23b-ii, the collision disappears and
 byte-identity stays clean — which is the cheapest ordering.
+
+**OWNER DECISION 2026-08-11: fix R46 first.** Confirmed the cheapest ordering.
+**Conductor-verified before emitting — both twins share the identical inconsistency:**
+
+| | `sections/*.json` | `categories.json` |
+|---|---|---|
+| REST (`scripts/fetch-content.mjs`) | `:264` exact equality | `:741` `page \|\| both` |
+| Local API (`cms/src/scripts/export-emit.ts`) | `:292` exact equality | `:827` `page \|\| both` |
+
+They agree with each other today, which is why `twin-equivalence` is green. **Changing one and
+not the other turns that test red — correctly.** The Local twin also has a second site,
+`resolveGalleryCards` at `:312`, which the REST twin reaches through `projByKey`; both need the
+same treatment.
+**Effect on the gates, worked out in advance so nobody misreads a green run:** CI's
+`pixel-parity` builds from **committed** `content/*.json`, which contains **no `both` row**
+(CI never runs `fetch-content` — Locked). So **CI stays 0.000% and that is not evidence the fix
+worked.** The visible change happens when production next rebuilds and re-fetches: *Sesiones
+privadas* starts appearing on the photography page, which is the intended outcome.
 
 ### R47 — Prod's brand rename is half-done  (Low, content)
 **Found by R45.** Both databases now read `Oriana Cordero Obando`, but prod's `ui.json`
