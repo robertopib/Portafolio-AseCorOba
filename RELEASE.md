@@ -50,6 +50,20 @@ read-only checks in Step 3 by hand, the prod Neon connection string in **direct
 - `dbGuard.ts` requires `DB_TARGET_HOST` to match `DATABASE_URI` — set it.
 
 **Steps:**
+0. **Review on preview, and sign off (you). No promotion starts before this.**
+   The change is already on `preview` — look at it there first. Locked decision, added
+   2026-08-11 at the owner's instruction: *nothing reaches production that the owner has
+   not seen on preview.*
+   - **Public site:** `preview.ase-cor-oba.site`.
+   - **CMS admin:** `cms-preview.ase-cor-oba.site` — the right place for schema and
+     content-model changes, which are often invisible on the site.
+   - **If a change is deliberately invisible on preview, the outcome summary must say so
+     and say what to inspect instead.** "Nothing to see" is a finding to state, never a
+     step to skip. An additive migration is the normal case: the site is byte-identical
+     *by design*, and the evidence lives in the admin.
+   - **Reviewing is not authorising.** `authorize production deploy` in Step 4 is a
+     separate gate that comes after this one, and typing it does not imply the review
+     happened.
 1. **Pre-flight (AI, read-only):** for every column the migration **drops or
    renames**, confirm its replacement is already populated in prod, so nothing goes
    blank. *(The 2026-07-30 release, for which this runbook was written: confirm every

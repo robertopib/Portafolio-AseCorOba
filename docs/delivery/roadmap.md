@@ -160,6 +160,25 @@ Last updated: 2026-08-10
   nothing else must learn that upstream is non-binding — otherwise it reads the still-live
   80% coverage mandate (`governance/docs/rules/testing-standards.md:77`, re-imported 3× by
   `testing-qa.agent.md`) as law and writes exactly the tests our standard forbids.
+- **Owner reviews on preview before ANY promotion to production** (locked 2026-08-11, at the
+  owner's instruction: *"this is how the pipeline should always work"*).
+  **Nothing reaches production that the owner has not seen on `preview` first.** This closes a
+  real hole rather than restating existing practice: `RELEASE.md`'s owner spot-check was
+  **step 6 — after production deployed**, so the runbook had the owner discovering problems in
+  production. It is now **step 0**, before the pre-flight.
+  - Review surfaces: the public site at `preview.ase-cor-oba.site`, and — for schema or
+    content-model work, which is frequently invisible on the site — the CMS admin at
+    `cms-preview.ase-cor-oba.site`.
+  - **A change that is deliberately invisible on preview must say so, and say what to inspect
+    instead.** "Nothing to see" is a finding to state, never a step to skip. An additive
+    migration is the normal case (R23b-i: the site was byte-identical *by design*, and the
+    evidence was 20 parents and 16 clients in the admin).
+  - **Reviewing is not authorising.** `authorize production deploy` is a *separate* gate that
+    comes afterwards; typing it does not imply a review happened, and a review does not imply
+    consent to deploy.
+  - **Conductor obligation:** every task prompt whose change could reach production must state
+    what the owner should look at on preview — or state plainly that there is nothing to see
+    and why.
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
