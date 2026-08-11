@@ -221,7 +221,7 @@ Last updated: 2026-08-10
 | R22 | Media picker ergonomics — `alt` editing in the drawer (select affordance now fixed) | todo | full-stack | Low | R21 |
 | R23 | Content model: "Proyecto" conflates project + photo + placement (**split**) | split | full-stack | **High** | R12, R13 |
 | R23a | ↳ Target model + backfill mapping — **superseded in part: `Cliente` was missing** | done (preview) | full-stack | **High** | R13 |
-| R23a-ii | ↳ **Revise for the `Cliente` axis + owner-authored client worksheet** | in-progress | full-stack | **High** | R23a |
+| R23a-ii | ↳ Revise for the `Cliente` axis + client worksheet — **blocked: 18 cells need the owner** | done (preview) | full-stack | **High** | R23a |
 | R23b | ↳ Implement: `Clientes` collection, migration, backfill, exporters byte-identical | todo | full-stack | **High** | R23a-ii |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
 | R33 | Governance bump `e85041e`→`fddf95b` + precedence clause into root `CLAUDE.md` (T1+T2) | done (preview) | devops/docs | Medium | — |
