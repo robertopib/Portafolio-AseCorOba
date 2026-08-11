@@ -1,5 +1,7 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 import { R23_CLIENT_MAP } from '../lib/r23/clientMap.generated'
+import { clientNames as distinctClientNames, projectKey } from '../lib/r23/parseWorksheet'
+import { reconcile, formatUnknown, photoKey, type DbPhotograph } from '../lib/r23/reconcile'
 
 /**
  * R23b-i — Clientes, Proyecto parents, images[].  ADDITIVE ONLY.
@@ -25,13 +27,33 @@ import { R23_CLIENT_MAP } from '../lib/r23/clientMap.generated'
  * "projects_cliente_id_clients_id_fk"` — but the CASCADE has already removed that
  * constraint, so the statement failed with *constraint … does not exist* (measured, not
  * theorised). §5.4 called this exact hazard: `down` must drop in FK order. See `down`.
+ *
+ * ── AMENDED BY R49, 2026-08-11 ─────────────────────────────────────────────────────────────
+ * This file's `EXPECTED = { images: 40, clients: 16, projects: 20, sourceRows: 57 }` census was
+ * replaced by a one-directional set comparison (`../lib/r23/reconcile.ts`). R45 measured
+ * production at **58 rows / 41 media** against dev's 57 / 40 — the owner added a photograph in
+ * the prod admin — so the census made the migration inapplicable to production, and widening it
+ * would have made it inapplicable to dev. The two databases legitimately differ and will keep
+ * differing. What the backfill needs is that no row is silently orphaned, which is a set
+ * comparison and is true of both. See `reconcile.ts` for the full argument.
+ *
+ * **Editing an applied migration is normally forbidden, and this is the narrow exception.** That
+ * rule protects a migration applied somewhere you cannot roll back. This one is applied on **dev
+ * only** — prod's `migrate:status` reads `Ran: No` (R45) — dev is disposable, and R23b-i
+ * *demonstrated* `down` → `up` clean and idempotent with a byte-identical export afterwards. Dev
+ * was rolled back and re-applied as part of R49, so no database anywhere holds the old backfill
+ * while this file describes a new one. **This is not licence to edit other applied migrations.**
  */
 
 /** Payload's `locale: 'all'` — reads/writes every locale in one pass. Same shim as seed.ts. */
 const ALL = 'all' as any
 
-/** The counts the task cross-checks against, computed from the worksheet, asserted here. */
-const EXPECTED = { images: 40, clients: 16, projects: 20, sourceRows: 57 } as const
+/**
+ * A labelled vacuity floor, not a census (`docs/testing-standards.md` §2's idiom). R49 removed
+ * every count-equality assertion; this one exists only so that "the generated map was empty, so
+ * the backfill wrote nothing and reported success" fails instead of passing green.
+ */
+const MIN_WORKSHEET_ENTRIES = 1
 
 type Loc = { es?: string | null; en?: string | null } | null
 
@@ -53,13 +75,6 @@ type Row = {
 const fail = (msg: string): never => {
   throw new Error(`[R23b-i backfill] ${msg}`)
 }
-
-/**
- * The generative rule, applied mechanically: one Cliente + one Categoría = one Proyecto
- * (§3.0). Each `—` image is its own project, so it gets a key nothing can collide with.
- */
-const projectKey = (e: { categoria: string; cliente: string | null; archivo: string }) =>
-  e.cliente === null ? `${e.categoria}|—|${e.archivo}` : `${e.categoria}|${e.cliente}`
 
 /**
  * The `order` for the ONE image that is on home and in no page array — `fisio-equina.png`.
@@ -156,24 +171,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   // ===========================================================================
 
   // --- Check 0: the worksheet, before the database is read at all. ----------
-  // A blank cell already throws in parseWorksheet(); these assert the answers still add up
-  // to what R23b-i was scoped against, so a re-generated map that changed the shape of the
-  // migration cannot slip through silently.
+  // A blank cell already throws in parseWorksheet() and the committed map is pinned to the
+  // worksheet by tests/unit/r23-worksheet.test.ts, so there is nothing left to assert here
+  // beyond the vacuity floor. R49 deleted the three census checks that used to live here —
+  // they described dev, and production is a different, equally valid shape.
   const entries = R23_CLIENT_MAP
-  if (entries.length !== EXPECTED.images)
-    fail(`worksheet has ${entries.length} images, expected ${EXPECTED.images}.`)
-
-  const clientNames = [...new Set(entries.map((e) => e.cliente).filter((c): c is string => !!c))]
-  if (clientNames.length !== EXPECTED.clients)
-    fail(`worksheet names ${clientNames.length} distinct clients, expected ${EXPECTED.clients}.`)
-
-  const groups = new Map<string, typeof entries>()
-  for (const e of entries) {
-    const k = projectKey(e)
-    groups.set(k, [...(groups.get(k) ?? []), e])
-  }
-  if (groups.size !== EXPECTED.projects)
-    fail(`worksheet yields ${groups.size} projects, expected ${EXPECTED.projects}.`)
+  if (entries.length < MIN_WORKSHEET_ENTRIES)
+    fail('clientMap.generated.ts holds no entries, so there is nothing to backfill. Regenerate it.')
 
   // --- Read the database. ---------------------------------------------------
   const cats = await payload.find({ collection: 'categories', limit: 100, depth: 0, req })
@@ -210,17 +214,13 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
       categoryLabel: p.categoryLabel ?? null,
     }))
 
-  if (rows.length !== EXPECTED.sourceRows)
-    fail(`found ${rows.length} image rows, expected ${EXPECTED.sourceRows}.`)
-
   // --- Index the rows by photograph, and reconcile with the worksheet. ------
   const onPage = (r: Row) => r.placement === 'page' || r.placement === 'both'
   const onHome = (r: Row) => r.placement === 'home' || r.placement === 'both'
-  const keyOf = (categoria: string, archivo: string) => `${categoria}|${archivo}`
 
   const photos = new Map<string, { page?: Row; home?: Row }>()
   for (const r of rows) {
-    const k = keyOf(r.categoria, r.archivo)
+    const k = photoKey(r.categoria, r.archivo)
     const slot = photos.get(k) ?? {}
     if (onPage(r)) {
       if (slot.page) fail(`${k} has two page rows (${slot.page.id}, ${r.id}).`)
@@ -233,12 +233,41 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     photos.set(k, slot)
   }
 
-  // Both directions. A photograph the owner never answered for must NOT be guessed at, and a
-  // worksheet answer with no row behind it means the worksheet and the database disagree.
-  const answered = new Set(entries.map((e) => keyOf(e.categoria, e.archivo)))
-  for (const k of photos.keys())
-    if (!answered.has(k)) fail(`${k} exists in the database but has no client cell in the worksheet.`)
-  for (const k of answered) if (!photos.has(k)) fail(`the worksheet answers for ${k}, but no row uses it.`)
+  // --- THE gate (R49). One direction is fatal, the other is a note. ---------
+  // Fatal: a photograph in the database that the worksheet never describes. It would receive no
+  // parent, and R23b-ii deletes unparented rows — so it aborts, before the first write, naming
+  // the file. This is the assertion that used to be `rows.length !== 57`, doing the job that one
+  // was standing in for, on any database.
+  // Informational: a worksheet answer with no row behind it. That used to abort too, and it is
+  // exactly what dev looks like now — `1.jpg` exists only in production. It is not an error for
+  // a database to hold a subset of the photographs the worksheet describes.
+  const state = reconcile(
+    entries,
+    new Map<string, DbPhotograph>(
+      [...photos].map(([k, slot]) => {
+        const r = (slot.page ?? slot.home)!
+        return [k, { id: r.id, placement: r.placement }]
+      }),
+    ),
+  )
+  if (state.unknown.length) fail(formatUnknown(state.unknown))
+  if (state.unused.length)
+    payload.logger.info(
+      `[R23b-i] ${state.unused.length} worksheet entr${state.unused.length === 1 ? 'y describes a photograph' : 'ies describe photographs'} ` +
+        `this database does not hold — skipped, not an error: ${state.unused.join(', ')}`,
+    )
+
+  // Everything below backfills from `covered` — the entries this database actually has rows for.
+  // Deriving the clients from it too (rather than from the whole worksheet) is what stops a
+  // client whose only photograph is missing here becoming an orphan `clients` row.
+  const covered = state.covered
+  const clientNames = distinctClientNames(covered)
+
+  const groups = new Map<string, typeof covered>()
+  for (const e of covered) {
+    const k = projectKey(e)
+    groups.set(k, [...(groups.get(k) ?? []), e])
+  }
 
   // --- Per-categoría sequence facts, for the one home-only image. -----------
   const pairedByCat = new Map<string, Array<{ home: number; page: number }>>()
@@ -273,7 +302,7 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     const cliente = groupEntries[0]!.cliente
 
     const built = groupEntries.map((e) => {
-      const slot = photos.get(keyOf(e.categoria, e.archivo))!
+      const slot = photos.get(photoKey(e.categoria, e.archivo))!
       const { page, home } = slot
       // The page row is the primary source; a home-only photograph falls back to its home
       // row. Branding home rows carry `alt` but no `title`/`categoryLabel`, and non-branding
@@ -342,8 +371,11 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
     imagesWritten += built.length
   }
 
-  if (imagesWritten !== EXPECTED.images)
-    fail(`wrote ${imagesWritten} image rows, expected ${EXPECTED.images}.`)
+  // Not a census — a self-check that the write loop wrote what the reconciliation planned. It
+  // holds at 40 on dev and at 41 on production because both sides are derived from the same
+  // `covered`, which is the point of R49's change.
+  if (imagesWritten !== covered.length)
+    fail(`wrote ${imagesWritten} image rows, but reconciliation covered ${covered.length}.`)
 
   payload.logger.info(
     `[R23b-i] backfilled ${clientIdByName.size} clients, ${groups.size} project parents, ` +
@@ -360,7 +392,8 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   // This destroys the `clients` rows and every `projects.cliente_id` — the only NEW data in
   // this migration rather than moved data. That is acceptable and planned for: the completed
   // worksheet is the durable source, it is committed to git, and re-running `up` reconstructs
-  // both exactly. The original 57 `projects` rows are never touched by either direction.
+  // both exactly. The pre-existing `projects` rows are never touched by either direction —
+  // whether there are 57 of them (dev) or 58 (production).
   await db.execute(sql`
    ALTER TABLE "clients" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "projects_images" DISABLE ROW LEVEL SECURITY;

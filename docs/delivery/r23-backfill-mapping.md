@@ -7,6 +7,14 @@
 > `tests/unit/r23-worksheet.test.ts` fails in CI if the two ever diverge. **Editing §2 changes
 > what a re-run of the migration would do** — regenerate the map and re-read §5.4 first.
 >
+> **Amended once since the signature, on 2026-08-11 by R49: one row, `1.jpg`, in
+> [§2.2 C](#c-añadida-después-de-la-firma--solo-existe-en-producción--1-imagen).** It is not a
+> 41st question for the owner — it is a photograph added in the **production** admin after the
+> sign-off, recorded here with the owner's parked `—` so that the migration knows about it. The
+> owner's 40 answers below are untouched. **The hoja therefore describes 41 photographs and any
+> one database holds a subset of them** (dev: 40, prod: 41) — since R49 the migration checks
+> that every row is described, not that a fixed number of rows exists.
+>
 > This file is the human decision
 > gate that **R23a-ii** exists to produce and **R23b** will execute. Design rationale lives in
 > [r23-target-model.md](r23-target-model.md); the original problem statement is
@@ -93,6 +101,12 @@ imagen**. Reproducible con `node /tmp/r23-worksheet.mjs`:
 | **Total** | **40** | **17** | **22** | **1** | **57** |
 
 **17 × 2 + 22 + 1 = 57** ✓ — las 57 filas quedan cubiertas por las 40 imágenes.
+
+> **Este recuento es el del contenido publicado, y sigue siendo el de dev.** Producción tiene
+> **58 filas / 41 imágenes** desde el 2026-08-10: `1.jpg`, la única fila con `placement: 'both'`
+> de las dos bases de datos, por lo que suma una fila y no dos
+> ([§2.2 C](#c-añadida-después-de-la-firma--solo-existe-en-producción--1-imagen), R45). **Los
+> dos números son correctos a la vez** y la migración ya no exige ninguno de ellos.
 
 *(La imagen 58 del CMS es el caso de estudio de UX/UI. No tiene fila de imagen, ya es un
 proyecto de verdad, y este documento no lo toca.)*
@@ -198,7 +212,7 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 
 ---
 
-### 2.2 Fotografía de Producto — 12 imágenes, 18 filas
+### 2.2 Fotografía de Producto — 12 imágenes, 18 filas (13 y 19 en producción, [§2.2 C](#c-añadida-después-de-la-firma--solo-existe-en-producción--1-imagen))
 
 #### A. Ya tienen cliente — solo revisa · 1 proyecto, 2 imágenes
 
@@ -241,6 +255,35 @@ aparece — **es contexto, no la respuesta**: `sports` contiene tres clientes di
 >
 > **Sobre «Vinte-Vinte»:** parece un nombre propio, pero podría ser el nombre del *set*.
 > Ver [§3.1](#31-cerca-pero-no-lo-doy-por-hecho).
+
+#### C. Añadida después de la firma — solo existe en producción · 1 imagen
+
+> **Añadida por R49 el 2026-08-11, no por el propietario.** No es una casilla más de las 18:
+> es una fotografía que el propietario subió **directamente en el admin de producción** el
+> 2026-08-10, después de firmar esta hoja. R45 la encontró (`projects#581`, `Sesión producto`,
+> `placement: 'both'`), y como la hoja no la describía, la migración abortaba contra producción
+> — [R45](r45-production-preflight.md).
+
+| # | Archivo | Texto de la fila | Dónde | **CLIENTE** |
+|---|---|---|---|---|
+| **P1** | `1.jpg` | Sesión producto / Sesiones privadas | ambas | **—** |
+
+> **El `—` es un marcador aparcado, no un descuido.** El propietario **decidió aparcar** el
+> cliente real de esta foto; no es que se le olvidara y tampoco es «sin responder». `—` la deja
+> como **su propio proyecto**, que es exactamente lo que hace falta para desbloquear la
+> migración, y **reasignarla luego cuesta un clic**: en el modelo nuevo `Cliente` es un
+> desplegable del admin, no un texto tecleado en cada fila. Adivinar el cliente es justo el
+> error que [§3.1](#31-cerca-pero-no-lo-doy-por-hecho) y R23a-ii existen para no cometer.
+>
+> **Solo suma un proyecto donde la fila existe.** En producción la hoja rinde **21 proyectos ·
+> 41 imágenes**; en dev, que no tiene esta foto, sigue rindiendo **20 · 40**. Esa diferencia ya
+> no rompe nada: desde R49 la migración comprueba que *toda fila de la base de datos esté en la
+> hoja*, no que haya exactamente N filas.
+>
+> **Las otras 14 (`2.jpg`…`15.jpg`) NO están aquí a propósito.** Se subieron a producción en el
+> mismo lote pero **no están asignadas a ningún proyecto**, así que no son filas y la migración
+> no las ve. En cuanto el propietario coloque una, hay que añadirla aquí y regenerar el mapa —
+> la migración abortará nombrando el archivo hasta que se haga.
 
 ---
 
@@ -533,11 +576,14 @@ independiente del conductor y con [§1](#el-recuento-57-filas-40-imágenes).
 | | |
 |---|---|
 | Casillas rellenadas por el propietario | **18 / 18** — 40 / 40 contando las tablas A |
+| Filas añadidas después de la firma | **1** — `1.jpg`, por R49, con el `—` que el propietario dejó aparcado ([§2.2 C](#c-añadida-después-de-la-firma--solo-existe-en-producción--1-imagen)) |
 | Excepciones declaradas ([§4](#4-lo-que-la-regla-no-resuelve), 1.5) | **ninguna** — se aplica la regla generativa tal cual |
 | `FisioEquina` solo en inicio ([§4](#4-lo-que-la-regla-no-resuelve), 1.6) | **sigue abierta, y no bloquea** — se conservó como está (`showOnHome`, `showOnPage: false`). Cambiarlo es un clic, cuando quieras |
 | Fecha | 2026-08-11 (ejecutado en R23b-i) |
 
-**Resultado de aplicar la hoja:** **16 clientes · 20 proyectos · 40 imágenes**, desde 57 filas.
+**Resultado de aplicar la hoja:** **16 clientes · 20 proyectos · 40 imágenes**, desde 57 filas —
+en **dev**, que es donde se ejecutó. En **producción**, que además tiene `1.jpg`, la misma hoja
+rinde **16 clientes · 21 proyectos · 41 imágenes** desde 58 filas: un proyecto más, sin cliente.
 Se verificó automáticamente, no a ojo — [§5.3](r23-target-model.md#53-verification-in-order)
 comprobación 0 vive ahora en `tests/unit/r23-worksheet.test.ts`.
 
