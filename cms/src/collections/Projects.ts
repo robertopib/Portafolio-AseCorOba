@@ -2,19 +2,27 @@ import type { CollectionConfig } from 'payload'
 import { caseStudyBodyField } from '../blocks/caseStudyBody'
 
 /**
- * Proyectos — the leaf level of the "Categorías → Proyectos" model.
+ * Proyectos — a client's body of work in one Categoría, and the photographs in it.
  *
  * A Proyecto is either:
- *   - type='image'     : a normal project card (image + title/alt/category), OR
+ *   - type='image'     : a project holding one or more photographs in `images[]`, OR
  *   - type='caseStudy' : the full UX/UI case study (the `caseStudy` group holds
- *                        all of content/sections/uxui-casestudy.json).
+ *                        all of content/sections/uxui-casestudy.json). It is the
+ *                        one Proyecto with no photographs at all.
  *
- * Each Proyecto belongs to a Categoría (relationship) and declares where it
- * shows (home preview, category page, or both). `group` is only used for the
- * branding sub-groups (sports / adrianaMunoz / anaGrace / logos).
+ * Each Proyecto belongs to exactly one Categoría and, optionally, one Cliente.
+ * `group` is only used for the branding page sections (sports / adrianaMunoz /
+ * anaGrace / logos) and selects a LAYOUT SLOT, not a sub-project (§3.1).
  *
- * `size` is a masonry span token for the layout; it is CMS-organizational and
- * does not appear in the content JSON. `order` sorts cards within their group.
+ * EVERYTHING ABOUT A PHOTOGRAPH LIVES IN `images[]`, NOT HERE (R23b-iii). A
+ * Proyecto used to *be* a photograph: it carried `placement`, `image`, `alt`,
+ * `categoryLabel`, `order` and `size` directly, one row per card, so the same
+ * photo on home and on its category page was two rows. Those six columns were
+ * dropped once both exporters read `images[]` and the emitted bytes were proved
+ * unchanged; the 37 rows that only existed to hold a duplicate went with them.
+ * Do not reintroduce a top-level placement or image — WodFest puts two of its
+ * images on home and `fisio-equina.png` is on home and on no page, neither of
+ * which a parent-level flag can express (r23-target-model.md §3.2).
  *
  * The `caseStudy` group uses a short dbName ('cs') so its deeply-nested
  * localized arrays stay within Postgres' 63-char table-name limit.
@@ -34,10 +42,14 @@ export const Projects: CollectionConfig = {
     useAsTitle: 'internalTitle',
     group: 'Portafolio',
     description:
-      'Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.',
-    defaultColumns: ['internalTitle', 'cliente', 'category', 'type', 'placement', 'group', 'order'],
+      'Cada proyecto del portafolio: su cliente, su categoría, y las imágenes que lo componen.',
+    defaultColumns: ['internalTitle', 'cliente', 'category', 'type', 'group'],
   },
-  defaultSort: 'order',
+  // R23b-iii: was `order`, which Payload puts straight into ORDER BY — a dropped column here
+  // breaks every projects query, admin list and export alike. The parent has no order of its
+  // own any more (ordering is per-photograph, on images[].order), so sort by the name the
+  // admin list already shows.
+  defaultSort: 'internalTitle',
   fields: [
     {
       name: 'category',
@@ -84,20 +96,6 @@ export const Projects: CollectionConfig = {
       },
     },
     {
-      name: 'placement',
-      type: 'select',
-      required: true,
-      label: 'Dónde se muestra',
-      admin: {
-        description: 'Elige dónde aparece esta tarjeta.',
-      },
-      options: [
-        { label: 'Solo vista previa (inicio)', value: 'home' },
-        { label: 'Solo página de la categoría', value: 'page' },
-        { label: 'Ambas', value: 'both' },
-      ],
-    },
-    {
       name: 'group',
       type: 'text',
       label: 'Grupo',
@@ -108,40 +106,6 @@ export const Projects: CollectionConfig = {
         // Categoría and Cliente (r23-target-model.md §3.1).
         description:
           'Solo para Branding: en qué sección de la página aparece este proyecto (sports, adrianaMunoz, anaGrace, logos).',
-      },
-    },
-    {
-      name: 'size',
-      type: 'select',
-      label: 'Tamaño (masonry)',
-      admin: {
-        description: 'Cuánto espacio ocupa la tarjeta en la cuadrícula.',
-      },
-      options: [
-        { label: 'Pequeño', value: 'small' },
-        { label: 'Mediano', value: 'medium' },
-        { label: 'Grande', value: 'large' },
-        { label: 'Ancho', value: 'wide' },
-        { label: 'Alto', value: 'tall' },
-      ],
-    },
-    {
-      name: 'image',
-      type: 'upload',
-      relationTo: 'media',
-      label: 'Imagen',
-      admin: {
-        description: 'La imagen de la tarjeta.',
-      },
-    },
-    {
-      name: 'order',
-      type: 'number',
-      required: true,
-      label: 'Orden',
-      admin: {
-        description:
-          'Número para ordenar dentro de su grupo (el menor aparece primero).',
       },
     },
     {
@@ -169,21 +133,6 @@ export const Projects: CollectionConfig = {
       localized: true,
       label: 'Título',
     },
-    {
-      name: 'alt',
-      type: 'text',
-      localized: true,
-      label: 'Texto alternativo (accesibilidad)',
-    },
-    {
-      name: 'categoryLabel',
-      type: 'text',
-      localized: true,
-      label: 'Etiqueta de categoría',
-      admin: {
-        description: 'La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").',
-      },
-    },
 
     // ================= IMÁGENES DEL PROYECTO (R23b-i) =================
     // The level the model was missing. A Proyecto is a client's body of work in one
@@ -201,11 +150,12 @@ export const Projects: CollectionConfig = {
     // `fisio-equina.png` is on home and in no page array at all. A parent-level flag can
     // say "this project appears on home", not "these two of its images do".
     //
-    // READ BY BOTH EXPORTERS SINCE R23b-ii. R23b-i landed the data while both twins still read
-    // the old top-level `image`/`alt`/`order`/… columns above; R23b-ii switched them over and
-    // proved the emitted bytes did not move. Those old columns are STILL POPULATED and are the
-    // fallback until R23b-iii drops them — deliberately after a successful promotion, so the
-    // deploy that first runs the new emitters against production still has a way back.
+    // THE ONLY SOURCE EITHER EXPORTER READS, SINCE R23b-ii. R23b-i landed the data while both
+    // twins still read the old top-level `image`/`alt`/`order`/… columns; R23b-ii switched them
+    // over and proved the emitted bytes did not move; R23b-iii then dropped those columns and
+    // the 37 rows that only held duplicates, so there is no longer a second place a
+    // photograph can live. The fallback that removal gave up is a Neon backup branch, which
+    // RELEASE.md step 2 already requires before any promotion and which restores everything.
     {
       name: 'images',
       type: 'array',
