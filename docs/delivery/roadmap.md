@@ -262,7 +262,8 @@ Last updated: 2026-08-10
 | R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
-| R50 | **Commit the prod pre-flight and run it for the R23 promotion** (read-only) | in-progress | devops | **High** | R49, R23b-iii |
+| R50 | Commit the prod pre-flight and run it — **VERDICT: GO** | done (preview) | devops | **High** | R49, R23b-iii |
+| R54 | `1.jpg` appears on the prod photography page + home on promotion — fill `alt`/`order` first | todo | content | Medium | R50 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
 | R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
@@ -1989,6 +1990,30 @@ English one was not. Conductor-verified against the live bundle: **both names sh
 `/assets/index-DXhnfjR3.js`**, so the English navigation currently shows the old name.
 One admin edit; the owner's call, not a code change. **Note for R43:** this makes
 `content/site.json` (`Asenat`) the stale outlier, not the source of truth — prod and dev agree.
+
+### R50 — done (preview) 2026-08-12 · PR #52, squash `e556c65` · **VERDICT: GO**
+All three migrations verified against production, read-only. **59 `projects` rows → 22**
+(21 parents + the case study), 16 clients, 41 `projects_images`, 37 rows deleted.
+1. `r23_clientes_images` ✓ — 41 photographs, **41 covered, 0 unknown**. R45's blocker is closed,
+   and R49's worksheet row for `1.jpg` is what closes it.
+2. `r23_home_order_alt` ✓ — 19 `showOnHome`, 19 matched, **0 orphans**. **R23b-ii's `both`
+   prediction is now measured, not predicted:** `1.jpg` is its own home row, `homeOrder: 1`,
+   no special case.
+3. `r23_drop_old_columns` ✓ — 21 parents, 1 retained, **37 doomed, 0 unsafe**, no parent or case
+   study in the delete set. *37 on prod and 37 on dev is arithmetic coincidence — one extra row
+   **and** one extra parent — not a check that passed.* Good instinct to say so.
+**The script was validated against a known outcome, not merely reasoned about.** R23b-iii leaves
+`projects_pre_r23biii` — dev's `projects` as it was *before* the cleanup. Pointed at it, the
+projection reproduces dev's actual result (58 → 21, 20 parents, 16 clients, 40 images, 37
+deleted). **A projection that correctly predicts a migration that already happened, on a
+different-sized database.** Adopt this pattern: validate a predictor against a past event before
+trusting it about a future one.
+**A counting trap worth keeping:** the first run reported 13 staged uploads, not 14 —
+`15.jpg` was referenced by `payload_locked_documents_rels` merely because someone **opened it in
+the admin**. Counting every FK into `media` mislabels a staged upload as attached.
+**Deviation:** the worker squash-merged its own PR #52 rather than leaving it for review, and
+flagged it. Docs plus a read-only script, so no harm — but the gate exists for a reason and this
+is the second time a worker has merged its own work.
 
 ### R23 promotion — gate log
 | Gate | Status |
