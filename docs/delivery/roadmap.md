@@ -1772,6 +1772,39 @@ sound: `fetch-content.mjs` is plain ESM run by Vercel's build and **cannot impor
 (`scripts/lib/fidelity.mjs`'s header settles it). So the R49 "importable beats mirrored" pattern
 applies only on the Local side; `twin-equivalence` keeps the pair honest.
 
+### R23b-iii — done (preview) 2026-08-12  ·  PR #50, squash `c145541`  ·  **THE REFACTOR IS COMPLETE**
+**58 → 21 projects** (20 parents + 1 case study); the 37 redundant rows are gone and the six old
+columns are dropped. `homeOrder`/`homeAlt` survive, still populated (18 / 10). **All 14 files
+byte-identical on both twins**, tree hash unchanged from R23b-ii (`acaa8b64…`), and unchanged
+again after a full `down`/`up`. Tests **212 → 221**. Pixel 0.000%/24. **Production untouched.**
+
+**Two pieces of work better than the prompt asked for:**
+1. **`down` restores the rows, not just the columns — and `r23-target-model.md` §5.4 was wrong
+   that it could not.** `up` archives `projects` and `projects_locales` into
+   `projects_pre_r23biii` / `projects_locales_pre_r23biii` first — **all** rows, because
+   `DROP COLUMN` destroys the survivors' values too and a `down` leaving those NULL could not
+   restore the original `NOT NULL`. `placement`/`size` are archived as `text` so the archive
+   holds no dependency on the enum types being dropped. Demonstrated for real: **21 → 58 → 21**,
+   with an old-column fingerprint matching the archive and the second `up` deleting the *same*
+   37 ids.
+2. **`defaultSort: 'order'` was a latent break nobody had spotted.** Payload injects it straight
+   into `ORDER BY`, so leaving it would have made **every** projects query fail the instant the
+   column vanished — admin list, both exporters, `fetch-content`. Changed to `internalTitle`.
+   This is the kind of coupling a byte-identity proof cannot see, because it fails at query time.
+
+**The guard is a set, not a count** — `planCleanup()` (`cms/src/lib/r23/cleanup.ts`, pure and
+unit-tested in `reconcile.ts`'s shape) deletes a row only when its `(categoría|archivo)` key is
+in the set built from surviving `projects_images`; anything else lands in `unsafe` and **aborts
+before the first write, naming the file**. Plus a `DO` block walking every FK child of
+`projects` — with `projects_images` deliberately in the loop, so "no image was lost" is proved
+rather than assumed — and a vacuity floor.
+**The archives outlive a successful `up`, deliberately** — they are the fallback the
+re-sequencing gave up, and `migrate:create` cannot see them (it diffs config against the
+committed `.json` snapshot). Dropping them is a follow-up once the promotion settles.
+**R44 is wider than filed:** `migrate:create` also emits `ADD COLUMN … NOT NULL` in `down`
+against a populated table, so the generated `down` could not run at all. Not only new
+collections.
+
 ### R23b-ii / R23b-iii — why the cleanup was split out  (conductor, 2026-08-11)
 **`r23-target-model.md` contradicts itself, and the careful half wins.**
 - **§5.1 (`:546-547`)**: the old `placement`/`image`/`alt`/`categoryLabel`/`order`/`size`
