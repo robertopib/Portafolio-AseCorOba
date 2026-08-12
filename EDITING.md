@@ -95,7 +95,13 @@ también su versión en inglés para que la web quede completa en los dos idioma
 
 ## 4. Cómo añadir, cambiar o reordenar una imagen de proyecto
 
-Son dos pasos: primero subir la imagen, y luego crear la tarjeta del proyecto.
+> **Esto cambió.** Antes cada fotografía era un "proyecto" suelto, y una misma foto
+> que salía en inicio y en su página estaba metida **dos veces**. Ahora un
+> **Proyecto** es el trabajo que hiciste para un cliente en una categoría, y las
+> fotografías van **dentro** de él, en la lista **Imágenes**. La sesión de las 8
+> fotos de las cajas de regalo es **un solo Proyecto**, no ocho.
+
+Son dos pasos: primero subir la imagen, y luego añadirla al Proyecto.
 
 ### Paso A — Subir la imagen
 1. Ve a **Portafolio → Biblioteca de Imágenes**.
@@ -104,29 +110,44 @@ Son dos pasos: primero subir la imagen, y luego crear la tarjeta del proyecto.
 4. Escribe un **Texto alternativo** (una descripción corta de la imagen).
 5. Pulsa **Guardar**.
 
-### Paso B — Crear la tarjeta del proyecto
-1. Ve a **Portafolio → Imágenes de Proyectos**.
-2. Pulsa **Crear nuevo**.
-3. Rellena los campos:
-   - **Página**: ¿en qué página aparece? (Branding, Web y Apps, etc.).
-   - **Dónde se muestra**:
-     - *Solo vista previa (inicio)*: solo en la página de inicio.
-     - *Solo página del proyecto*: solo dentro de la página de esa sección.
-     - *Ambas*: en las dos.
-   - **Imagen**: elige la imagen que subiste en el Paso A.
-   - **Orden**: un número para colocarla. El número más bajo aparece primero.
-   - **Grupo** (solo para Branding): el subgrupo, por ejemplo deportes o belleza.
+### Paso B — Añadir la imagen a su Proyecto
+1. Ve a **Portafolio → Proyectos** y abre el proyecto al que pertenece. Casi
+   todos se llaman *Cliente — Categoría*, por ejemplo *WodFest Costa Rica —
+   Branding Corporativo*.
+   Si el trabajo es de un cliente nuevo, primero créalo en **Portafolio →
+   Clientes**, y luego crea el Proyecto con **Crear nuevo**: elige su
+   **Categoría**, su **Cliente**, y ponle un **Título interno** (solo lo ves tú).
+2. Baja hasta **Imágenes** y pulsa el botón **"Add Imagen"** del final de la
+   lista (los botones del panel están en inglés; los campos, en español).
+3. Rellena la fila:
+   - **Imagen**: elige la que subiste en el Paso A.
+   - **Texto alternativo**: el texto de la tarjeta en la página de la categoría.
+   - **Etiqueta de categoría**: la etiqueta pequeña de la tarjeta ("Logo",
+     "Packaging"…).
+   - **Orden**: un número para colocarla dentro de su categoría. El más bajo
+     aparece primero.
+   - **Mostrar en la página de la categoría** y **Mostrar en la vista previa de
+     inicio**: marca dónde quieres que salga. Puedes marcar las dos.
+   - Si la marcas para inicio, aparecerán además **Título en inicio**, **Etiqueta
+     de categoría en inicio**, **Orden en inicio** y **Texto alternativo en
+     inicio**. En inicio el texto suele ser distinto del de la página — por eso
+     son campos aparte. Si ya hay otras imágenes en inicio, copia el estilo de
+     una de ellas.
 4. Pulsa **Guardar**.
 
 ### Cambiar una imagen ya existente
 1. Sube la nueva imagen en la **Biblioteca de Imágenes** (Paso A).
-2. Ve a **Imágenes de Proyectos**, abre la tarjeta que quieras cambiar y
-   selecciona la nueva imagen en el campo **Imagen**.
+2. Ve a **Portafolio → Proyectos**, abre el proyecto, busca su fila en
+   **Imágenes** y selecciona la nueva imagen en el campo **Imagen**.
 3. Guarda.
 
 ### Reordenar las imágenes
-Solo tienes que cambiar el número del campo **Orden** en cada tarjeta.
-El número más bajo se muestra primero. Guarda después de cada cambio.
+Cambia el número del campo **Orden** de cada fila (y el de **Orden en inicio** si
+la imagen también sale en inicio). El número más bajo se muestra primero. Guarda
+después de cada cambio.
+
+> Arrastrar las filas de **Imágenes** cambia el orden dentro del formulario, pero
+> **la web se ordena por el número de Orden**, no por cómo estén colocadas aquí.
 
 ---
 

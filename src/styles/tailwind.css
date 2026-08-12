@@ -1,4 +1,17 @@
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
+/**
+ * Test files are NOT class sources (roadmap R12).
+ *
+ * `@source` above scans src/** as TEXT, so any class-shaped token anywhere in a
+ * scanned file becomes a real CSS rule — R17 hit this with the word "static" in a
+ * prose comment. A co-located `*.test.ts` (standard §4) inevitably names classes
+ * in its assertions, and without this exclusion the shipped stylesheet grows for
+ * every one of them. Measured on this repo: one probe test mentioning
+ * `line-clamp-2 truncate static` added `.static`, `.line-clamp-2` and `.truncate`
+ * to dist and moved the CSS bundle — i.e. it would have reddened `pixel-parity`.
+ * With this line the bundle is byte-identical.
+ */
+@source not '../**/*.test.{ts,tsx}';
 
 @import 'tw-animate-css';

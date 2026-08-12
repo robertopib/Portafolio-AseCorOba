@@ -70,6 +70,7 @@ export interface Config {
     pages: Page;
     media: Media;
     categories: Category;
+    clients: Client;
     projects: Project;
     users: User;
     'payload-kv': PayloadKv;
@@ -82,6 +83,7 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    clients: ClientsSelect<false> | ClientsSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -957,7 +959,26 @@ export interface Media {
   };
 }
 /**
- * Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.
+ * Las personas y marcas para las que se hizo el trabajo. Un cliente puede tener proyectos en varias categorías.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients".
+ */
+export interface Client {
+  id: number;
+  /**
+   * El nombre del cliente, tal y como quieres verlo en el panel.
+   */
+  name: string;
+  /**
+   * Notas internas sobre este cliente. No se muestran en la web.
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Cada proyecto del portafolio: su cliente, su categoría, y las imágenes que lo componen.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
@@ -969,29 +990,17 @@ export interface Project {
    */
   category: number | Category;
   /**
+   * ¿Para quién se hizo este trabajo? Un cliente puede tener proyectos en varias categorías; cada uno es un proyecto aparte.
+   */
+  cliente?: (number | null) | Client;
+  /**
    * Una tarjeta de imagen normal, o un caso de estudio completo.
    */
   type: 'image' | 'caseStudy';
   /**
-   * Elige dónde aparece esta tarjeta.
-   */
-  placement: 'home' | 'page' | 'both';
-  /**
-   * Solo para Branding: subgrupo (sports, adrianaMunoz, anaGrace, logos).
+   * Solo para Branding: en qué sección de la página aparece este proyecto (sports, adrianaMunoz, anaGrace, logos).
    */
   group?: string | null;
-  /**
-   * Cuánto espacio ocupa la tarjeta en la cuadrícula.
-   */
-  size?: ('small' | 'medium' | 'large' | 'wide' | 'tall') | null;
-  /**
-   * La imagen de la tarjeta.
-   */
-  image?: (number | null) | Media;
-  /**
-   * Número para ordenar dentro de su grupo (el menor aparece primero).
-   */
-  order: number;
   /**
    * Nombre solo para el panel (no se muestra en la web).
    */
@@ -1001,11 +1010,58 @@ export interface Project {
    */
   slug?: string | null;
   title?: string | null;
-  alt?: string | null;
   /**
-   * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").
+   * Las fotografías de este proyecto, en orden. Cada una es una tarjeta en la web.
    */
-  categoryLabel?: string | null;
+  images?:
+    | {
+        /**
+         * La fotografía.
+         */
+        image?: (number | null) | Media;
+        /**
+         * El texto de la tarjeta en la página de la categoría.
+         */
+        alt?: string | null;
+        /**
+         * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Packaging").
+         */
+        categoryLabel?: string | null;
+        /**
+         * Número para ordenar las tarjetas dentro de la categoría (el menor aparece primero).
+         */
+        order: number;
+        /**
+         * Cuánto espacio ocupa la tarjeta en la cuadrícula.
+         */
+        size?: ('small' | 'medium' | 'large' | 'wide' | 'tall') | null;
+        /**
+         * ¿Aparece esta imagen en la página de su categoría?
+         */
+        showOnPage?: boolean | null;
+        /**
+         * ¿Aparece también en la vista previa de esta categoría en la página de inicio?
+         */
+        showOnHome?: boolean | null;
+        /**
+         * Solo si aparece en inicio: el título de la tarjeta allí, que suele ser distinto del texto alternativo.
+         */
+        homeTitle?: string | null;
+        /**
+         * Solo si aparece en inicio: la etiqueta pequeña allí, que suele incluir el nombre del cliente.
+         */
+        homeCategoryLabel?: string | null;
+        /**
+         * Solo si aparece en inicio: su posición en la vista previa de inicio, que puede diferir del orden en la página de la categoría.
+         */
+        homeOrder?: number | null;
+        /**
+         * Solo si aparece en inicio: el texto alternativo de la tarjeta allí. Suele estar vacío — la mayoría de las vistas previas de inicio muestran título y etiqueta, no alt.
+         */
+        homeAlt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * El contenido del caso de estudio, en bloques y en orden (como el cuerpo de un post). Arrastra para reordenar; agrega o elimina sub-bloques.
    */
@@ -1655,6 +1711,10 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
+        relationTo: 'clients';
+        value: number | Client;
+      } | null)
+    | ({
         relationTo: 'projects';
         value: number | Project;
       } | null)
@@ -2190,21 +2250,42 @@ export interface CategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "clients_select".
+ */
+export interface ClientsSelect<T extends boolean = true> {
+  name?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects_select".
  */
 export interface ProjectsSelect<T extends boolean = true> {
   category?: T;
+  cliente?: T;
   type?: T;
-  placement?: T;
   group?: T;
-  size?: T;
-  image?: T;
-  order?: T;
   internalTitle?: T;
   slug?: T;
   title?: T;
-  alt?: T;
-  categoryLabel?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        alt?: T;
+        categoryLabel?: T;
+        order?: T;
+        size?: T;
+        showOnPage?: T;
+        showOnHome?: T;
+        homeTitle?: T;
+        homeCategoryLabel?: T;
+        homeOrder?: T;
+        homeAlt?: T;
+        id?: T;
+      };
   body?:
     | T
     | {

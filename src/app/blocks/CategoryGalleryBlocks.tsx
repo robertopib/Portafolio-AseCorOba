@@ -43,13 +43,25 @@ export type GalleryCard = {
   group?: string | null;
 };
 
-/** Intro content (same shape a PortfolioIntro block carries) for home variants. */
+/**
+ * Intro content (same shape a PortfolioIntro block carries) for home variants.
+ *
+ * `studioLabel` / `roleLabel` are the per-category EDITABLE captions added by
+ * `feat(cms): per-category editable + hideable studio/role labels` — see
+ * `cms/src/collections/Categories.ts` and the `putLabel(...)` calls both
+ * exporters make. They are optional: when the Categoría leaves them unset, the
+ * renderers below fall back to the shared `home.studioLabel` / `home.roleLabel`
+ * strings in `content/ui.json`, which is what the live site shows today.
+ * `content/pages.json` predates the feature and carries neither key yet.
+ */
 type IntroContent = {
   sectionHeading?: LocalizedText;
   heading?: LocalizedText;
   tagline?: LocalizedText;
   description?: LocalizedText;
+  studioLabel?: LocalizedText;
   studioName?: string;
+  roleLabel?: LocalizedText;
   roleDescription?: LocalizedText;
   cta?: LocalizedText;
   sketchImage?: string;
@@ -1572,7 +1584,17 @@ function MarketingHome({ content }: { content: CategoryGalleryContent }) {
 // ===========================================================================
 // Dispatcher
 // ===========================================================================
-const VARIANTS: Record<string, (props: { content: CategoryGalleryContent }) => JSX.Element> = {
+/**
+ * EXPORTED for the content invariant test (tests/invariants/content-shape.test.ts,
+ * roadmap R12). `layoutVariant` is the SECOND silent-drop path in the render
+ * chain: a categoryGallery block whose variant is unknown here renders nothing,
+ * so a whole gallery vanishes even though its `blockType` is perfectly
+ * registered. Assert used ⊆ defined only — an unplaced variant is legitimate.
+ */
+export const VARIANTS: Record<
+  string,
+  (props: { content: CategoryGalleryContent }) => JSX.Element
+> = {
   "branding:sports": BrandingSports,
   "branding:beauty": BrandingBeauty,
   "branding:logos": BrandingLogos,
@@ -1587,9 +1609,32 @@ const VARIANTS: Record<string, (props: { content: CategoryGalleryContent }) => J
 };
 
 export function CategoryGallery({ content }: { content?: CategoryGalleryContent }) {
-  if (!content) return null;
+  // Both early returns below drop an ENTIRE gallery from the page. They used to
+  // do it in silence, which is the same failure as an unregistered blockType one
+  // layer up (see PageRenderer.tsx) — the blockType resolves fine, so nothing
+  // upstream notices, and the section just stops existing. Report, then degrade:
+  // returning null keeps the rest of the page alive and leaves rendered output
+  // untouched, so pixel-parity is unaffected. Local degradation via an error
+  // boundary is roadmap R18.
+  if (!content) {
+    console.error(
+      `[CategoryGallery] A categoryGallery block reached the renderer with no ` +
+        `content — this gallery is NOT being rendered. The export resolves a ` +
+        `block's Categoría into content/pages.json; an unresolved category ` +
+        `reference is the usual cause.`,
+    );
+    return null;
+  }
   const Variant = VARIANTS[content.layoutVariant];
-  if (!Variant) return null;
+  if (!Variant) {
+    console.error(
+      `[CategoryGallery] Unknown layoutVariant "${content.layoutVariant}" is not ` +
+        `in the variant dispatcher — this gallery is NOT being rendered. Add it ` +
+        `to VARIANTS in src/app/blocks/CategoryGalleryBlocks.tsx, or fix the ` +
+        `layoutVariant on the block in the CMS.`,
+    );
+    return null;
+  }
   return <Variant content={content} />;
 }
 

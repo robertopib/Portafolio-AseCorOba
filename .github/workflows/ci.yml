@@ -161,6 +161,114 @@ jobs:
         run: test -f dist/index.html && test -d dist/assets
 
   # ---------------------------------------------------------------------------
+  # Site typecheck (roadmap R17). Until this existed the site had no TypeScript
+  # dependency and no tsconfig.json, so every type under src/** was decorative:
+  # esbuild strips annotations without checking them, and `site` above passes on
+  # code that could not possibly compile.
+  #
+  # Kept as its OWN job rather than a step in `site` on purpose:
+  #   * a type error and a build error are different classes of failure and
+  #     should be distinguishable at a glance in the checks list;
+  #   * `site` exists to mirror the asecoroba-site Vercel build EXACTLY, and
+  #     Vercel does not run tsc. Do not fold this into it.
+  #
+  # Runs in parallel with `site`, so it adds no wall clock to the pipeline
+  # (~10 s of tsc). Offline: no secrets, no DATABASE_URI, no live CMS, and
+  # content/*.json is read only as committed fixtures.
+  #
+  # NOT YET A REQUIRED CHECK. GitHub does not infer required checks from a
+  # workflow — this gates nothing until the branch-protection required-checks
+  # list is updated by hand on BOTH main and preview (both enforce_admins: true)
+  # and verified with a real push. Per the roadmap's locked decision that should
+  # happen only after two green runs; batch it with R12's `tests` job so
+  # protection is touched once.
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Site typecheck (tsc --noEmit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+  # ---------------------------------------------------------------------------
+  # Tests (roadmap R12, per docs/testing-standards.md §6). The first test suite
+  # this repo has ever had.
+  #
+  # It exists because of a structural gap neither `site` nor `pixel-parity` can
+  # close: both build against the COMMITTED content/*.json fixtures, while
+  # production rebuilds against the LIVE CMS via a publish hook that never touches
+  # GitHub Actions. The deployed site is therefore never the artifact CI validated,
+  # and a 400-character heading, a portrait upload in a landscape slot, a cleared
+  # field or a renamed block ships entirely unseen. Content changes continuously by
+  # design; the public code is frozen. So this job tests what changes.
+  #
+  # Its own job rather than a step in `site`, for the same reasons `typecheck` is:
+  #   * a failing test and a failing build are different classes of failure and
+  #     should be distinguishable at a glance in the checks list;
+  #   * `site` mirrors the asecoroba-site Vercel build EXACTLY, and Vercel does not
+  #     run tests. Do not fold this into it.
+  #
+  # Runs in parallel with `site` and `typecheck`, so it adds no wall clock to the
+  # ~2-minute pipeline. Budget is 60 s INCLUDING install (standard §6); measured at
+  # ~2 s for the suite itself. If it ever exceeds the budget, move the slow test to
+  # a local-only script rather than raising the number.
+  #
+  # Offline, and structurally so: no secrets, no DATABASE_URI, no live CMS,
+  # fetch-content.mjs not run. Renderer tests use SYNTHETIC fixtures from
+  # tests/fixtures/; the invariant tests read committed content/*.json, which
+  # changes only on a deliberate local fetch-content run and never from an editor
+  # publishing. Editor activity cannot redden this job.
+  #
+  # DELIBERATELY NOT RUN HERE: Payload Local API integration tests. They need a
+  # real database and CI must never have one (standard §3/§6). If such a test is
+  # ever written it belongs behind its own local-only script — do not "helpfully"
+  # wire it in here.
+  #
+  # NOT YET A REQUIRED CHECK, exactly like `typecheck` above. Adding a job to this
+  # workflow gates nothing until the branch-protection required-checks list is
+  # updated by hand on BOTH main and preview (both enforce_admins: true) and
+  # verified with a real push. Per the roadmap's locked decision that happens only
+  # after two green runs — roadmap R25 promotes `tests` AND `typecheck` together in
+  # one edit, so protection is touched once.
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Tests (vitest, offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install (frozen)
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        run: pnpm test
+
+  # ---------------------------------------------------------------------------
   # Pixel parity — the public site must stay pixel-identical.
   #
   # This does NOT diff against screenshots/baseline: that directory is git-ignored

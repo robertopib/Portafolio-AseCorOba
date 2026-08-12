@@ -109,7 +109,25 @@ removed — publishing is deliberate, one rebuild per click.)
 - **Local development:** copy the real secrets into `cms/.env` (git-ignored). Run
   the CMS with `pnpm dev` (in `cms/`, serves on `:4400`). To regenerate content
   locally: `PAYLOAD_API_URL=http://localhost:4400 node scripts/fetch-content.mjs`.
-- **Fidelity/parity check (local):** `fetch-content.mjs` writes a deep-equal
-  report to `/tmp/fetch-fidelity.json` comparing the fetched JSON to the
-  committed files; the visual-parity gate (`scripts/shoot.mjs` +
-  `scripts/diff.mjs`) confirms 0.000% pixel drift.
+- **Fidelity/parity check (local):** `fetch-content.mjs` deep-compares all 14
+  emitted files against their committed versions at git HEAD and writes
+  `/tmp/fetch-fidelity.json`. A divergence is always printed in full (file, JSON
+  path, expected vs actual). Add `--gate` to make it **exit non-zero**:
+  `PAYLOAD_API_URL=http://localhost:4400 node scripts/fetch-content.mjs --gate`.
+  Without the flag it warns and exits 0, because on the Vercel build the script
+  is the content *producer* and a diff from HEAD is the normal result of a
+  publish. The visual-parity gate (`scripts/shoot.mjs` + `scripts/diff.mjs`)
+  confirms 0.000% pixel drift.
+- **The CMS-side twin is read-only.** `cms/src/scripts/export-content.ts`
+  reconstructs the same 14 files into `/tmp/export-out/` and diffs them; it never
+  writes into `content/`. Its gate is ON by default (exit 1 on any file not
+  proven identical); `FIDELITY_GATE=0` downgrades that to a warning. That file is
+  the CLI — the reconstruction itself lives in `cms/src/scripts/export-emit.ts`,
+  which imports no `payload` and runs nothing on import. Run the CLI, not the
+  library.
+- **The two twins are checked against EACH OTHER, offline** (R13b).
+  `tests/fidelity/twin-equivalence.test.ts` drives both emitters over one
+  committed synthetic fixture and requires byte-identical output for all 14
+  files. It is part of the `tests` CI job — no CMS, no database, no network. Both
+  gates above compare a twin to *committed content*; only this compares the twins
+  to *each other*, which is the contract that keeps the hand-mirroring honest.

@@ -11,13 +11,14 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Categories } from './collections/Categories'
+import { Clients } from './collections/Clients'
 import { Projects } from './collections/Projects'
 import { Home } from './globals/Home'
 import { About } from './globals/About'
 import { Career } from './globals/Career'
 import { UiStrings } from './globals/UiStrings'
 import { Site } from './globals/Site'
-import { pingDeployHook } from './hooks/triggerDeploy'
+import { publishHandler } from './endpoints/publish'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -36,28 +37,20 @@ export default buildConfig({
   // Order so the admin nav groups read logically:
   //   Páginas y Contenido -> Portafolio -> Ajustes
   // (Payload orders nav groups by the definition order in which they first appear.)
-  collections: [Pages, Media, Categories, Projects, Users],
+  collections: [Pages, Media, Categories, Clients, Projects, Users],
   globals: [Home, About, Career, UiStrings, Site],
   endpoints: [
     {
       // Manual publish: POST /api/publish triggers ONE front-end rebuild.
       // Reachable at /api/publish. Requires an authenticated admin user.
+      //
+      // The handler body lives in ./endpoints/publish (R29) so the root test
+      // suite can drive it without importing this config — that job installs
+      // root dependencies only, where `payload` does not resolve. Behaviour is
+      // unchanged; the reasoning about the 200-on-no-hook moved with the code.
       path: '/publish',
       method: 'post',
-      handler: async (req) => {
-        if (!req.user) {
-          return Response.json({ ok: false, reason: 'unauthorized' }, { status: 403 })
-        }
-        try {
-          const result = await pingDeployHook(`manual:${req.user.email ?? req.user.id}`)
-          // 200 even when no hook is configured — that's a valid, expected state
-          // the button surfaces to the editor, not a server error.
-          return Response.json(result)
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err)
-          return Response.json({ ok: false, reason: 'error', message }, { status: 500 })
-        }
-      },
+      handler: publishHandler,
     },
   ],
   // Absolute base URL for links Payload generates OUTSIDE a browser context —

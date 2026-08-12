@@ -1,12 +1,12 @@
 /**
- * BUILD-TIME CONTENT FETCH (REST twin of cms/src/scripts/export-content.ts).
+ * BUILD-TIME CONTENT FETCH (REST twin of cms/src/scripts/export-emit.ts).
  *
  * Run at the FRONT-END build (Vercel buildCommand: `node scripts/fetch-content.mjs && pnpm build`).
  * Reads the deployed CMS over the Payload REST API and RECONSTRUCTS every
  * content file the front-end imports, in the EXACT shapes the committed
  * content/*.json use, then downloads every referenced image to public/images/.
  *
- * The reconstruction logic is a line-for-line mirror of export-content.ts (which
+ * The reconstruction logic is a line-for-line mirror of export-emit.ts (which
  * uses the Local API). Both read localized fields with ?locale=all (returning
  * { es, en }) and relationships/uploads at the right depth, so the emitted JSON
  * is byte-identical to what the Local-API export produces.
@@ -19,13 +19,40 @@
  *                    `url` can't be downloaded. Normally images are pulled from
  *                    `PAYLOAD_API_URL + media.url` (the CMS serves them).
  *
- * FIDELITY GATE (local only): if run against a local CMS AND the committed
- * content/*.json exist, every emitted file is deep-compared to the committed
- * one and a report is written to /tmp/fetch-fidelity.json.
+ * FIDELITY GATE: every emitted file is deep-compared against its committed
+ * version at git HEAD and a report is written to /tmp/fetch-fidelity.json. A
+ * divergence is always printed in full (file + JSON path + expected vs actual).
+ *
+ *   node scripts/fetch-content.mjs           producing run — writes content/ and
+ *                                            WARNS on divergence, exit 0. This is
+ *                                            the Vercel build path: content newer
+ *                                            than git HEAD is the whole point.
+ *   node scripts/fetch-content.mjs --gate    gate run — same comparison, but any
+ *                                            file not proven identical exits 1.
+ *
+ * (`FIDELITY_GATE=1` is equivalent to `--gate`.) See the GATE const below for
+ * why the default is off here and on in export-content.ts.
+ *
+ * IMPORTABLE (R13b): `main()` is exported and every side effect it performs is
+ * an option with a CLI-identical default, so tests/fidelity/twin-equivalence.test.ts
+ * can drive the whole reconstruction over a fixture with no network, no disk and
+ * no git. The auto-run at the bottom is guarded by a direct-invocation check, so
+ * `node scripts/fetch-content.mjs` behaves exactly as before. Types for the
+ * exported surface are hand-written in fetch-content.d.mts (the root tsconfig has
+ * no allowJs, so a TS test importing this file would fail with TS7016).
  */
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+// Deep compare + gate verdict + failure formatting. Order-insensitive for object
+// keys, order-SENSITIVE for arrays. Mirrored (not imported) by export-emit.ts
+// — see the note at the top of that module.
+import { deepDiff, summarizeFidelity, formatFidelityFailure } from './lib/fidelity.mjs'
+// Every byte this script prints goes through here, never through `console`. A
+// fidelity report handed to `console.error` is truncated at one 64 KiB pipe
+// buffer by the `process.exit(1)` that follows it — and CI reads job output
+// through a pipe (roadmap R28). See that module's header for the measurements.
+import { syncConsole } from './lib/write-sync.mjs'
 
 // ----------------------------------------------------------------------------
 // Paths (scripts/ -> project root)
@@ -34,7 +61,6 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const ROOT = path.resolve(__dirname, '..')
 const CONTENT_DIR = path.join(ROOT, 'content')
-const SECTIONS_DIR = path.join(CONTENT_DIR, 'sections')
 const IMAGES_DIR = path.join(ROOT, 'public', 'images')
 
 // ----------------------------------------------------------------------------
@@ -80,7 +106,36 @@ const CASE_STUDY_BODY_SLICE_KEY = {
 // ----------------------------------------------------------------------------
 const API = (process.env.PAYLOAD_API_URL || 'http://localhost:4400').replace(/\/$/, '')
 
-async function getJson(url) {
+const FIDELITY_REPORT = '/tmp/fetch-fidelity.json'
+
+/**
+ * `--gate` / `FIDELITY_GATE=1` turns the fidelity comparison into a real gate
+ * (non-zero exit on any file that is not proven identical to committed content).
+ *
+ * It is OPT-IN rather than the default, and that asymmetry with export-content.ts
+ * is deliberate. This script is the production content PRODUCER: `vercel.json`
+ * runs it as `node scripts/fetch-content.mjs && pnpm build`, and its whole purpose
+ * there is to overwrite content/ with newer CMS data. A diff from git HEAD is
+ * therefore the normal, correct outcome of every publish — failing on it would red
+ * every production deploy the moment an editor changes a word. (`content/pages.json`
+ * is also already known-stale w.r.t. both emitters — roadmap R13b — so a default-on
+ * gate would fail on day one.)
+ *
+ * export-content.ts defaults the other way because nothing depends on its exit
+ * code: it is a verification tool, not a build step.
+ *
+ * Without the flag the same divergence is still printed in full — file, path,
+ * expected vs actual — just as a warning. The gate's honesty does not depend on
+ * the flag; only the exit code does.
+ */
+const GATE = process.argv.includes('--gate') || process.env.FIDELITY_GATE === '1'
+
+/**
+ * THE SEAM. Every read this script performs goes through here, which is what
+ * makes the twin-equivalence test possible: inject a different `getJson` and the
+ * entire reconstruction runs offline over a fixture (R13b).
+ */
+async function defaultGetJson(url) {
   const res = await fetch(url, { headers: { Accept: 'application/json' } })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
@@ -89,62 +144,144 @@ async function getJson(url) {
   return res.json()
 }
 
-const getGlobal = (slug, depth = 0) =>
-  getJson(`${API}/api/globals/${slug}?locale=all&depth=${depth}`)
+/** The two readers the reconstruction uses, bound to one `getJson`. */
+const makeReaders = (getJson) => ({
+  getGlobal: (slug, depth = 0) =>
+    getJson(`${API}/api/globals/${slug}?locale=all&depth=${depth}`),
 
-const getCollection = async (slug, { depth = 2, limit = 1000, sort } = {}) => {
-  const qs = new URLSearchParams({ locale: 'all', depth: String(depth), limit: String(limit) })
-  if (sort) qs.set('sort', sort)
-  const data = await getJson(`${API}/api/${slug}?${qs.toString()}`)
-  return data.docs || []
-}
+  getCollection: async (slug, { depth = 2, limit = 1000, sort } = {}) => {
+    const qs = new URLSearchParams({ locale: 'all', depth: String(depth), limit: String(limit) })
+    if (sort) qs.set('sort', sort)
+    const data = await getJson(`${API}/api/${slug}?${qs.toString()}`)
+    return data.docs || []
+  },
+})
 
 // ----------------------------------------------------------------------------
-// Shape helpers (mirrored from export-content.ts)
+// Shape helpers (mirrored from export-emit.ts)
 // ----------------------------------------------------------------------------
 const loc = (v) => ({ es: (v?.es ?? ''), en: (v?.en ?? '') })
 
-// ---- deep compare (order-insensitive keys, order-SENSITIVE arrays) ----
-function deepDiff(a, b, pathStr = '') {
-  const diffs = []
-  const ta = typeof a
-  const tb = typeof b
-  const isArrA = Array.isArray(a)
-  const isArrB = Array.isArray(b)
+// ============================================================================
+// R23b-ii — THE FLATTENED IMAGE LIST. Every output shape reads this.
+//
+// MIRRORED FROM cms/src/scripts/export-emit.ts, where the same two functions are
+// exported and unit-tested (tests/unit/r23-flatten.test.ts). Mirroring rather
+// than importing is forced, not preferred: cms/ is a separate pnpm project with
+// its own lockfile and its own Vercel root directory, so it cannot import from
+// here — the reasoning is spelled out in scripts/lib/fidelity.mjs's header.
+// tests/fidelity/twin-equivalence.test.ts is what keeps the copies honest: it
+// compares the two emitters AS BYTES. Edit both sides in the same commit.
+// ============================================================================
 
-  if (isArrA || isArrB) {
-    if (!isArrA || !isArrB) {
-      diffs.push(`${pathStr}: array vs non-array`)
-      return diffs
-    }
-    if (a.length !== b.length) diffs.push(`${pathStr}: array length ${a.length} vs ${b.length}`)
-    const n = Math.min(a.length, b.length)
-    for (let i = 0; i < n; i++) diffs.push(...deepDiff(a[i], b[i], `${pathStr}[${i}]`))
-    return diffs
+/**
+ * Sort a flattened set. `order` is the published sequence — except on home,
+ * where `homeOrder` is: the two differ in two of the four categorías
+ * (branding is offset by 1 throughout; `gift-box-vinte.png` is home 5 / page 8),
+ * and `content/pages.json` publishes the home number as the card's `id`.
+ *
+ * The two tiebreaks are new and exist because production has a real collision —
+ * `1.jpg` and `croissant.png` both sit at `order: 1` (R45). Without them the
+ * winner is whatever order the API happened to return the parents in, which is a
+ * twin divergence waiting for a promotion. Dev has no tie today (checked: no
+ * duplicate `order` within any categoría × placement set), so this moves no
+ * committed byte.
+ */
+const sortFlat = (rows, home) =>
+  [...rows].sort(
+    (a, b) =>
+      Number(home ? (a.img.homeOrder ?? a.img.order) : a.img.order) -
+        Number(home ? (b.img.homeOrder ?? b.img.order) : b.img.order) ||
+      Number(a.parent.id) - Number(b.parent.id) ||
+      a.index - b.index,
+  )
+
+/**
+ * Flatten every project of one categoría into its photographs.
+ *
+ * `group` has THREE modes and the third one is new:
+ *   'sports' | …  a named page section — the parent must be in it
+ *   null          ungrouped parents only (what `!p.group` used to mean)
+ *   'any'         no group filter at all
+ *
+ * 'any' is not a convenience. Branding's `home.images[]` used to match
+ * `!p.group` and worked because branding's HOME ROWS carried no group. After
+ * R23b-i those photographs hang off GROUPED parents — `wodfest-1.png` belongs to
+ * a `sports` project — so the old filter matches nothing and the array would
+ * silently emit `[]`. Both twins need the third mode.
+ *
+ * `group` is read from the PARENT (a group is a layout slot, and a project
+ * renders in exactly one); `showOnHome`/`showOnPage` and `order` from the IMAGE
+ * (two WodFest images are on home, and `fisio-equina.png` is on home and in no
+ * page array — neither is expressible on the parent).
+ *
+ * The leftover duplicate `projects` rows are GONE (R23b-iii deleted the 37 of
+ * them, and dropped the six old columns they lived in). This still steps over a
+ * row with an empty `images[]`, which is what made deferring that cleanup free
+ * and is now what makes the case study — the one Proyecto with no photograph —
+ * cost nothing here.
+ */
+const flattenImages = (projects, slugOf, { slug, group, home }) => {
+  const rows = []
+  for (const p of projects) {
+    if (slugOf(p) !== slug) continue
+    if (p.type !== 'image') continue
+    if (group !== 'any' && (group ? p.group !== group : Boolean(p.group))) continue
+    const images = p.images ?? []
+    images.forEach((img, index) => {
+      if (home ? !img.showOnHome : !img.showOnPage) return
+      rows.push({ img, parent: p, index })
+    })
   }
-  if (a !== null && b !== null && ta === 'object' && tb === 'object') {
-    const all = new Set([...Object.keys(a), ...Object.keys(b)])
-    for (const k of all) {
-      if (!(k in a)) { diffs.push(`${pathStr}.${k}: missing in reconstructed (orig=${JSON.stringify(b[k])})`); continue }
-      if (!(k in b)) { diffs.push(`${pathStr}.${k}: extra in reconstructed (recon=${JSON.stringify(a[k])})`); continue }
-      diffs.push(...deepDiff(a[k], b[k], `${pathStr}.${k}`))
-    }
-    return diffs
-  }
-  if (a !== b) diffs.push(`${pathStr}: ${JSON.stringify(a)} !== ${JSON.stringify(b)}`)
-  return diffs
+  return sortFlat(rows, home)
 }
 
 // ----------------------------------------------------------------------------
 // Main
 // ----------------------------------------------------------------------------
-async function main() {
-  console.log(`[fetch-content] CMS: ${API}`)
-  fs.mkdirSync(SECTIONS_DIR, { recursive: true })
-  fs.mkdirSync(IMAGES_DIR, { recursive: true })
+/**
+ * Reconstruct every content file from the CMS.
+ *
+ * Every parameter defaults to what the CLI has always done, so `main()` with no
+ * arguments is the production behaviour verbatim. The options exist for R13b's
+ * twin-equivalence test, which needs the reconstruction WITHOUT the three side
+ * effects (disk, network images, git):
+ *
+ * @param {object}   [opts]
+ * @param {Function} [opts.getJson]    the seam — replace to run offline
+ * @param {string|null} [opts.contentDir] where to write; null = don't write at all
+ * @param {boolean}  [opts.images]     download referenced images (needs network)
+ * @param {boolean}  [opts.fidelity]   compare against git HEAD and write the report
+ * @param {boolean}  [opts.gate]       only changes the WORDING/severity, never the
+ *                                     detection; the caller owns the exit code
+ * @param {object}   [opts.log]        console-shaped sink, for quiet test runs.
+ *                                     Defaults to syncConsole, NOT console: the
+ *                                     CLI calls process.exit() right after this
+ *                                     returns, which discards anything console
+ *                                     has merely queued (R28).
+ * @returns {Promise<{written: object, serialized: object, fidelity: object|null, allMatch: boolean}>}
+ */
+export async function main({
+  getJson = defaultGetJson,
+  contentDir = CONTENT_DIR,
+  images = true,
+  fidelity: doFidelity = true,
+  gate = GATE,
+  log = syncConsole,
+} = {}) {
+  const { getGlobal, getCollection } = makeReaders(getJson)
+
+  log.log(`[fetch-content] CMS: ${API}`)
+  if (contentDir) fs.mkdirSync(path.join(contentDir, 'sections'), { recursive: true })
+  if (images) fs.mkdirSync(IMAGES_DIR, { recursive: true })
 
   const report = {}
   const written = {}
+  // The exact bytes each file was (or would have been) written with. This — not
+  // `written` — is the twins' contract: byte-identical JSON TEXT. An object key
+  // valued `undefined` is present in `written` but dropped by JSON.stringify, so
+  // the two views genuinely disagree (R13a hand-off).
+  const serialized = {}
   const imageFilenames = new Set() // filenames referenced by content
   const mediaByFilename = {} // filename -> media doc (for downloading)
 
@@ -152,10 +289,13 @@ async function main() {
 
   // Emit a file, and (if a committed source exists) fidelity-diff against it.
   const emit = (relPath, recon) => {
-    const outPath = path.join(CONTENT_DIR, relPath)
-    fs.mkdirSync(path.dirname(outPath), { recursive: true })
-    fs.writeFileSync(outPath, JSON.stringify(recon, null, 2) + '\n')
+    const text = JSON.stringify(recon, null, 2) + '\n'
     written[relPath] = recon
+    serialized[relPath] = text
+    if (!contentDir) return
+    const outPath = path.join(contentDir, relPath)
+    fs.mkdirSync(path.dirname(outPath), { recursive: true })
+    fs.writeFileSync(outPath, text)
     if (fs.existsSync(outPath + '.orig')) {
       // never used; placeholder for clarity
     }
@@ -188,40 +328,96 @@ async function main() {
 
   const allProjects = await getCollection('projects', { depth: 0, limit: 2000 })
   const slugOf = (p) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
+  /** Categorías only, now: photographs sort through sortFlat() above. */
   const byOrder = (docs) => [...docs].sort((a, b) => a.order - b.order)
 
-  const projByKey = (slug, placement, group) =>
-    allProjects.filter(
-      (p) =>
-        slugOf(p) === slug &&
-        p.type === 'image' &&
-        p.placement === placement &&
-        (group ? p.group === group : !p.group),
-    )
+  // =========================================================================
+  // R23b-ii — every output shape now reads `images[]`, not the old top-level
+  // `placement`/`image`/`alt`/`categoryLabel`/`order`/`size` columns, which
+  // R23b-iii has since dropped. The flattening itself is at module scope above;
+  // what is left here is card assembly, which needs the media map.
+  // =========================================================================
 
+  /** Bind the module-scope flattener to this run's projects. */
+  const flatten = (opts) => flattenImages(allProjects, slugOf, opts)
+
+  /**
+   * One card in the `pages.json` CategoryGallery shape.
+   *
+   * `asHome` picks WHICH TEXT the photograph publishes, and it is the correction
+   * r23-target-model.md §4 needs: it says shape F uses `alt`/`categoryLabel`,
+   * but a block with `placement: 'home'` has always read the HOME row's
+   * `title`/`alt`/`categoryLabel`/`order`. Those four are now `homeTitle`,
+   * `homeAlt`, `homeCategoryLabel` and `homeOrder` on the image.
+   *
+   * There is deliberately NO `homeAlt ?? alt` fallback. The 13 non-branding home
+   * cards publish `{"es":"","en":""}` — a real, committed value — while `alt`
+   * holds the page text; falling back would rewrite all 13. `loc(null)` already
+   * yields the empty pair.
+   *
+   * Page cards carry no `title`: the model has no per-image page title, and no
+   * page-variant block in content/pages.json emits one.
+   *
+   * And HOME cards carry no `group`, which is not an accident of the old model
+   * even though that is where it comes from. A group is a section of the
+   * CATEGORY PAGE — `branding:beauty` is the only consumer, splitting its cards
+   * into adrianaMunoz and anaGrace (CategoryGalleryBlocks.tsx:296-300). The home
+   * preview has no sections, and none of its 18 committed cards carries the key.
+   * Emitting `parent.group` unconditionally adds it to 4 of branding's 5 home
+   * cards — measured, and the only thing that moved on the first run of this
+   * change.
+   */
+  const galleryCard = ({ img, parent }, asHome) => {
+    const card = {
+      id: Number(asHome ? (img.homeOrder ?? img.order) : img.order),
+      src: imgPathFromMedia(img.image),
+      alt: loc(asHome ? img.homeAlt : img.alt),
+      category: loc(asHome ? img.homeCategoryLabel : img.categoryLabel),
+    }
+    const title = asHome ? img.homeTitle : null
+    if (title && (title.es || title.en)) card.title = loc(title)
+    if (img.size) card.size = img.size
+    if (!asHome && parent.group) card.group = parent.group
+    return card
+  }
+
+  /**
+   * Resolve a CategoryGallery block's photographs into the front-end card shape.
+   * Filters by category slug + placement + optional grupo, orders, applies
+   * maxItems.
+   *
+   * An ABSENT grupo means 'any' here, and always has — the old filter ended
+   * `if (group) return p.group === group; return true`. That is not the same as
+   * `projByKey`'s absent group, which meant "ungrouped only"; the two really did
+   * differ, and shape C is the reason the difference matters.
+   *
+   * `placement: 'all'` ("Todos", Pages.ts) is offered by the admin and used by
+   * nothing. Under the old model it emitted a two-placement photograph TWICE,
+   * once per row. One photograph is now one row, so it emits one card, using the
+   * page text when the image is on the page and the home text otherwise. A
+   * deliberate definition of an unused option, pinned by a fixture block.
+   */
   const resolveGalleryCards = (opts) => {
-    const { slug, placement, group } = opts
-    let docs = allProjects.filter((p) => {
-      if (slugOf(p) !== slug) return false
-      if (p.type !== 'image') return false
-      if (placement && placement !== 'all' && p.placement !== placement) return false
-      if (group) return p.group === group
-      return true
-    })
-    docs = byOrder(docs)
-    if (opts.maxItems && opts.maxItems > 0) docs = docs.slice(0, opts.maxItems)
-    return docs.map((p) => {
-      const card = {
-        id: p.order,
-        src: imgPathFromMedia(p.image),
-        alt: loc(p.alt),
-        category: loc(p.categoryLabel),
+    const { slug, placement, maxItems } = opts
+    const group = opts.group ? opts.group : 'any'
+    const clip = (rows) => (maxItems && maxItems > 0 ? rows.slice(0, maxItems) : rows)
+
+    if (placement === 'home' || placement === 'page') {
+      const home = placement === 'home'
+      return clip(flatten({ slug, group, home })).map((r) => galleryCard(r, home))
+    }
+
+    // 'all' / absent: the union, one card per photograph.
+    const seen = new Set()
+    const union = []
+    for (const home of [false, true]) {
+      for (const r of flatten({ slug, group, home })) {
+        if (seen.has(r.img)) continue
+        seen.add(r.img)
+        union.push(r)
       }
-      if (p.title && (p.title.es || p.title.en)) card.title = loc(p.title)
-      if (p.size) card.size = p.size
-      if (p.group) card.group = p.group
-      return card
-    })
+    }
+    return clip(sortFlat(union, false)).map((r) => galleryCard(r, !r.img.showOnPage))
   }
 
   // ==================== HOME ====================
@@ -531,7 +727,7 @@ async function main() {
     })
 
     // Home-preview intro, RESOLVED FROM THE CATEGORÍA (single source of truth),
-    // each emitted key carrying its `<key>Visible` flag. Mirrors export-content.ts.
+    // each emitted key carrying its `<key>Visible` flag. Mirrors export-emit.ts.
     const introFromCat = (cat) => {
       const h = (cat && cat.home) || {}
       const out = {}
@@ -568,7 +764,7 @@ async function main() {
       return out
     }
 
-    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-content.ts.
+    // Project-page header, RESOLVED FROM THE CATEGORÍA. Mirrors export-emit.ts.
     const pad2 = (n) => String(n).padStart(2, '0')
     const HEADER_SLUG = {
       brandingHeader: 'branding',
@@ -670,11 +866,10 @@ async function main() {
     // ---- content/categories.json ----
     const catsRecon = {
       categories: byOrder(cats).map((c) => {
-        const pageDocs = byOrder(
-          allProjects.filter(
-            (p) => slugOf(p) === c.slug && p.type === 'image' && (p.placement === 'page' || p.placement === 'both'),
-          ),
-        )
+        // Shape E — every page photograph of the categoría, across all four
+        // branding groups at once, so the group filter is 'any'. `group` is
+        // re-emitted from the PARENT, which is where it now lives.
+        const pageImages = flatten({ slug: c.slug, group: 'any', home: false })
         return {
           slug: c.slug,
           name: loc(c.name),
@@ -683,11 +878,11 @@ async function main() {
             title: loc(c.page?.title),
             description: loc(c.page?.description),
           },
-          projects: pageDocs.map((p) => ({
-            image: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
-            category: loc(p.categoryLabel),
-            group: p.group ?? null,
+          projects: pageImages.map(({ img, parent }) => ({
+            image: imgPathFromMedia(img.image),
+            alt: loc(img.alt),
+            category: loc(img.categoryLabel),
+            group: parent.group ?? null,
           })),
         }
       }),
@@ -701,8 +896,18 @@ async function main() {
     let recon
 
     if (spec.slug === 'web-apps' || spec.slug === 'fotografia-producto' || spec.slug === 'marketing-360') {
-      const homeDocs = byOrder(projByKey(spec.slug, 'home'))
-      const pageDocs = byOrder(projByKey(spec.slug, 'page'))
+      // Shapes A and B. These categorías have no grouped parents, so the group
+      // mode stays `null` ("ungrouped only") — the same filter as before, now
+      // reading the parent instead of the row.
+      //
+      // A is the one place the HOME text is used: `homeTitle` and
+      // `homeCategoryLabel`, not `title`/`categoryLabel`. Marketing's home card
+      // reads "Brochure Corporativo" / "Material Impreso - Grupo Santa Fe" while
+      // its page card reads "Brochure Corporativo - Grupo Santa Fe" / "Material
+      // Impreso" — four distinct strings per photograph (§2.2), and the easiest
+      // thing in this file to get subtly wrong.
+      const homeImages = flatten({ slug: spec.slug, group: null, home: true })
+      const pageImages = flatten({ slug: spec.slug, group: null, home: false })
       recon = {
         home: {
           heading: loc(cat.home.heading),
@@ -710,24 +915,31 @@ async function main() {
           studioName: cat.home.studioName,
           roleDescription: loc(cat.home.roleDescription),
           cta: loc(cat.home.cta),
-          projects: homeDocs.map((p) => ({
-            image: imgPathFromMedia(p.image),
-            title: loc(p.title),
-            category: loc(p.categoryLabel),
+          projects: homeImages.map(({ img }) => ({
+            image: imgPathFromMedia(img.image),
+            title: loc(img.homeTitle),
+            category: loc(img.homeCategoryLabel),
           })),
         },
         page: {
           title: loc(cat.page.title),
           description: loc(cat.page.description),
-          projects: pageDocs.map((p) => ({
-            image: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
-            category: loc(p.categoryLabel),
+          projects: pageImages.map(({ img }) => ({
+            image: imgPathFromMedia(img.image),
+            alt: loc(img.alt),
+            category: loc(img.categoryLabel),
           })),
         },
       }
     } else if (spec.slug === 'branding') {
-      const homeDocs = byOrder(projByKey('branding', 'home'))
+      // Shape C — 'any', and this is the wrinkle §4 named. Branding's home
+      // photographs hang off GROUPED parents now (wodfest-1.png belongs to a
+      // `sports` project), so an "ungrouped only" filter emits [].
+      // `homeAlt`, not `alt`: this is a home card. The two happen to be
+      // byte-identical throughout branding (§2.2), which is exactly why reading
+      // the wrong one here would never show up until some other categoría grew a
+      // branding-shaped home array.
+      const homeImages = flatten({ slug: 'branding', group: 'any', home: true })
       recon = {
         home: {
           heading: loc(cat.home.heading),
@@ -736,9 +948,9 @@ async function main() {
           roleDescription: loc(cat.home.roleDescription),
           cta: loc(cat.home.cta),
           sectionHeading: loc(cat.home.sectionHeading),
-          images: homeDocs.map((p) => ({
-            src: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
+          images: homeImages.map(({ img }) => ({
+            src: imgPathFromMedia(img.image),
+            alt: loc(img.homeAlt),
           })),
         },
         page: {
@@ -748,13 +960,17 @@ async function main() {
           subtitleBeauty: loc(cat.page.subtitleBeauty),
         },
       }
+      // Shape D. `id` IS the image's `order`, published: branding's page ids
+      // read 1,2,3,5,…,21 and the gap at 4 is `fisio-equina.png`, which is on
+      // home and in no page array. Preserving `order` verbatim reproduces the
+      // gap by construction. NEVER renumber to tidy the sequence.
       for (const g of BRANDING_PAGE_GROUPS) {
-        const docs = byOrder(projByKey('branding', 'page', g.group))
-        recon.page[g.jsonKey] = docs.map((p) => ({
-          id: p.order,
-          src: imgPathFromMedia(p.image),
-          alt: loc(p.alt),
-          category: loc(p.categoryLabel),
+        const groupImages = flatten({ slug: 'branding', group: g.group, home: false })
+        recon.page[g.jsonKey] = groupImages.map(({ img }) => ({
+          id: Number(img.order),
+          src: imgPathFromMedia(img.image),
+          alt: loc(img.alt),
+          category: loc(img.categoryLabel),
         }))
       }
     } else if (spec.slug === 'uxui-producto') {
@@ -1020,7 +1236,9 @@ async function main() {
   let downloaded = 0
   let skipped = 0
   const missing = []
-  for (const fn of imageFilenames) {
+  // `images: false` (tests only) skips the one part of this script that still
+  // needs the network after `getJson` has been injected.
+  for (const fn of images ? imageFilenames : []) {
     const dest = path.join(IMAGES_DIR, fn)
     const doc = mediaByFilename[fn]
     // Prefer the CMS-served URL (media.url is "/api/media/file/<fn>").
@@ -1050,16 +1268,35 @@ async function main() {
       if (fs.existsSync(dest)) { skipped++ } else { missing.push(fn) }
     }
   }
-  console.log(`[fetch-content] images: ${downloaded} downloaded, ${skipped} already present, ${missing.length} missing`)
-  if (missing.length) {
-    console.warn('[fetch-content] MISSING images:', missing.join(', '))
+  if (images) {
+    log.log(`[fetch-content] images: ${downloaded} downloaded, ${skipped} already present, ${missing.length} missing`)
+    if (missing.length) {
+      log.warn('[fetch-content] MISSING images:', missing.join(', '))
+    }
   }
 
-  // ==================== FIDELITY GATE (local runs) ====================
+  // ==================== FIDELITY GATE ====================
   // Compare each emitted file to a pristine committed copy if git is available.
   // We read the committed version from git HEAD so a re-run doesn't compare a
   // file against itself after we've overwritten it.
-  const fidelity = { allMatch: true, cms: API, files: {} }
+  //
+  // EVERY file in `written` is compared — including pages.json, categories.json,
+  // case-studies.json and site.json. The verdict is decided by summarizeFidelity,
+  // for which `match: true` is the only passing value: a `null` (nothing committed
+  // to compare against) or a file missing from the report fails the gate just like
+  // a real diff. See scripts/lib/fidelity.mjs.
+  //
+  // `fidelity: false` (tests only) skips the comparison entirely. The twin-
+  // equivalence test compares the two EMITTERS against each other, not either of
+  // them against committed content — and content/pages.json is known-stale w.r.t.
+  // both (R17), so comparing here would report a divergence that is not one.
+  const fidelity = { gate, allMatch: true, cms: API, files: {} }
+
+  // Suppress unused warning for pathToFilename (kept for symmetry with content-map).
+  void pathToFilename
+
+  if (!doFidelity) return { written, serialized, fidelity: null, allMatch: true }
+
   const { execSync } = await import('child_process')
   const gitShow = (rel) => {
     try {
@@ -1075,19 +1312,71 @@ async function main() {
       continue
     }
     const diffs = deepDiff(recon, JSON.parse(committedRaw))
-    const match = diffs.length === 0
-    if (!match) fidelity.allMatch = false
-    fidelity.files[rel] = { match, diffs }
+    fidelity.files[rel] = { match: diffs.length === 0, diffs }
   }
   fidelity.images = { downloaded, skipped, missing }
-  fs.writeFileSync('/tmp/fetch-fidelity.json', JSON.stringify(fidelity, null, 2))
-  console.log(`[fetch-content] fidelity: allMatch=${fidelity.allMatch} (report: /tmp/fetch-fidelity.json)`)
 
-  // Suppress unused warning for pathToFilename (kept for symmetry with content-map).
-  void pathToFilename
+  const summary = summarizeFidelity(fidelity.files, Object.keys(written))
+  fidelity.allMatch = summary.allMatch
+  fidelity.mismatched = summary.mismatched
+  fidelity.unverified = summary.unverified
+  fs.writeFileSync(FIDELITY_REPORT, JSON.stringify(fidelity, null, 2))
+
+  if (summary.allMatch) {
+    log.log(
+      `[fetch-content] fidelity: all ${Object.keys(fidelity.files).length} files match the committed content ✓ (report: ${FIDELITY_REPORT})`,
+    )
+    return { written, serialized, fidelity, allMatch: true }
+  }
+
+  // A divergence here means the live CMS no longer agrees with committed content.
+  // That is EXPECTED on the producing run (an editor published; overwriting
+  // content/ from the CMS is this script's job — DEPLOY.md "Content is
+  // source-controlled AND regenerated"), and a DEFECT on a gate run. Same
+  // detection, different consequence — so the message is identical and only the
+  // exit code differs.
+  const detail = formatFidelityFailure(fidelity.files, {
+    label: '[fetch-content]',
+    reportPath: FIDELITY_REPORT,
+    expected: Object.keys(written),
+  })
+  if (gate) {
+    log.error(detail)
+    return { written, serialized, fidelity, allMatch: false }
+  }
+  log.warn(detail.replace(/^❌ /, '⚠️  '))
+  log.warn(
+    `\n[fetch-content] exit 0: this is the PRODUCING run, where a diff from git HEAD is the normal` +
+      ` result of a CMS publish. Re-run with --gate to make the above fail the process.`,
+  )
+  return { written, serialized, fidelity, allMatch: false }
 }
 
-main().catch((err) => {
-  console.error('[fetch-content] FAILED:', err.stack || err.message)
-  process.exit(1)
-})
+// ----------------------------------------------------------------------------
+// CLI entry
+// ----------------------------------------------------------------------------
+// Only runs when this file IS the process entry point. `vercel.json` invokes it
+// as `node scripts/fetch-content.mjs && pnpm build`, so argv[1] is this file;
+// a test that imports it gets the module and nothing else (R13b).
+//
+// The exit code lives here rather than in main() so that main() has no process
+// side effects at all. Behaviour is unchanged: exit 1 only under --gate /
+// FIDELITY_GATE=1, which is the locked asymmetry with export-content.ts.
+//
+// Neither process.exit() below was touched by R28 — that fix is entirely about
+// main()'s output being written synchronously (see the `log` default), so the
+// report it printed a moment ago is already on the fd when these run. `:1212`
+// prints nothing itself but is exposed all the same, because main() wrote the
+// report immediately before it.
+const invokedDirectly =
+  Boolean(process.argv[1]) && path.resolve(process.argv[1]) === __filename
+
+if (invokedDirectly) {
+  try {
+    const { allMatch } = await main()
+    if (GATE && !allMatch) process.exit(1)
+  } catch (err) {
+    syncConsole.error('[fetch-content] FAILED:', err.stack || err.message)
+    process.exit(1)
+  }
+}
