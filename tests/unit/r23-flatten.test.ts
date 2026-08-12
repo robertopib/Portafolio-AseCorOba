@@ -21,7 +21,11 @@
  * explains why), and twin-equivalence is what proves the copies still agree.
  */
 import { describe, expect, it } from 'vitest'
-import { flattenImages, sortFlat } from '../../cms/src/scripts/export-emit'
+// Through the alias, NOT the relative path. A relative import adds export-emit.ts to the
+// `tsc --noEmit` program, and it imports `fs`, `path` and `payload` — none resolvable from the
+// root project, which deliberately has no @types/node (tests/cms-twin.d.ts explains why, and
+// CI's `Site typecheck` job is where a relative import gets caught).
+import { flattenImages, sortFlat } from '@cms-export-emit'
 
 /** Minimal project docs — only the fields flattenImages() reads. */
 const slugOf = (p: any) => p.categorySlug
