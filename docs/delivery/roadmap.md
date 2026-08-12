@@ -179,6 +179,20 @@ Last updated: 2026-08-10
   - **Conductor obligation:** every task prompt whose change could reach production must state
     what the owner should look at on preview — or state plainly that there is nothing to see
     and why.
+- **Promote complete work, never an intermediate state** (locked 2026-08-12, owner:
+  *"I don't want to promote to production until the full scope of the refactor is done"*).
+  A multi-step refactor lands **entirely on preview**, is reviewed there as a finished thing,
+  and promotes in **one** release. Do not split a refactor across promotions so that production
+  spends a release in a half-migrated state, and do not ask the owner to sign off on a state
+  that looks wrong.
+  **This reverses a conductor decision, and the reasoning is worth keeping.** R23b-iii was
+  originally deferred until *after* the promotion so the old columns would survive as a fallback
+  if the new exporters misbehaved on production data. That was over-cautious: **`RELEASE.md`
+  step 2 already requires a Neon backup branch before any promotion**, which restores
+  *everything*, not six columns — so the fallback was largely redundant. Its real cost was
+  concrete: the owner would review a state still showing the duplicates the whole refactor
+  exists to remove, and sign off twice. **When a safety measure duplicates one that already
+  exists, weigh what it costs the reviewer.**
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -250,10 +264,10 @@ Last updated: 2026-08-10
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity proof — **done; awaiting owner preview review** | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
 | R52 | `seed.ts` + `content-map.ts` still write the old model — a fresh seed yields no cards | todo | full-stack | Medium | R23b-iii |
 | R53 | Document the `payload.update` localized-array-subfield trap | todo | docs | Low | R23b-ii |
-| R23b-iii | ↳↳ Cleanup migration — drop old columns + duplicate rows, **after prod byte-identity** | todo | full-stack | **High** | R23b-ii, promotion |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
