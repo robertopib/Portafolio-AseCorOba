@@ -215,9 +215,11 @@ const sortFlat = (rows, home) =>
  * (two WodFest images are on home, and `fisio-equina.png` is on home and in no
  * page array — neither is expressible on the parent).
  *
- * The leftover duplicate `projects` rows are still present and still populated —
- * R23b-iii deletes them, after the promotion. They have an EMPTY `images[]`, so
- * this steps straight over them. That is what makes deferring the cleanup free.
+ * The leftover duplicate `projects` rows are GONE (R23b-iii deleted the 37 of
+ * them, and dropped the six old columns they lived in). This still steps over a
+ * row with an empty `images[]`, which is what made deferring that cleanup free
+ * and is now what makes the case study — the one Proyecto with no photograph —
+ * cost nothing here.
  */
 const flattenImages = (projects, slugOf, { slug, group, home }) => {
   const rows = []
@@ -331,9 +333,9 @@ export async function main({
 
   // =========================================================================
   // R23b-ii — every output shape now reads `images[]`, not the old top-level
-  // `placement`/`image`/`alt`/`categoryLabel`/`order`/`size` columns. The
-  // flattening itself is at module scope above; what is left here is card
-  // assembly, which needs the media map.
+  // `placement`/`image`/`alt`/`categoryLabel`/`order`/`size` columns, which
+  // R23b-iii has since dropped. The flattening itself is at module scope above;
+  // what is left here is card assembly, which needs the media map.
   // =========================================================================
 
   /** Bind the module-scope flattener to this run's projects. */

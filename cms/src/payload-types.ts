@@ -978,7 +978,7 @@ export interface Client {
   createdAt: string;
 }
 /**
- * Cada proyecto del portafolio. Elige su categoría, el tipo, y dónde se muestra.
+ * Cada proyecto del portafolio: su cliente, su categoría, y las imágenes que lo componen.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "projects".
@@ -998,25 +998,9 @@ export interface Project {
    */
   type: 'image' | 'caseStudy';
   /**
-   * Elige dónde aparece esta tarjeta.
-   */
-  placement: 'home' | 'page' | 'both';
-  /**
    * Solo para Branding: en qué sección de la página aparece este proyecto (sports, adrianaMunoz, anaGrace, logos).
    */
   group?: string | null;
-  /**
-   * Cuánto espacio ocupa la tarjeta en la cuadrícula.
-   */
-  size?: ('small' | 'medium' | 'large' | 'wide' | 'tall') | null;
-  /**
-   * La imagen de la tarjeta.
-   */
-  image?: (number | null) | Media;
-  /**
-   * Número para ordenar dentro de su grupo (el menor aparece primero).
-   */
-  order: number;
   /**
    * Nombre solo para el panel (no se muestra en la web).
    */
@@ -1026,11 +1010,6 @@ export interface Project {
    */
   slug?: string | null;
   title?: string | null;
-  alt?: string | null;
-  /**
-   * La etiqueta pequeña de la tarjeta (p. ej. "Logo", "Social Media").
-   */
-  categoryLabel?: string | null;
   /**
    * Las fotografías de este proyecto, en orden. Cada una es una tarjeta en la web.
    */
@@ -2287,16 +2266,10 @@ export interface ProjectsSelect<T extends boolean = true> {
   category?: T;
   cliente?: T;
   type?: T;
-  placement?: T;
   group?: T;
-  size?: T;
-  image?: T;
-  order?: T;
   internalTitle?: T;
   slug?: T;
   title?: T;
-  alt?: T;
-  categoryLabel?: T;
   images?:
     | T
     | {
