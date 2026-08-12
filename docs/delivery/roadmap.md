@@ -250,7 +250,9 @@ Last updated: 2026-08-10
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
-| R23b-ii | ↳↳ **Exporter flattening + byte-identity proof** (no cleanup) | in-progress | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity proof — **done; awaiting owner preview review** | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
+| R52 | `seed.ts` + `content-map.ts` still write the old model — a fresh seed yields no cards | todo | full-stack | Medium | R23b-iii |
+| R53 | Document the `payload.update` localized-array-subfield trap | todo | docs | Low | R23b-ii |
 | R23b-iii | ↳↳ Cleanup migration — drop old columns + duplicate rows, **after prod byte-identity** | todo | full-stack | **High** | R23b-ii, promotion |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
@@ -1703,6 +1705,58 @@ verification with **no authorization phrase**.
 **Sequencing this protects:** pre-flight → fix any gap in the worksheet → R23b-ii on preview →
 **one** promotion carrying both migrations, so prod migrates once rather than twice → cleanup only
 after byte-identity is proven **on prod**, not just dev.
+
+### R23b-ii — done (preview) 2026-08-12  ·  PR #48, squash `6487f85`
+**14/14 byte-identical on both twins**, before vs after vs after a `down`/`up` cycle — tree
+`sha256 acaa8b64…`, and the twins byte-identical to *each other* at every point. Tests
+**181 → 212**. Old columns still present and populated. Pixel 0.000%/24. **Production untouched.**
+
+**⚠️ THE DESIGN DOC WAS WRONG, AND MY WARNING UNDERSTATED IT.** `r23-target-model.md` §3.2
+declines a home-side order because *"home order equals page order in all four categories"*.
+I carried that forward as "branding's offset is a constant 1 — don't assume the sequences are the
+same numbers." **Both are false.** Conductor-verified from committed content at ingest:
+
+| photography image | home | page | offset |
+|---|---|---|---|
+| crackers · croissant · bread · croissant-packaging · gift-box-1 | 0–4 | 0–4 | **0** |
+| `gift-box-vinte.png` | 5 | 8 | **3** |
+
+**There is no constant offset, so no derivation rule exists.** Storing the value was the only
+correct answer — which is why the one departure from the prompt (an additive migration adding
+`homeOrder`/`homeAlt`) was right, and was flagged and owner-approved before any code.
+**A second loss the design does not mention at all: the home card's `alt`.** Verified —
+`content/pages.json` holds **57** CategoryGallery cards of which **13 publish `alt: {"es":"",
+"en":""}`**, with 0-based ids (`0,1,2` · `0..5` · `0,1,2,3`). So **`homeAlt` must have no
+fallback**: `homeAlt ?? alt` would re-publish page text onto those 13 cards. Branding hides this
+because its two strings coincide.
+
+**The most valuable finding — another green run with the work not done.**
+**`payload.update` with `locale: 'all'` silently drops every localized sub-field of an array
+whose rows already exist.** Probed directly: `alt`/`homeTitle`/`homeAlt` came back unchanged
+while the non-localized `homeOrder` in the same object went 0 → 99 → 0. No error. R23b-i never
+hit it because `images[]` was empty there — every row was an INSERT, and the insert path *does*
+write locales. **The first draft logged `18 of 18` and left `home_alt` NULL in all 18.** Same
+shape as R13a's exit code and R23b-i's `git diff` gate: **the report says done, the work is not.**
+Fixed with two `UPDATE … FROM` statements. → **R53.**
+
+**R48's trap fired twice, and mutation testing is what caught it.** Two assertions **passed with
+the regression applied** — the `fotografia:home` block has `maxItems: 1` and its single card
+happened to have `homeOrder === order`; and the photograph named for the alt case had neither
+value, so the fallback and the correct answer were both `''`. Found by mutating the emitters and
+watching the suite stay green, **not by reading**. The fixture now skews the sequences apart
+deliberately. **Six regression demos, four of them with BOTH twins wrong identically** — which
+the byte comparison structurally cannot see (R46's lesson, now load-bearing twice).
+
+**Decisions worth carrying:** home cards do not publish `group` (a group is a section of the
+*category page*; emitting `parent.group` was the only thing that moved on the first run);
+`sortFlat` gained an `(order, parent, index)` tiebreak because **prod has a real collision** —
+`1.jpg` and `croissant.png` both at `order: 1` — which would otherwise have been a twin
+divergence surfacing at the promotion; and `placement: 'all'` is now defined and pinned rather
+than left to drift on an unused path.
+**`flattenImages` is exported and unit-tested but still hand-mirrored** — and the reason is
+sound: `fetch-content.mjs` is plain ESM run by Vercel's build and **cannot import from `cms/`**
+(`scripts/lib/fidelity.mjs`'s header settles it). So the R49 "importable beats mirrored" pattern
+applies only on the Local side; `twin-equivalence` keeps the pair honest.
 
 ### R23b-ii / R23b-iii — why the cleanup was split out  (conductor, 2026-08-11)
 **`r23-target-model.md` contradicts itself, and the careful half wins.**
