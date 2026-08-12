@@ -208,6 +208,91 @@ const loc = (v: LV | undefined | null): { es: string; en: string } => ({
   en: (v?.en ?? '') as string,
 })
 
+// ===========================================================================
+// R23b-ii — THE FLATTENED IMAGE LIST. Every output shape reads this.
+//
+// Module scope, not a closure inside main(), for one reason: it is the whole
+// behavioural change and it is pure, so `tests/unit/r23-flatten.test.ts` can
+// pin the three group modes and the sort directly, with no Payload, no
+// database and no twin harness. That is the shape reconcile.ts settled on in
+// R49 and the roadmap asked to carry forward.
+//
+// It is still HAND-MIRRORED into scripts/fetch-content.mjs rather than shared.
+// cms/ is a separate pnpm project with its own lockfile and its own Vercel root
+// directory, so a `../../../scripts/` import does not resolve in the CMS
+// deployment — the reasoning is spelled out in scripts/lib/fidelity.mjs's
+// header. tests/fidelity/twin-equivalence.test.ts is what keeps the copies
+// honest: it compares the two emitters AS BYTES.
+// ===========================================================================
+
+/** One photograph, with the parent it hangs off and its position in that parent. */
+export type FlatImage = { img: any; parent: any; index: number }
+
+/**
+ * Sort a flattened set. `order` is the published sequence — except on home,
+ * where `homeOrder` is: the two differ in two of the four categorías
+ * (branding is offset by 1 throughout; `gift-box-vinte.png` is home 5 / page 8),
+ * and `content/pages.json` publishes the home number as the card's `id`.
+ *
+ * The two tiebreaks are new and exist because production has a real collision —
+ * `1.jpg` and `croissant.png` both sit at `order: 1` (R45). Without them the
+ * winner is whatever order the API happened to return the parents in, which is a
+ * twin divergence waiting for a promotion. Dev has no tie today (checked: no
+ * duplicate `order` within any categoría × placement set), so this moves no
+ * committed byte.
+ */
+export const sortFlat = (rows: FlatImage[], home: boolean): FlatImage[] =>
+  [...rows].sort(
+    (a, b) =>
+      Number(home ? (a.img.homeOrder ?? a.img.order) : a.img.order) -
+        Number(home ? (b.img.homeOrder ?? b.img.order) : b.img.order) ||
+      Number(a.parent.id) - Number(b.parent.id) ||
+      a.index - b.index,
+  )
+
+/**
+ * Flatten every project of one categoría into its photographs.
+ *
+ * `group` has THREE modes and the third one is new:
+ *   'sports' | …  a named page section — the parent must be in it
+ *   null          ungrouped parents only (what `!p.group` used to mean)
+ *   'any'         no group filter at all
+ *
+ * 'any' is not a convenience. Branding's `home.images[]` used to match
+ * `!p.group` and worked because branding's HOME ROWS carried no group. After
+ * R23b-i those photographs hang off GROUPED parents — `wodfest-1.png` belongs to
+ * a `sports` project — so the old filter matches nothing and the array would
+ * silently emit `[]`. Both twins need the third mode.
+ *
+ * `group` is read from the PARENT (a group is a layout slot, and a project
+ * renders in exactly one); `showOnHome`/`showOnPage` and `order` from the IMAGE
+ * (two WodFest images are on home, and `fisio-equina.png` is on home and in no
+ * page array — neither is expressible on the parent).
+ *
+ * The leftover duplicate `projects` rows are still present and still populated —
+ * R23b-iii deletes them, after the promotion. They have an EMPTY `images[]`, so
+ * this steps straight over them. That is what makes deferring the cleanup free.
+ */
+export const flattenImages = (
+  projects: any[],
+  slugOf: (p: any) => string | undefined,
+  opts: { slug: string; group?: string | null; home: boolean },
+): FlatImage[] => {
+  const { slug, group, home } = opts
+  const rows: FlatImage[] = []
+  for (const p of projects) {
+    if (slugOf(p) !== slug) continue
+    if (p.type !== 'image') continue
+    if (group !== 'any' && (group ? p.group !== group : Boolean(p.group))) continue
+    const images = (p.images ?? []) as any[]
+    images.forEach((img: any, index: number) => {
+      if (home ? !img.showOnHome : !img.showOnPage) return
+      rows.push({ img, parent: p, index })
+    })
+  }
+  return sortFlat(rows, home)
+}
+
 /**
  * Reconstruct every content file from the CMS and diff it against committed
  * content. The DB guard, the Payload boot, the exit code and the error file all
@@ -282,28 +367,80 @@ export async function main({
 
   const allProjects = await payload.find({ collection: 'projects', limit: 2000, depth: 0, locale: 'all' })
   const slugOf = (p: any) => catIdToSlug[typeof p.category === 'object' ? p.category.id : p.category]
+  /** Categorías only, now: photographs sort through sortFlat() above. */
   const byOrder = (docs: any[]) => [...docs].sort((a, b) => a.order - b.order)
 
-  // R46: `both` ("Ambas" in the admin) means the row belongs to the home array
-  // AND the page array, which is what the label promises. It used to be exact
-  // equality, so a `both` row matched neither 'home' nor 'page' and landed in
-  // NEITHER — while categories.json (`page || both`, below) showed it. Same
-  // shape as that filter; keep the two in step.
-  const projByKey = (slug: string, placement: string, group?: string) =>
-    (allProjects.docs as any[]).filter(
-      (p) =>
-        slugOf(p) === slug &&
-        p.type === 'image' &&
-        (p.placement === placement || p.placement === 'both') &&
-        (group ? p.group === group : !p.group),
-    )
+  // =========================================================================
+  // R23b-ii — every output shape now reads `images[]`, not the old top-level
+  // `placement`/`image`/`alt`/`categoryLabel`/`order`/`size` columns. The
+  // flattening itself is at module scope above (and unit-tested); what is left
+  // here is card assembly, which needs the media map.
+  //
+  // THIS FILE IS ONE OF TWO HAND-MIRRORED TWINS. scripts/fetch-content.mjs
+  // carries the same functions, line for line, and tests/fidelity/
+  // twin-equivalence.test.ts compares what they emit AS BYTES. Change one side
+  // only and that test goes red — correctly.
+  // =========================================================================
+
+  /** Bind the module-scope flattener to this run's projects. */
+  const flatten = (opts: { slug: string; group?: string | null; home: boolean }) =>
+    flattenImages(allProjects.docs as any[], slugOf, opts)
 
   /**
-   * Resolve a CategoryGallery block's Proyectos into the front-end card shape.
-   * Filters by category slug + placement ('all' = no placement filter; a
-   * `both` row matches either 'home' or 'page' — R46) + optional grupo,
-   * orders by `order`, applies maxItems, and returns cards
-   * carrying image path, localized alt/categoryLabel/title, size and group.
+   * One card in the `pages.json` CategoryGallery shape.
+   *
+   * `asHome` picks WHICH TEXT the photograph publishes, and it is the correction
+   * r23-target-model.md §4 needs: it says shape F uses `alt`/`categoryLabel`,
+   * but a block with `placement: 'home'` has always read the HOME row's
+   * `title`/`alt`/`categoryLabel`/`order`. Those four are now `homeTitle`,
+   * `homeAlt`, `homeCategoryLabel` and `homeOrder` on the image.
+   *
+   * There is deliberately NO `homeAlt ?? alt` fallback. The 13 non-branding home
+   * cards publish `{"es":"","en":""}` — a real, committed value — while `alt`
+   * holds the page text; falling back would rewrite all 13. `loc(null)` already
+   * yields the empty pair.
+   *
+   * Page cards carry no `title`: the model has no per-image page title, and no
+   * page-variant block in content/pages.json emits one.
+   *
+   * And HOME cards carry no `group`, which is not an accident of the old model
+   * even though that is where it comes from. A group is a section of the
+   * CATEGORY PAGE — `branding:beauty` is the only consumer, splitting its cards
+   * into adrianaMunoz and anaGrace (CategoryGalleryBlocks.tsx:296-300). The home
+   * preview has no sections, and none of its 18 committed cards carries the key.
+   * Emitting `parent.group` unconditionally adds it to 4 of branding's 5 home
+   * cards — measured, and the only thing that moved on the first run of this
+   * change.
+   */
+  const galleryCard = ({ img, parent }: FlatImage, asHome: boolean) => {
+    const card: any = {
+      id: Number(asHome ? (img.homeOrder ?? img.order) : img.order),
+      src: imgPathFromMedia(img.image),
+      alt: loc(asHome ? img.homeAlt : img.alt),
+      category: loc(asHome ? img.homeCategoryLabel : img.categoryLabel),
+    }
+    const title = asHome ? img.homeTitle : null
+    if (title && (title.es || title.en)) card.title = loc(title)
+    if (img.size) card.size = img.size
+    if (!asHome && parent.group) card.group = parent.group
+    return card
+  }
+
+  /**
+   * Resolve a CategoryGallery block's photographs into the front-end card shape.
+   * Filters by category slug + placement + optional grupo, orders, applies
+   * maxItems.
+   *
+   * An ABSENT grupo means 'any' here, and always has — the old filter ended
+   * `if (group) return p.group === group; return true`. That is not the same as
+   * `projByKey`'s absent group, which meant "ungrouped only"; the two really did
+   * differ, and shape C is the reason the difference matters.
+   *
+   * `placement: 'all'` ("Todos", Pages.ts) is offered by the admin and used by
+   * nothing. Under the old model it emitted a two-placement photograph TWICE,
+   * once per row. One photograph is now one row, so it emits one card, using the
+   * page text when the image is on the page and the home text otherwise. A
+   * deliberate definition of an unused option, pinned by a fixture block.
    */
   const resolveGalleryCards = (opts: {
     slug: string
@@ -311,31 +448,26 @@ export async function main({
     group?: string | null
     maxItems?: number | null
   }) => {
-    const { slug, placement, group } = opts
-    let docs = (allProjects.docs as any[]).filter((p) => {
-      if (slugOf(p) !== slug) return false
-      if (p.type !== 'image') return false
-      // R46: a `both` row satisfies a 'home' filter and a 'page' filter alike.
-      // ('all' already short-circuits above.)
-      if (placement && placement !== 'all' && p.placement !== placement && p.placement !== 'both')
-        return false
-      if (group) return p.group === group
-      return true
-    })
-    docs = byOrder(docs)
-    if (opts.maxItems && opts.maxItems > 0) docs = docs.slice(0, opts.maxItems)
-    return docs.map((p: any) => {
-      const card: any = {
-        id: p.order,
-        src: imgPathFromMedia(p.image),
-        alt: loc(p.alt),
-        category: loc(p.categoryLabel),
+    const { slug, placement, maxItems } = opts
+    const group = opts.group ? opts.group : 'any'
+    const clip = (rows: FlatImage[]) => (maxItems && maxItems > 0 ? rows.slice(0, maxItems) : rows)
+
+    if (placement === 'home' || placement === 'page') {
+      const home = placement === 'home'
+      return clip(flatten({ slug, group, home })).map((r) => galleryCard(r, home))
+    }
+
+    // 'all' / absent: the union, one card per photograph.
+    const seen = new Set<any>()
+    const union: FlatImage[] = []
+    for (const home of [false, true]) {
+      for (const r of flatten({ slug, group, home })) {
+        if (seen.has(r.img)) continue
+        seen.add(r.img)
+        union.push(r)
       }
-      if (p.title && (p.title.es || p.title.en)) card.title = loc(p.title)
-      if (p.size) card.size = p.size
-      if (p.group) card.group = p.group
-      return card
-    })
+    }
+    return clip(sortFlat(union, false)).map((r) => galleryCard(r, !r.img.showOnPage))
   }
 
   // ==================== HOME ====================
@@ -831,11 +963,10 @@ export async function main({
     // is a safety net; it also documents the Categorías → Proyectos model.)
     const catsRecon = {
       categories: byOrder(cats.docs as any[]).map((c: any) => {
-        const pageDocs = byOrder(
-          (allProjects.docs as any[]).filter(
-            (p) => slugOf(p) === c.slug && p.type === 'image' && (p.placement === 'page' || p.placement === 'both'),
-          ),
-        )
+        // Shape E — every page photograph of the categoría, across all four
+        // branding groups at once, so the group filter is 'any'. `group` is
+        // re-emitted from the PARENT, which is where it now lives.
+        const pageImages = flatten({ slug: c.slug, group: 'any', home: false })
         return {
           slug: c.slug,
           name: loc(c.name),
@@ -844,11 +975,11 @@ export async function main({
             title: loc(c.page?.title),
             description: loc(c.page?.description),
           },
-          projects: pageDocs.map((p: any) => ({
-            image: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
-            category: loc(p.categoryLabel),
-            group: p.group ?? null,
+          projects: pageImages.map(({ img, parent }) => ({
+            image: imgPathFromMedia(img.image),
+            alt: loc(img.alt),
+            category: loc(img.categoryLabel),
+            group: parent.group ?? null,
           })),
         }
       }),
@@ -864,8 +995,18 @@ export async function main({
     let recon: any
 
     if (spec.slug === 'web-apps' || spec.slug === 'fotografia-producto' || spec.slug === 'marketing-360') {
-      const homeDocs = byOrder(projByKey(spec.slug, 'home'))
-      const pageDocs = byOrder(projByKey(spec.slug, 'page'))
+      // Shapes A and B. These categorías have no grouped parents, so the group
+      // mode stays `null` ("ungrouped only") — the same filter as before, now
+      // reading the parent instead of the row.
+      //
+      // A is the one place the HOME text is used: `homeTitle` and
+      // `homeCategoryLabel`, not `title`/`categoryLabel`. Marketing's home card
+      // reads "Brochure Corporativo" / "Material Impreso - Grupo Santa Fe" while
+      // its page card reads "Brochure Corporativo - Grupo Santa Fe" / "Material
+      // Impreso" — four distinct strings per photograph (§2.2), and the easiest
+      // thing in this file to get subtly wrong.
+      const homeImages = flatten({ slug: spec.slug, group: null, home: true })
+      const pageImages = flatten({ slug: spec.slug, group: null, home: false })
       recon = {
         home: {
           heading: loc(cat.home.heading),
@@ -873,24 +1014,31 @@ export async function main({
           studioName: cat.home.studioName,
           roleDescription: loc(cat.home.roleDescription),
           cta: loc(cat.home.cta),
-          projects: homeDocs.map((p: any) => ({
-            image: imgPathFromMedia(p.image),
-            title: loc(p.title),
-            category: loc(p.categoryLabel),
+          projects: homeImages.map(({ img }) => ({
+            image: imgPathFromMedia(img.image),
+            title: loc(img.homeTitle),
+            category: loc(img.homeCategoryLabel),
           })),
         },
         page: {
           title: loc(cat.page.title),
           description: loc(cat.page.description),
-          projects: pageDocs.map((p: any) => ({
-            image: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
-            category: loc(p.categoryLabel),
+          projects: pageImages.map(({ img }) => ({
+            image: imgPathFromMedia(img.image),
+            alt: loc(img.alt),
+            category: loc(img.categoryLabel),
           })),
         },
       }
     } else if (spec.slug === 'branding') {
-      const homeDocs = byOrder(projByKey('branding', 'home'))
+      // Shape C — 'any', and this is the wrinkle §4 named. Branding's home
+      // photographs hang off GROUPED parents now (wodfest-1.png belongs to a
+      // `sports` project), so an "ungrouped only" filter emits [].
+      // `homeAlt`, not `alt`: this is a home card. The two happen to be
+      // byte-identical throughout branding (§2.2), which is exactly why reading
+      // the wrong one here would never show up until some other categoría grew a
+      // branding-shaped home array.
+      const homeImages = flatten({ slug: 'branding', group: 'any', home: true })
       recon = {
         home: {
           heading: loc(cat.home.heading),
@@ -899,9 +1047,9 @@ export async function main({
           roleDescription: loc(cat.home.roleDescription),
           cta: loc(cat.home.cta),
           sectionHeading: loc(cat.home.sectionHeading),
-          images: homeDocs.map((p: any) => ({
-            src: imgPathFromMedia(p.image),
-            alt: loc(p.alt),
+          images: homeImages.map(({ img }) => ({
+            src: imgPathFromMedia(img.image),
+            alt: loc(img.homeAlt),
           })),
         },
         page: {
@@ -911,13 +1059,17 @@ export async function main({
           subtitleBeauty: loc(cat.page.subtitleBeauty),
         },
       }
+      // Shape D. `id` IS the image's `order`, published: branding's page ids
+      // read 1,2,3,5,…,21 and the gap at 4 is `fisio-equina.png`, which is on
+      // home and in no page array. Preserving `order` verbatim reproduces the
+      // gap by construction. NEVER renumber to tidy the sequence.
       for (const g of BRANDING_PAGE_GROUPS) {
-        const docs = byOrder(projByKey('branding', 'page', g.group))
-        recon.page[g.jsonKey] = docs.map((p: any) => ({
-          id: p.order,
-          src: imgPathFromMedia(p.image),
-          alt: loc(p.alt),
-          category: loc(p.categoryLabel),
+        const groupImages = flatten({ slug: 'branding', group: g.group, home: false })
+        recon.page[g.jsonKey] = groupImages.map(({ img }) => ({
+          id: Number(img.order),
+          src: imgPathFromMedia(img.image),
+          alt: loc(img.alt),
+          category: loc(img.categoryLabel),
         }))
       }
     } else if (spec.slug === 'uxui-producto') {

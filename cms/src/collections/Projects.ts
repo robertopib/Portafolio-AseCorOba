@@ -201,9 +201,11 @@ export const Projects: CollectionConfig = {
     // `fisio-equina.png` is on home and in no page array at all. A parent-level flag can
     // say "this project appears on home", not "these two of its images do".
     //
-    // NOT READ BY ANYTHING YET. R23b-i lands the data; both exporters still read the old
-    // top-level `image`/`alt`/`order`/… columns above. R23b-ii switches them over and then
-    // drops those columns. That split is the safety argument — see the roadmap.
+    // READ BY BOTH EXPORTERS SINCE R23b-ii. R23b-i landed the data while both twins still read
+    // the old top-level `image`/`alt`/`order`/… columns above; R23b-ii switched them over and
+    // proved the emitted bytes did not move. Those old columns are STILL POPULATED and are the
+    // fallback until R23b-iii drops them — deliberately after a successful promotion, so the
+    // deploy that first runs the new emitters against production still has a way back.
     {
       name: 'images',
       type: 'array',
@@ -310,6 +312,54 @@ export const Projects: CollectionConfig = {
           admin: {
             description:
               'Solo si aparece en inicio: la etiqueta pequeña allí, que suele incluir el nombre del cliente.',
+            condition: (_, sibling) => Boolean(sibling?.showOnHome),
+          },
+        },
+        {
+          // ADDED BY R23b-ii, and it corrects the design (r23-target-model.md §3.2).
+          //
+          // §3.2 declined a home-side order on the grounds that "home order equals page order
+          // in all four categories". MEASURED FALSE in two of them, on the dev database:
+          //   branding    home 1,2,3,4,5   page 1,2,3,5,…,21   -- offset 1, every image
+          //   fotografía  gift-box-vinte   home 5   page 8     -- no constant offset at all
+          // and `content/pages.json` PUBLISHES the home number as the card's `id`
+          // (resolveGalleryCards → `id: p.order`, 0-based in every home block today). Without
+          // this field the branding home block emits 1,2,3,4,5 where it must emit 0,1,2,3,4,
+          // and fotografía's last card emits 8 where it must emit 5. Nineteen values in one
+          // file, and the byte-identity proof is the whole safety argument.
+          //
+          // Deriving it was the alternative and it was rejected: the two published sequences
+          // are 0-based-contiguous only by today's data, and an index rule silently invents a
+          // number the moment an editor reorders. The old home rows still exist, so the true
+          // value is available — store it.
+          name: 'homeOrder',
+          type: 'number',
+          label: 'Orden en inicio',
+          admin: {
+            description:
+              'Solo si aparece en inicio: su posición en la vista previa de inicio, que puede ' +
+              'diferir del orden en la página de la categoría.',
+            condition: (_, sibling) => Boolean(sibling?.showOnHome),
+          },
+        },
+        {
+          // The second, undocumented loss §3.2 did not mention at all. The home CARD's `alt`
+          // is not the page card's: the 13 non-branding home cards in pages.json publish
+          // `{es:"",en:""}` because their home rows carry no alt, while `alt` above holds the
+          // PAGE row's text ("OFF DAY Trainer - Diseño Web de Fitness"). Branding is the
+          // mirror case — its home rows do carry an alt, byte-identical to the page one (§2.2).
+          //
+          // NOTHING MAY FALL BACK TO `alt` HERE. `homeAlt ?? alt` re-publishes the page text on
+          // those 13 cards. An empty home alt is a real, published value; `loc(null)` already
+          // yields the empty pair, which is exactly right.
+          name: 'homeAlt',
+          type: 'text',
+          localized: true,
+          label: 'Texto alternativo en inicio',
+          admin: {
+            description:
+              'Solo si aparece en inicio: el texto alternativo de la tarjeta allí. Suele estar ' +
+              'vacío — la mayoría de las vistas previas de inicio muestran título y etiqueta, no alt.',
             condition: (_, sibling) => Boolean(sibling?.showOnHome),
           },
         },

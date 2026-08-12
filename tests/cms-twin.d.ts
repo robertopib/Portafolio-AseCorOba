@@ -61,6 +61,23 @@ declare module '@cms-export-emit' {
   export const OUT_DIR: string
   export function main(opts: ExportOptions): Promise<ExportResult>
 
+  /** One photograph, with the parent it hangs off and its position in that parent. */
+  export interface FlatImage {
+    img: any
+    parent: any
+    index: number
+  }
+
+  // R23b-ii's flattening — the one reader all six output shapes go through, exported so
+  // tests/unit/r23-flatten.test.ts can pin the three group modes and the sort with no Payload
+  // and no twin harness. `group`: a name | null (ungrouped parents only) | 'any' (no filter).
+  export function flattenImages(
+    projects: any[],
+    slugOf: (p: any) => string | undefined,
+    opts: { slug: string; group?: string | null; home: boolean },
+  ): FlatImage[]
+  export function sortFlat(rows: FlatImage[], home: boolean): FlatImage[]
+
   // The hand-mirrored copies of scripts/lib/fidelity.mjs. Exported so a test can
   // drive both implementations over the same inputs (R13b).
   export function deepDiff(a: any, b: any, pathStr?: string): string[]
