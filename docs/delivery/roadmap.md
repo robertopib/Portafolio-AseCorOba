@@ -262,7 +262,8 @@ Last updated: 2026-08-10
 | R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
-| R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
+| R50 | Commit the prod pre-flight and run it — **VERDICT: GO** | done (preview) | devops | **High** | R49, R23b-iii |
+| R54 | `1.jpg` appears on the prod photography page + home on promotion — **fix AFTER, owner's call** | todo (post-promotion) | content | Low | R50 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
 | R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
@@ -1989,6 +1990,84 @@ English one was not. Conductor-verified against the live bundle: **both names sh
 `/assets/index-DXhnfjR3.js`**, so the English navigation currently shows the old name.
 One admin edit; the owner's call, not a code change. **Note for R43:** this makes
 `content/site.json` (`Asenat`) the stale outlier, not the source of truth — prod and dev agree.
+
+### R50 — done (preview) 2026-08-12 · PR #52, squash `e556c65` · **VERDICT: GO**
+All three migrations verified against production, read-only. **59 `projects` rows → 22**
+(21 parents + the case study), 16 clients, 41 `projects_images`, 37 rows deleted.
+1. `r23_clientes_images` ✓ — 41 photographs, **41 covered, 0 unknown**. R45's blocker is closed,
+   and R49's worksheet row for `1.jpg` is what closes it.
+2. `r23_home_order_alt` ✓ — 19 `showOnHome`, 19 matched, **0 orphans**. **R23b-ii's `both`
+   prediction is now measured, not predicted:** `1.jpg` is its own home row, `homeOrder: 1`,
+   no special case.
+3. `r23_drop_old_columns` ✓ — 21 parents, 1 retained, **37 doomed, 0 unsafe**, no parent or case
+   study in the delete set. *37 on prod and 37 on dev is arithmetic coincidence — one extra row
+   **and** one extra parent — not a check that passed.* Good instinct to say so.
+**The script was validated against a known outcome, not merely reasoned about.** R23b-iii leaves
+`projects_pre_r23biii` — dev's `projects` as it was *before* the cleanup. Pointed at it, the
+projection reproduces dev's actual result (58 → 21, 20 parents, 16 clients, 40 images, 37
+deleted). **A projection that correctly predicts a migration that already happened, on a
+different-sized database.** Adopt this pattern: validate a predictor against a past event before
+trusting it about a future one.
+**A counting trap worth keeping:** the first run reported 13 staged uploads, not 14 —
+`15.jpg` was referenced by `payload_locked_documents_rels` merely because someone **opened it in
+the admin**. Counting every FK into `media` mislabels a staged upload as attached.
+**Deviation:** the worker squash-merged its own PR #52 rather than leaving it for review, and
+flagged it. Docs plus a read-only script, so no harm — but the gate exists for a reason and this
+is the second time a worker has merged its own work.
+
+### R54 — `1.jpg` becomes visible on production at promotion  (Low, post-promotion)
+**Owner decision 2026-08-12: fix it after the promotion, not before.** Recorded because it is a
+**published-content change the preview sign-off structurally could not cover** — preview has no
+`1.jpg`.
+On the first production rebuild, `sections/photography.json` goes **6 home / 12 page → 7 / 13**
+(conductor-verified: committed content is 6/12 today). *Sesiones privadas* will appear on the
+photography page and the home preview, where today it appears in **neither**.
+**Not a regression** — the old exact-equality filter silently dropped `placement: 'both'`; R46's
+fix reads the booleans, which is what the admin's *Ambas* option always promised.
+**Cosmetic cost, accepted:** its `alt` and `categoryLabel` are empty and its `order: 1` collides
+with `croissant.png`, so it renders with a blank caption in a contested position — deterministic
+thanks to R23b-ii's `(order, parent, index)` tiebreak, but not pretty. Fixable in the admin at
+any time; the new model makes it a per-image edit.
+
+### R23 promotion — gate log
+| Gate | Status |
+|---|---|
+| **Step 0 — owner reviews the finished state on preview** | ✅ **Signed off 2026-08-12** by the owner, against `preview` at `53dbb22` (21 projects, duplicates gone, site unchanged). This is the *complete* refactor, per the Locked decision — the earlier 2026-08-12 confirmation predated R23b-iii and did not cover it. |
+| Pre-flight against production (read-only) | **R50, in progress** |
+| Neon backup branch from production | pending — owner, `RELEASE.md` step 2 |
+| `authorize db migration on production` | **pending — the human types it, in session** |
+| `authorize production deploy` | **pending — the human types it, in session** |
+
+**Reviewing is not authorising.** The sign-off above satisfies step 0 only. Neither phrase has
+been given, neither may be assumed from *"looks fine"* or *"let's go"*, and the promotion does
+not start until both are typed. (Locked, `CLAUDE.md` → Governance precedence → safety floor.)
+
+### R50 — Commit the prod pre-flight, and run it for the R23 promotion  (High)
+**Raised Low → High: it is now the last thing between the finished refactor and production.**
+The promotion will apply **three** migrations to prod in one deploy —
+`r23_clientes_images` (R23b-i, widened by R49), `r23_home_order_alt` (R23b-ii) and
+`r23_drop_old_columns` (R23b-iii). The third **deletes rows**. None has ever run against
+production data.
+**Prod is not dev, and the difference is exactly what the pre-flight exists to catch.** R45
+measured prod at **58 image rows / 41 media** against dev's 57/40 — `1.jpg` (*Sesiones
+privadas*, `placement: 'both'`, the only `both` row anywhere) plus **14 staged uploads**
+(`2.jpg`…`15.jpg`) that are not yet attached and must stay that way until after the promotion.
+**Prod's delete set is therefore its own**, and R23b-iii's `planCleanup()` derives it from
+surviving `projects_images` rather than from a count — so it must be evaluated against prod's
+actual rows, not assumed from dev's.
+**Why it must be committed, not a `/tmp` script.** R45's and R49's pre-flights both lived in
+`/tmp` by convention. R49's imports the real `reconcile()`, and R23b-iii's logic lives in the
+equally importable `cms/src/lib/r23/cleanup.ts` — so a committed script **stays correct as the
+code changes**, which a hand-mirrored copy does not (the drift shape R13b warns about). It also
+has to be re-run **immediately before every promotion attempt**, because attaching any staged
+upload moves the counts.
+**Acceptance criteria (stub):** `cms/src/scripts/r23-preflight.ts` committed, importing the
+real `reconcile()` and `planCleanup()` rather than restating them; read-only (`SELECT` only);
+run against prod; and a verdict per migration — *would each of the three apply cleanly, and what
+would prod look like afterwards?* Expect roughly **22 projects** (21 parents incl. `1.jpg` + the
+case study), but **derive it, never assert it** — R23a's hard-coded 29 is the cautionary tale.
+**No authorization phrase** — reading prod is not a deploy (R30 settled this for RELEASE.md
+step 3). **Do not run any migration.**
 
 ### R43 — Dev CMS diverges from committed content in 3 files  (Medium)
 **Found by R23b-i, and unrelated to it** — identical verdicts before and after the migration, so
