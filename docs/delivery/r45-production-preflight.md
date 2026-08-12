@@ -1,5 +1,12 @@
 # R45 — Production pre-flight against the R23 worksheet
 
+> **SUPERSEDED 2026-08-12 by `r50-production-preflight.md`.** Its verdict below — *"the R23b-i
+> backfill does not fit production as-is"* — was true when measured and has since been resolved
+> by **R49**, which added `1.jpg` to the worksheet and replaced the census with a set comparison.
+> Production now reconciles exactly, and R50 measures all three migrations, not just the first.
+> **The measurements here are still the record of what production looked like on 2026-08-11** and
+> are cited throughout R50; only the verdict is out of date.
+
 > **Read-only.** Production was only read: three `SELECT`-only queries against the prod Neon
 > branch, `pnpm migrate:status:prod`, and HTTP `GET`s against the prod CMS REST API. No `INSERT`,
 > `UPDATE`, `DELETE`, `seed`, `payload migrate`, admin edit, or deploy. Nothing in `content/` or
