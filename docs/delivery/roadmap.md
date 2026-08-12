@@ -1990,6 +1990,19 @@ English one was not. Conductor-verified against the live bundle: **both names sh
 One admin edit; the owner's call, not a code change. **Note for R43:** this makes
 `content/site.json` (`Asenat`) the stale outlier, not the source of truth — prod and dev agree.
 
+### R23 promotion — gate log
+| Gate | Status |
+|---|---|
+| **Step 0 — owner reviews the finished state on preview** | ✅ **Signed off 2026-08-12** by the owner, against `preview` at `53dbb22` (21 projects, duplicates gone, site unchanged). This is the *complete* refactor, per the Locked decision — the earlier 2026-08-12 confirmation predated R23b-iii and did not cover it. |
+| Pre-flight against production (read-only) | **R50, in progress** |
+| Neon backup branch from production | pending — owner, `RELEASE.md` step 2 |
+| `authorize db migration on production` | **pending — the human types it, in session** |
+| `authorize production deploy` | **pending — the human types it, in session** |
+
+**Reviewing is not authorising.** The sign-off above satisfies step 0 only. Neither phrase has
+been given, neither may be assumed from *"looks fine"* or *"let's go"*, and the promotion does
+not start until both are typed. (Locked, `CLAUDE.md` → Governance precedence → safety floor.)
+
 ### R50 — Commit the prod pre-flight, and run it for the R23 promotion  (High)
 **Raised Low → High: it is now the last thing between the finished refactor and production.**
 The promotion will apply **three** migrations to prod in one deploy —
