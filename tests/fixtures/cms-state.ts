@@ -20,9 +20,13 @@
  *   - Localized values present, empty-string, and missing entirely (`loc()`'s
  *     `?? ''` fallback, and the `v.es || v.en` guards that decide whether a key
  *     is emitted at all).
- *   - Proyectos at every `placement` — `home`, `page`, and `both` (which since
- *     R46 lands in the home array AND the page array, and in categories.json)
- *     — grouped and ungrouped, with and without `title` / `size` / `group`.
+ *   - Photographs in every `images[]` combination — `showOnPage` only,
+ *     `showOnHome` only, and both (R46's `placement: 'both'`, translated) — on
+ *     grouped and ungrouped parents, with and without `homeTitle` / `size`, and
+ *     with `homeOrder` both equal to and different from `order`.
+ *   - Parents alongside the LEFTOVER rows R23b-i merged and R23b-iii will
+ *     delete, because that is the state production is in when the new emitters
+ *     first run against it (R23b-ii).
  *   - A `categoryGallery` per layoutVariant that matters: `branding:sports` and
  *     `branding:beauty` (which concatenates two groups), `branding:logos`, and a
  *     `:home` variant, which is the only path that resolves `intro` from the
@@ -54,15 +58,22 @@ const media = [
   { id: 5, filename: 'epsilon.jpg', url: '/api/media/file/epsilon.jpg' },
   { id: 6, filename: 'zeta.png', url: '/api/media/file/zeta.png' },
   { id: 7, filename: 'eta.png', url: '/api/media/file/eta.png' },
-  // R46: 8 and 9 are used by EXACTLY ONE project each — the two `placement:
-  // 'both'` rows. Every other media id above is shared by several rows, so an
-  // assertion naming one cannot tell which row produced it. That is not
-  // hypothetical: R46's first draft asserted on `delta.png`, which the branding
-  // `sports` row also emits, and the CategoryGallery assertion passed with the
-  // bug still in place. A dedicated file makes "this image appeared here" mean
-  // "the `both` row reached here".
+  // R46/R48: 8 onwards are used by EXACTLY ONE image each. Media 1..7 above are
+  // shared by several rows, so an assertion naming one cannot tell which row
+  // produced it. That is not hypothetical: R46's first draft asserted on
+  // `delta.png`, which the branding `sports` row also emits, and the
+  // CategoryGallery assertion passed with the bug still in place. A dedicated
+  // file makes "this image appeared here" mean "that row reached here".
   { id: 8, filename: 'theta.png', url: '/api/media/file/theta.png' },
   { id: 9, filename: 'iota.png', url: '/api/media/file/iota.png' },
+  // R23b-ii's three. Each pins one thing the flattening can get wrong:
+  //   kappa   home-only, on an UNGROUPED parent — the `fisio-equina.png` shape
+  //   lambda  on home, on a GROUPED parent — the `wodfest-1.png` shape, and the
+  //           reason branding's `home.images` needs group mode 'any'
+  //   mu      homeOrder ≠ order — the `gift-box-vinte.png` shape (home 5/page 8)
+  { id: 10, filename: 'kappa.png', url: '/api/media/file/kappa.png' },
+  { id: 11, filename: 'lambda.png', url: '/api/media/file/lambda.png' },
+  { id: 12, filename: 'mu.png', url: '/api/media/file/mu.png' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -337,46 +348,137 @@ const caseStudyBody = [
 ]
 
 // ---------------------------------------------------------------------------
-// Proyectos. `order` is scrambled within each group on purpose so byOrder() has
-// work to do — a twin that dropped the sort would emit the same cards in a
-// different order, and the byte comparison would catch it.
+// Proyectos — MODELLED ON THE PROMOTION STATE, not on a tidy end state (R23b-ii).
+//
+// After R23b-i the database holds BOTH: parents carrying `images[]`, and the
+// redundant rows the backfill merged, still present and still populated on their
+// old top-level columns. R23b-iii deletes those, deliberately after a successful
+// promotion — so the shape below is exactly what the new emitters first meet on
+// production, and the LEFTOVER rows at the bottom are the point. They carry
+// values that would be obvious in any output (`LEFTOVER`), and an emitter that
+// still reads a top-level `p.image` publishes them. Both twins would do that
+// identically, so the byte comparison cannot see it: the guard is the assertion
+// block in twin-equivalence.test.ts that no emitted file contains that string.
+//
+// `order` is scrambled within each parent and across parents on purpose, so the
+// sort has work to do — a twin that dropped it would emit the same cards in a
+// different order and the byte comparison would catch that one.
+//
+// WHICH FIELD FEEDS WHICH OUTPUT, because it is the thing this file exists to
+// pin (§2.2 — four distinct strings per photograph, not one shown twice):
+//   page card   alt / categoryLabel / order
+//   home card   homeAlt / homeCategoryLabel / homeTitle / homeOrder
 // ---------------------------------------------------------------------------
 const projects = [
-  // -- branding: home images, and page cards in every BRANDING_PAGE_GROUP --
-  { id: 100, category: 10, type: 'image', placement: 'home', order: 2, image: 1, alt: L('Marca A', 'Brand A'), categoryLabel: L('Branding', 'Branding') },
-  { id: 101, category: 10, type: 'image', placement: 'home', order: 1, image: 2, alt: L('Marca B', 'Brand B'), categoryLabel: L('Branding', 'Branding') },
-  { id: 102, category: 10, type: 'image', placement: 'page', group: 'sports', order: 2, image: 3, alt: L('Deporte 1', 'Sport 1'), categoryLabel: L('Deportes', 'Sports'), size: 'large' },
-  { id: 103, category: 10, type: 'image', placement: 'page', group: 'sports', order: 1, image: 4, alt: L('Deporte 2', 'Sport 2'), categoryLabel: L('Deportes', 'Sports') },
-  { id: 104, category: 10, type: 'image', placement: 'page', group: 'adrianaMunoz', order: 1, image: 5, alt: L('Adriana 1', 'Adriana 1'), categoryLabel: L('Belleza', 'Beauty') },
-  { id: 105, category: 10, type: 'image', placement: 'page', group: 'anaGrace', order: 1, image: 6, alt: L('Ana Grace 1', 'Ana Grace 1'), categoryLabel: L('Belleza', 'Beauty') },
-  { id: 106, category: 10, type: 'image', placement: 'page', group: 'logos', order: 1, image: 7, alt: L('Logo 1', 'Logo 1'), categoryLabel: L('Logos', 'Logos'), title: L('Logo uno', 'Logo one') },
-  // R46: a `both` row that ALSO has a group. `both` widens the placement test
-  // only — the group clause (`group ? p.group === group : !p.group`) is
-  // untouched, so this belongs to the logos page slot and must stay OUT of
-  // branding's ungrouped `home.images`. Pins the fix against being widened
-  // into "match everything".
-  { id: 107, category: 10, type: 'image', placement: 'both', group: 'logos', order: 2, image: 9, alt: L('Logo 2', 'Logo 2'), categoryLabel: L('Logos', 'Logos') },
+  // ================= PARENTS (carry images[]) =================
 
-  // -- web-apps: home + page, one with a title (the `title.es || title.en` arm)
-  { id: 110, category: 11, type: 'image', placement: 'home', order: 1, image: 1, title: L('App A', 'App A'), alt: L('App A', 'App A'), categoryLabel: L('Web', 'Web') },
-  { id: 111, category: 11, type: 'image', placement: 'home', order: 2, image: 2, title: L('', ''), alt: L('App B', 'App B'), categoryLabel: L('Web', 'Web') },
-  { id: 112, category: 11, type: 'image', placement: 'page', order: 1, image: 3, alt: L('Web 1', 'Web 1'), categoryLabel: L('Web', 'Web') },
-  // placement 'both'. Until R46 this comment read "ONLY categories.json reads
-  // it … the sections/web-apps.json page list must NOT contain it" — that was
-  // the BUG written down as intent: exact-equality filters dropped the row from
-  // both section arrays while categories.json showed it. It must now appear in
-  // sections/web-apps.json `home` AND `page`, in categories.json, and in a
-  // CategoryGallery block scoped to either placement. A twin that widened one
-  // filter and not the other diverges here.
-  { id: 113, category: 11, type: 'image', placement: 'both', order: 3, image: 8, alt: L('Web 2', 'Web 2'), categoryLabel: L('Web', 'Web') },
+  // -- branding, grouped 'sports'. `lambda` is on home AND on the page, from a
+  //    GROUPED parent: the wodfest-1.png shape. It is why branding's
+  //    `home.images` uses group mode 'any' — under "ungrouped only" this array
+  //    silently empties. `delta` next to it is page-only, so widening the group
+  //    clause into "match everything" would put delta on home and diverge.
+  {
+    id: 100, category: 10, type: 'image', placement: 'page', group: 'sports', order: 2, image: 3,
+    alt: L('Deporte 1', 'Sport 1'), categoryLabel: L('Deportes', 'Sports'),
+    images: [
+      { id: 'i100a', image: 4, order: 2, showOnPage: true, showOnHome: false, size: 'large', alt: L('Deporte 1', 'Sport 1'), categoryLabel: L('Deportes', 'Sports') },
+      { id: 'i100b', image: 11, order: 1, showOnPage: true, showOnHome: true, homeOrder: 0, homeAlt: L('Marca B', 'Brand B'), alt: L('Deporte 2', 'Sport 2'), categoryLabel: L('Deportes', 'Sports') },
+    ],
+  },
+  // -- branding, UNGROUPED, and its one image is on home and in NO page array:
+  //    the fisio-equina.png shape. Proves showOnHome and showOnPage are
+  //    independent, and that an ungrouped branding parent still reaches home.
+  {
+    id: 101, category: 10, type: 'image', placement: 'home', order: 1, image: 2,
+    alt: L('Marca A', 'Brand A'), categoryLabel: L('Branding', 'Branding'),
+    images: [
+      { id: 'i101a', image: 10, order: 4, showOnPage: false, showOnHome: true, homeOrder: 3, homeAlt: L('Solo inicio', 'Home only') },
+    ],
+  },
+  {
+    id: 104, category: 10, type: 'image', placement: 'page', group: 'adrianaMunoz', order: 1, image: 5,
+    alt: L('Adriana 1', 'Adriana 1'), categoryLabel: L('Belleza', 'Beauty'),
+    images: [
+      { id: 'i104a', image: 5, order: 5, showOnPage: true, showOnHome: false, alt: L('Adriana 1', 'Adriana 1'), categoryLabel: L('Belleza', 'Beauty') },
+    ],
+  },
+  {
+    id: 105, category: 10, type: 'image', placement: 'page', group: 'anaGrace', order: 1, image: 6,
+    alt: L('Ana Grace 1', 'Ana Grace 1'), categoryLabel: L('Belleza', 'Beauty'),
+    images: [
+      { id: 'i105a', image: 6, order: 6, showOnPage: true, showOnHome: false, alt: L('Ana Grace 1', 'Ana Grace 1'), categoryLabel: L('Belleza', 'Beauty') },
+    ],
+  },
+  // -- branding 'logos'. `iota` is R46's grouped two-placement photograph,
+  //    translated: `placement: 'both'` became showOnPage + showOnHome. Under the
+  //    old model it was kept OUT of branding's home array by the group clause;
+  //    under R23's model that array is ungrouped-blind on purpose and it belongs
+  //    there — see the note on that assertion in twin-equivalence.test.ts.
+  {
+    id: 106, category: 10, type: 'image', placement: 'page', group: 'logos', order: 1, image: 7,
+    alt: L('Logo 1', 'Logo 1'), categoryLabel: L('Logos', 'Logos'), title: L('Logo uno', 'Logo one'),
+    images: [
+      { id: 'i106a', image: 7, order: 7, showOnPage: true, showOnHome: false, alt: L('Logo 1', 'Logo 1'), categoryLabel: L('Logos', 'Logos') },
+      { id: 'i106b', image: 9, order: 8, showOnPage: true, showOnHome: true, homeOrder: 4, homeAlt: L('Logo 2', 'Logo 2'), alt: L('Logo 2', 'Logo 2'), categoryLabel: L('Logos', 'Logos') },
+    ],
+  },
 
-  // -- fotografía + marketing: minimal but present in both placements --
-  { id: 120, category: 13, type: 'image', placement: 'home', order: 1, image: 5, title: L('Foto A', 'Photo A'), alt: L('Foto A', 'Photo A'), categoryLabel: L('Foto', 'Photo') },
-  { id: 121, category: 13, type: 'image', placement: 'page', order: 1, image: 6, alt: L('Foto B', 'Photo B'), categoryLabel: L('Foto', 'Photo') },
-  { id: 130, category: 14, type: 'image', placement: 'home', order: 1, image: 7, title: L('Campaña', 'Campaign'), alt: L('Campaña', 'Campaign'), categoryLabel: L('360', '360') },
-  { id: 131, category: 14, type: 'image', placement: 'page', order: 1, image: 1, alt: L('Campaña 2', 'Campaign 2'), categoryLabel: L('360', '360') },
+  // -- web-apps, ungrouped, and the parent that carries most of the traps.
+  //
+  //    THE ORDERS ARE DELIBERATELY NOT MONOTONIC WITH THE HOME ORDERS. `theta`
+  //    is third on the page (order 3) and FIRST on home (homeOrder 0), so the
+  //    two sequences disagree on both position and published `id`:
+  //         by homeOrder   theta(0) alpha(1) beta(2)
+  //         by order       alpha(1) beta(2)  theta(3)
+  //    An emitter that sorted the home set by `order`, or published `order` as
+  //    the home card's id, gets a different array either way. Without that skew
+  //    the assertion is vacuous — which is how the first draft of this fixture
+  //    let both regressions through a green suite (R48, again).
+  //
+  //      alpha   on both, homeAlt ABSENT but `alt` REAL -> the {"es":"","en":""}
+  //              arm that a `homeAlt ?? alt` fallback would break. This is the
+  //              live shape: all 13 real home cards carry a page alt and no home
+  //              alt.
+  //      beta    home only, homeTitle empty on both locales -> the
+  //              `title.es || title.en` false arm (key omitted)
+  //      gamma   page only
+  //      theta   on both, and R46's canonical photograph
+  {
+    id: 110, category: 11, type: 'image', placement: 'home', order: 1, image: 1,
+    title: L('App A', 'App A'), alt: L('App A', 'App A'), categoryLabel: L('Web', 'Web'),
+    images: [
+      { id: 'i110a', image: 1, order: 1, showOnPage: true, showOnHome: true, homeOrder: 1, homeTitle: L('App A', 'App A'), homeCategoryLabel: L('Web inicio', 'Web home'), alt: L('App A - página', 'App A - page'), categoryLabel: L('Web', 'Web') },
+      { id: 'i110b', image: 2, order: 2, showOnPage: false, showOnHome: true, homeOrder: 2, homeTitle: L('', ''), homeCategoryLabel: L('Web', 'Web') },
+      { id: 'i110c', image: 3, order: 4, showOnPage: true, showOnHome: false, alt: L('Web 1', 'Web 1'), categoryLabel: L('Web', 'Web') },
+      { id: 'i110d', image: 8, order: 3, showOnPage: true, showOnHome: true, homeOrder: 0, homeTitle: L('Web 2 inicio', 'Web 2 home'), homeCategoryLabel: L('Web inicio', 'Web home'), alt: L('Web 2', 'Web 2'), categoryLabel: L('Web', 'Web') },
+    ],
+  },
 
-  // -- the case study --
+  // -- fotografía. `mu` is the gift-box-vinte.png shape: LAST in the page array
+  //    (order 9) and FIRST in the home preview (homeOrder 2, against epsilon's
+  //    3). Sorting the home set by `order` reverses it.
+  {
+    id: 120, category: 13, type: 'image', placement: 'home', order: 1, image: 5,
+    title: L('Foto A', 'Photo A'), alt: L('Foto A', 'Photo A'), categoryLabel: L('Foto', 'Photo'),
+    images: [
+      { id: 'i120a', image: 12, order: 9, showOnPage: true, showOnHome: true, homeOrder: 2, homeTitle: L('Foto C', 'Photo C'), homeCategoryLabel: L('Foto inicio', 'Photo home'), alt: L('Foto C página', 'Photo C page'), categoryLabel: L('Foto', 'Photo') },
+      { id: 'i120b', image: 6, order: 2, showOnPage: true, showOnHome: false, alt: L('Foto B', 'Photo B'), categoryLabel: L('Foto', 'Photo') },
+      { id: 'i120c', image: 5, order: 1, showOnPage: false, showOnHome: true, homeOrder: 3, homeTitle: L('Foto A', 'Photo A'), homeCategoryLabel: L('Foto', 'Photo') },
+    ],
+  },
+
+  // -- marketing --
+  {
+    id: 130, category: 14, type: 'image', placement: 'home', order: 1, image: 7,
+    title: L('Campaña', 'Campaign'), alt: L('Campaña', 'Campaign'), categoryLabel: L('360', '360'),
+    images: [
+      { id: 'i130a', image: 7, order: 1, showOnPage: false, showOnHome: true, homeOrder: 1, homeTitle: L('Campaña', 'Campaign'), homeCategoryLabel: L('360', '360') },
+      { id: 'i130b', image: 1, order: 2, showOnPage: true, showOnHome: false, alt: L('Campaña 2', 'Campaign 2'), categoryLabel: L('360', '360') },
+    ],
+  },
+
+  // -- the case study. A Proyecto with an EMPTY images[] — which is what it has
+  //    always been conceptually, and what every leftover row below looks like.
   {
     id: 140,
     category: 12,
@@ -390,6 +492,17 @@ const projects = [
     caseStudy: caseStudyGroup,
     body: caseStudyBody,
   },
+
+  // ================= LEFTOVERS (no images[]; must be invisible) =================
+  // The 17 rows R23b-i merged and R23b-iii will delete. Every one of them is a
+  // real `type: 'image'` row with a real media and a real placement, so nothing
+  // but reading `images[]` excludes them. Their text is `LEFTOVER` so that a
+  // regression is legible in the diff rather than plausible.
+  { id: 150, category: 10, type: 'image', placement: 'home', order: 90, image: 4, alt: L('LEFTOVER branding home', 'LEFTOVER branding home'), categoryLabel: L('LEFTOVER', 'LEFTOVER') },
+  { id: 151, category: 10, type: 'image', placement: 'page', group: 'sports', order: 91, image: 11, alt: L('LEFTOVER branding page', 'LEFTOVER branding page'), categoryLabel: L('LEFTOVER', 'LEFTOVER') },
+  { id: 152, category: 11, type: 'image', placement: 'both', order: 92, image: 8, alt: L('LEFTOVER web both', 'LEFTOVER web both'), categoryLabel: L('LEFTOVER', 'LEFTOVER'), title: L('LEFTOVER', 'LEFTOVER') },
+  { id: 153, category: 13, type: 'image', placement: 'home', order: 93, image: 12, title: L('LEFTOVER foto home', 'LEFTOVER foto home'), categoryLabel: L('LEFTOVER', 'LEFTOVER') },
+  { id: 154, category: 14, type: 'image', placement: 'page', order: 94, image: 1, alt: L('LEFTOVER marketing page', 'LEFTOVER marketing page'), categoryLabel: L('LEFTOVER', 'LEFTOVER'), images: [] },
 ]
 
 // ---------------------------------------------------------------------------
@@ -480,6 +593,13 @@ const pages = [
       { blockType: 'categoryGallery', category: 11, layoutVariant: 'web-apps:home', placement: 'home' },
       { blockType: 'categoryGallery', category: 12, layoutVariant: 'uxui:home', placement: 'home' },
       { blockType: 'categoryGallery', category: 13, layoutVariant: 'fotografia:home', placement: 'home', maxItems: 1 },
+      // `placement: 'all'` ("Todos") is offered by Pages.ts and used by no real
+      // Página. Under the old model it emitted a two-placement photograph TWICE,
+      // once per row; one photograph is now one row, so it emits one card, with
+      // the page text where the image is on the page and the home text where it
+      // is not. Unused paths drift silently — this block is what stops the two
+      // twins defining 'all' differently.
+      { blockType: 'categoryGallery', category: 11, layoutVariant: 'web-apps:page', placement: 'all' },
       {
         blockType: 'webAppsGallery',
         subheading: L('Trabajo reciente', 'Recent work'),

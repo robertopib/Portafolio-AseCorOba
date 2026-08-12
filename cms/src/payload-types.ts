@@ -1072,6 +1072,14 @@ export interface Project {
          * Solo si aparece en inicio: la etiqueta pequeña allí, que suele incluir el nombre del cliente.
          */
         homeCategoryLabel?: string | null;
+        /**
+         * Solo si aparece en inicio: su posición en la vista previa de inicio, que puede diferir del orden en la página de la categoría.
+         */
+        homeOrder?: number | null;
+        /**
+         * Solo si aparece en inicio: el texto alternativo de la tarjeta allí. Suele estar vacío — la mayoría de las vistas previas de inicio muestran título y etiqueta, no alt.
+         */
+        homeAlt?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -2301,6 +2309,8 @@ export interface ProjectsSelect<T extends boolean = true> {
         showOnHome?: T;
         homeTitle?: T;
         homeCategoryLabel?: T;
+        homeOrder?: T;
+        homeAlt?: T;
         id?: T;
       };
   body?:
