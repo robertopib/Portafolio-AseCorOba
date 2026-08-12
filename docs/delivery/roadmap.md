@@ -263,7 +263,7 @@ Last updated: 2026-08-10
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight and run it — **VERDICT: GO** | done (preview) | devops | **High** | R49, R23b-iii |
-| R54 | `1.jpg` appears on the prod photography page + home on promotion — fill `alt`/`order` first | todo | content | Medium | R50 |
+| R54 | `1.jpg` appears on the prod photography page + home on promotion — **fix AFTER, owner's call** | todo (post-promotion) | content | Low | R50 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
 | R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
@@ -2014,6 +2014,20 @@ the admin**. Counting every FK into `media` mislabels a staged upload as attache
 **Deviation:** the worker squash-merged its own PR #52 rather than leaving it for review, and
 flagged it. Docs plus a read-only script, so no harm — but the gate exists for a reason and this
 is the second time a worker has merged its own work.
+
+### R54 — `1.jpg` becomes visible on production at promotion  (Low, post-promotion)
+**Owner decision 2026-08-12: fix it after the promotion, not before.** Recorded because it is a
+**published-content change the preview sign-off structurally could not cover** — preview has no
+`1.jpg`.
+On the first production rebuild, `sections/photography.json` goes **6 home / 12 page → 7 / 13**
+(conductor-verified: committed content is 6/12 today). *Sesiones privadas* will appear on the
+photography page and the home preview, where today it appears in **neither**.
+**Not a regression** — the old exact-equality filter silently dropped `placement: 'both'`; R46's
+fix reads the booleans, which is what the admin's *Ambas* option always promised.
+**Cosmetic cost, accepted:** its `alt` and `categoryLabel` are empty and its `order: 1` collides
+with `croissant.png`, so it renders with a blank caption in a contested position — deterministic
+thanks to R23b-ii's `(order, parent, index)` tiebreak, but not pretty. Fixable in the admin at
+any time; the new model makes it a per-image edit.
 
 ### R23 promotion — gate log
 | Gate | Status |
