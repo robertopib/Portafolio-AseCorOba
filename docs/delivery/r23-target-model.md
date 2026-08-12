@@ -547,6 +547,26 @@ all; Payload requires it.
 `order` / `size` columns **stay in place**, unused, until a follow-up migration removes them
 once byte-identity has been proved on `preview` *and* production.
 
+> ## ⚠️ Superseded 2026-08-12 (R23b-iii) — the follow-up ran **before** production, not after
+>
+> The paragraph above, and §5.4's *"after it: `down` restores the schema but not the deleted
+> rows"*, both assume the cleanup lands **after** the promotion. It did not. The owner locked
+> **"promote complete work, never an intermediate state"** on 2026-08-12
+> ([roadmap.md](roadmap.md)): a multi-step refactor lands entirely on `preview`, is reviewed
+> there as a finished thing, and promotes in one release. Two things follow, and neither
+> weakens the argument this section makes:
+>
+> | This section says | What R23b-iii did |
+> |---|---|
+> | wait for byte-identity on production | byte-identity on **preview**, on both twins, is the gate — production is migrated once, with everything in it |
+> | the old columns are the fallback | **`RELEASE.md` step 2's Neon backup branch** is, and it restores *everything*, not six columns |
+> | `down` cannot restore the deleted rows (§5.4) | it can, and does — `up` archives `projects` / `projects_locales` into `projects_pre_r23biii` / `projects_locales_pre_r23biii` first, and `down` re-inserts the rows with their original ids. Demonstrated: 21 → 58 → 21, fingerprints identical, export byte-identical after the cycle |
+>
+> **What did not change:** the ordering *constraint* this section exists to state. The
+> destructive step is still a **separate migration**, still runs only after the exporters have
+> been switched over and proved, and still asserts before it writes. It is one promotion later
+> in the file and one promotion earlier in reality.
+
 ### 5.2 The backfill
 
 A data migration, driven by the **owner-completed**
@@ -629,6 +649,11 @@ DROP TABLE clients;                                                 -- last
   only once check 2 has passed on production data. The intermediate state — old columns and
   new array both populated — is fully functional, because the exporter changes land with step
   6, not before.
+  *(**Corrected 2026-08-12 by R23b-iii** — see the ⚠️ note in §5.1. `down` **does** restore the
+  deleted rows: `up` archives both tables before deleting, and rolling back re-inserts every
+  row with its original id. A Neon restore is the recovery path for the archive being gone, not
+  for an ordinary rollback. "Step 6 is a separate migration" survives unchanged and is what
+  R23b-iii is.)*
 - **The one new loss, and why it is acceptable.** `down` now also destroys the `clients` rows
   and every `projects.cliente_id` — the only content in this whole migration that is *new
   data* rather than moved data, and therefore the only part not recoverable from the surviving
