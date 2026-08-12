@@ -179,6 +179,20 @@ Last updated: 2026-08-10
   - **Conductor obligation:** every task prompt whose change could reach production must state
     what the owner should look at on preview — or state plainly that there is nothing to see
     and why.
+- **Promote complete work, never an intermediate state** (locked 2026-08-12, owner:
+  *"I don't want to promote to production until the full scope of the refactor is done"*).
+  A multi-step refactor lands **entirely on preview**, is reviewed there as a finished thing,
+  and promotes in **one** release. Do not split a refactor across promotions so that production
+  spends a release in a half-migrated state, and do not ask the owner to sign off on a state
+  that looks wrong.
+  **This reverses a conductor decision, and the reasoning is worth keeping.** R23b-iii was
+  originally deferred until *after* the promotion so the old columns would survive as a fallback
+  if the new exporters misbehaved on production data. That was over-cautious: **`RELEASE.md`
+  step 2 already requires a Neon backup branch before any promotion**, which restores
+  *everything*, not six columns — so the fallback was largely redundant. Its real cost was
+  concrete: the owner would review a state still showing the duplicates the whole refactor
+  exists to remove, and sign off twice. **When a safety measure duplicates one that already
+  exists, weigh what it costs the reviewer.**
 - **CI is offline and DB-free.** No secrets, no live Neon: the CMS build and
   `generate:types` use an unreachable placeholder `DATABASE_URI` (verified Payload
   never connects), `payload migrate` runs only in Vercel's `ci:build`, and
@@ -250,10 +264,10 @@ Last updated: 2026-08-10
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
-| R23b-ii | ↳↳ Exporter flattening + byte-identity proof — **done; awaiting owner preview review** | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
+| R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
 | R52 | `seed.ts` + `content-map.ts` still write the old model — a fresh seed yields no cards | todo | full-stack | Medium | R23b-iii |
 | R53 | Document the `payload.update` localized-array-subfield trap | todo | docs | Low | R23b-ii |
-| R23b-iii | ↳↳ Cleanup migration — drop old columns + duplicate rows, **after prod byte-identity** | todo | full-stack | **High** | R23b-ii, promotion |
 | R43 | **Dev CMS diverges from committed content in 3 files — preview renders the dev values** | todo | full-stack | **Medium** | — |
 | R44 | `payload migrate:create` emits a broken `down` for new collections | todo | docs | Low | R23b-i |
 | R24 | Project detail pages (Option B) — deliberate public redesign, breaks the pixel gate by intent | todo | product-designer + full-stack | Medium | R23 |
@@ -1757,6 +1771,39 @@ than left to drift on an unused path.
 sound: `fetch-content.mjs` is plain ESM run by Vercel's build and **cannot import from `cms/`**
 (`scripts/lib/fidelity.mjs`'s header settles it). So the R49 "importable beats mirrored" pattern
 applies only on the Local side; `twin-equivalence` keeps the pair honest.
+
+### R23b-iii — done (preview) 2026-08-12  ·  PR #50, squash `c145541`  ·  **THE REFACTOR IS COMPLETE**
+**58 → 21 projects** (20 parents + 1 case study); the 37 redundant rows are gone and the six old
+columns are dropped. `homeOrder`/`homeAlt` survive, still populated (18 / 10). **All 14 files
+byte-identical on both twins**, tree hash unchanged from R23b-ii (`acaa8b64…`), and unchanged
+again after a full `down`/`up`. Tests **212 → 221**. Pixel 0.000%/24. **Production untouched.**
+
+**Two pieces of work better than the prompt asked for:**
+1. **`down` restores the rows, not just the columns — and `r23-target-model.md` §5.4 was wrong
+   that it could not.** `up` archives `projects` and `projects_locales` into
+   `projects_pre_r23biii` / `projects_locales_pre_r23biii` first — **all** rows, because
+   `DROP COLUMN` destroys the survivors' values too and a `down` leaving those NULL could not
+   restore the original `NOT NULL`. `placement`/`size` are archived as `text` so the archive
+   holds no dependency on the enum types being dropped. Demonstrated for real: **21 → 58 → 21**,
+   with an old-column fingerprint matching the archive and the second `up` deleting the *same*
+   37 ids.
+2. **`defaultSort: 'order'` was a latent break nobody had spotted.** Payload injects it straight
+   into `ORDER BY`, so leaving it would have made **every** projects query fail the instant the
+   column vanished — admin list, both exporters, `fetch-content`. Changed to `internalTitle`.
+   This is the kind of coupling a byte-identity proof cannot see, because it fails at query time.
+
+**The guard is a set, not a count** — `planCleanup()` (`cms/src/lib/r23/cleanup.ts`, pure and
+unit-tested in `reconcile.ts`'s shape) deletes a row only when its `(categoría|archivo)` key is
+in the set built from surviving `projects_images`; anything else lands in `unsafe` and **aborts
+before the first write, naming the file**. Plus a `DO` block walking every FK child of
+`projects` — with `projects_images` deliberately in the loop, so "no image was lost" is proved
+rather than assumed — and a vacuity floor.
+**The archives outlive a successful `up`, deliberately** — they are the fallback the
+re-sequencing gave up, and `migrate:create` cannot see them (it diffs config against the
+committed `.json` snapshot). Dropping them is a follow-up once the promotion settles.
+**R44 is wider than filed:** `migrate:create` also emits `ADD COLUMN … NOT NULL` in `down`
+against a populated table, so the generated `down` could not run at all. Not only new
+collections.
 
 ### R23b-ii / R23b-iii — why the cleanup was split out  (conductor, 2026-08-11)
 **`r23-target-model.md` contradicts itself, and the careful half wins.**
