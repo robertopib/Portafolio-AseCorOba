@@ -262,7 +262,7 @@ Last updated: 2026-08-10
 | R48 | Fixture media 1–7 are shared by several projects — assertions can pass vacuously | todo | qa | Low | R46 |
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
-| R50 | Commit the prod pre-flight as `cms/src/scripts/r23-preflight.ts` (must re-run per promotion) | todo | devops | Low | R49 |
+| R50 | **Commit the prod pre-flight and run it for the R23 promotion** (read-only) | in-progress | devops | **High** | R49, R23b-iii |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
 | R23b-iii | ↳↳ Cleanup — 37 redundant rows deleted, 6 old columns dropped — **58 → 21 projects** | done (preview) | full-stack | **High** | R23b-ii |
@@ -1989,6 +1989,33 @@ English one was not. Conductor-verified against the live bundle: **both names sh
 `/assets/index-DXhnfjR3.js`**, so the English navigation currently shows the old name.
 One admin edit; the owner's call, not a code change. **Note for R43:** this makes
 `content/site.json` (`Asenat`) the stale outlier, not the source of truth — prod and dev agree.
+
+### R50 — Commit the prod pre-flight, and run it for the R23 promotion  (High)
+**Raised Low → High: it is now the last thing between the finished refactor and production.**
+The promotion will apply **three** migrations to prod in one deploy —
+`r23_clientes_images` (R23b-i, widened by R49), `r23_home_order_alt` (R23b-ii) and
+`r23_drop_old_columns` (R23b-iii). The third **deletes rows**. None has ever run against
+production data.
+**Prod is not dev, and the difference is exactly what the pre-flight exists to catch.** R45
+measured prod at **58 image rows / 41 media** against dev's 57/40 — `1.jpg` (*Sesiones
+privadas*, `placement: 'both'`, the only `both` row anywhere) plus **14 staged uploads**
+(`2.jpg`…`15.jpg`) that are not yet attached and must stay that way until after the promotion.
+**Prod's delete set is therefore its own**, and R23b-iii's `planCleanup()` derives it from
+surviving `projects_images` rather than from a count — so it must be evaluated against prod's
+actual rows, not assumed from dev's.
+**Why it must be committed, not a `/tmp` script.** R45's and R49's pre-flights both lived in
+`/tmp` by convention. R49's imports the real `reconcile()`, and R23b-iii's logic lives in the
+equally importable `cms/src/lib/r23/cleanup.ts` — so a committed script **stays correct as the
+code changes**, which a hand-mirrored copy does not (the drift shape R13b warns about). It also
+has to be re-run **immediately before every promotion attempt**, because attaching any staged
+upload moves the counts.
+**Acceptance criteria (stub):** `cms/src/scripts/r23-preflight.ts` committed, importing the
+real `reconcile()` and `planCleanup()` rather than restating them; read-only (`SELECT` only);
+run against prod; and a verdict per migration — *would each of the three apply cleanly, and what
+would prod look like afterwards?* Expect roughly **22 projects** (21 parents incl. `1.jpg` + the
+case study), but **derive it, never assert it** — R23a's hard-coded 29 is the cautionary tale.
+**No authorization phrase** — reading prod is not a deploy (R30 settled this for RELEASE.md
+step 3). **Do not run any migration.**
 
 ### R43 — Dev CMS diverges from committed content in 3 files  (Medium)
 **Found by R23b-i, and unrelated to it** — identical verdicts before and after the migration, so
