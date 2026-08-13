@@ -77,8 +77,28 @@ read-only checks in Step 3 by hand, the prod Neon connection string in **direct
    do the right thing.
    - **The migration is committed and wired.** A green PR already proves it:
      `repo-integrity` runs `scripts/ci/check-migrations.mjs`, which hard-fails on a
-     migration missing from disk, one not wired into `index.ts`, or `push: false`
-     being turned off. Locally, `pnpm --dir cms migrate:status` against dev.
+     migration missing from disk, one not wired into `index.ts`, `push: false` being
+     turned off, or a migration using the Payload Local API (see the next bullet).
+     Locally, `pnpm --dir cms migrate:status` against dev.
+   - **The chain replays from scratch.** From the repo root:
+     ```
+     pnpm replay:migrations
+     ```
+     It stands up a throwaway local PostgreSQL, applies **every** committed migration
+     in order to an **empty** database, and exits non-zero if any of them fails.
+     Nothing but `/tmp` is touched; Neon is never reached.
+
+     ⚠️ **Not optional, and not a formality.** The 2026-08-12 promotion failed at
+     exactly this: `20260811_114118_r23_clientes_images` read through the Payload
+     **Local API**, which builds its query from *today's* config — including
+     `homeAlt`, a column the *next* migration adds. It had passed on dev because dev
+     ran the migrations one at a time as the config grew. Production runs them
+     back-to-back against the current config, which is what a fresh database is.
+     **A read-only pre-flight cannot see this** — R50's replicated every assertion
+     with raw `SELECT`s, got the data exactly right, and validated the inputs rather
+     than the execution. Only running the chain finds an ordering bug.
+     `scripts/ci/check-migrations.mjs` now hard-fails the Local API outright, which
+     stops the known cause; this step is what catches the ones nobody has met yet.
    - **Prod is where you think it is.** From `cms/`: `pnpm migrate:status:prod`
      (reads `.env.prod`; `cms/package.json:18`). Every earlier migration must read
      **`Ran: Yes`** and the new one **`Ran: No`**. If the new one already says

@@ -346,6 +346,31 @@ decision.)*
     Testcontainers (faithful, needs Docker, adds minutes). Both blow the §6 budget. Neither
     is recommended now.
 
+#### The migration replay harness — the local script §6 anticipates (R55, 2026-08-13)
+
+`scripts/replay-migrations.sh` (`pnpm replay:migrations`) stands up a throwaway PostgreSQL with
+`initdb`, applies every committed migration in order to an **empty** database, and exits non-zero
+if any fails. It is **local-only by design, and must stay that way** — this paragraph exists so
+the next reader finds the tool and the reason in the same place, which is exactly what §6's
+*"say so … so the next person doesn't 'helpfully' wire them in"* asks for.
+
+**Why it is not a CI job**, having actually been weighed rather than assumed: §3 bars tests
+requiring a live database from CI, and a Postgres service container plus a full `payload migrate`
+blows §6's ≤ 60 s budget. A *non-required* job would be advisory and skippable; making it required
+means editing branch protection on `main` and `preview`, which **R25 forbids**. So the effect
+guard is local and gated in the runbook (`RELEASE.md` step 3), and the **cause** guard went into
+CI instead, where it costs nothing: `scripts/ci/check-migrations.mjs` check 7 hard-fails any
+migration that touches the Payload Local API, offline, inside the already-required
+`repo-integrity` check.
+
+**Why it exists at all.** The 2026-08-12 production promotion failed on an ordering bug —
+migration 1 read through the Local API, whose query is built from *today's* config, including a
+column migration 2 adds. Dev had never run the chain in sequence, so it had never been seen.
+R50's read-only pre-flight replicated every assertion the migrations make and passed: **it
+validated the inputs and not the execution, and a projection cannot see an ordering bug.** This
+harness is the only check here that runs the real thing against the real shape production
+presents. Do not replace it with more `SELECT`s.
+
 ### Playwright: not now
 
 Deferred with E2E (§2). If it is ever adopted, its official Docker image and
