@@ -263,6 +263,7 @@ Last updated: 2026-08-10
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight and run it — **VERDICT: GO** | done (preview) | devops | **High** | R49, R23b-iii |
+| R55 | **Migration chain is not replayable from scratch — promotion failed, prod unharmed** | in-progress | full-stack | **High** | R23b-iii |
 | R54 | `1.jpg` appears on the prod photography page + home on promotion — **fix AFTER, owner's call** | todo (post-promotion) | content | Low | R50 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
@@ -2028,6 +2029,51 @@ fix reads the booleans, which is what the admin's *Ambas* option always promised
 with `croissant.png`, so it renders with a blank caption in a contested position — deterministic
 thanks to R23b-ii's `(order, parent, index)` tiebreak, but not pretty. Fixable in the admin at
 any time; the new model makes it a per-image edit.
+
+### R55 — The migration chain is not replayable from scratch  (High) — **BLOCKS THE PROMOTION**
+**The 2026-08-12 promotion failed. Production is unharmed** — CMS API 200 with **59 projects**
+(the pre-migration count), site 200, nothing written. The migration aborted and Vercel kept the
+last good deployment: **the R8 shape, behaving exactly as designed.**
+
+**Root cause, from the production build log:**
+```
+column projects_images__locales.home_alt does not exist
+  at 20260811_114118_r23_clientes_images.ts:190 → payload.find({ collection: 'projects' })
+```
+Migration 1 reads through the **Payload Local API**, which builds its query from **today's
+config** — and today's config carries `homeAlt`, added by **migration 2**. Migration 1 runs
+first, so the column does not exist yet.
+
+**Why dev never caught it: dev never ran the chain in sequence.** Migration 1 ran on dev when the
+config had no `homeAlt`; migration 2 added it later. Production runs all three back-to-back
+against the current config. **A migration that uses the Local API reads through the final
+config, not the config as it was when the migration was written** — so the chain works
+incrementally and fails from scratch, which is the state every fresh database is in.
+
+**The lesson was already half-learned, one migration too late.** `20260812_015822_r23_home_order_alt`
+`:53-54` carries a comment headed *"WHY THE BACKFILL IS SQL AND NOT `payload.update`, UNLIKE
+R23b-i"* — R23b-ii discovered the Local API silently drops localized array sub-fields and
+switched to SQL. **Nobody went back and applied the same reasoning to migration 1.** Scope is
+therefore contained: **migration 1 is the only one using the Local API** (migration 2: zero
+calls, migration 3: zero). Its projects-touching sites are `:190` (read) and `:359` (update);
+`:183` categories, `:187` media and `:294` clients are against configs R23 did not change.
+
+**⚠️ CONDUCTOR ERROR — R50's pre-flight was structurally incapable of catching this, and I
+scoped it.** It replicated the migrations' *assertions* with raw `SELECT`s and got the data
+exactly right (41 covered, 0 unknown, 37 doomed, 22 after). It never executed `payload.find`
+through the config. **It validated the inputs and not the execution.** A read-only projection
+cannot see an ordering bug. Every check I asked for passed, and the thing that mattered was not
+among them.
+
+**The missing test is the obvious one nobody ran: apply every migration to an empty database.**
+That is precisely what production is. R13a's worker stood up a throwaway Postgres with `initdb`
+for exactly this kind of question; the technique existed in this repo and was not reached for.
+**Acceptance criteria (stub):** migration 1 uses **no Local API** (raw SQL throughout, matching
+migration 2's documented reasoning); all five migrations apply cleanly **to an empty database in
+order**, proven; dev rolled back and re-applied; byte-identity re-proven (`acaa8b64…`); the
+pre-flight re-run. **Replay-from-scratch becomes a standing requirement, not a one-off.**
+**Authorization is spent.** Both phrases applied to the failed attempt. The retry carries
+different migration code and needs a fresh decision from the owner.
 
 ### R23 promotion — gate log
 | Gate | Status |
