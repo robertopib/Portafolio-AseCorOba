@@ -263,7 +263,8 @@ Last updated: 2026-08-10
 | R47 | Prod brand rename is half-done — `ui.json` `en.nav.brand` still reads the old name | todo | content | Low | — |
 | R49 | Make R23b-i's backfill survive a prod/dev row-count difference | done (preview) | full-stack | **High** | R23b-i, R45 |
 | R50 | Commit the prod pre-flight and run it — **VERDICT: GO** | done (preview) | devops | **High** | R49, R23b-iii |
-| R55 | **Migration chain is not replayable from scratch — promotion failed, prod unharmed** | in-progress | full-stack | **High** | R23b-iii |
+| R55 | Migration chain not replayable from scratch — **fixed; chain now replays; guarded** | done (preview) | full-stack | **High** | R23b-iii |
+| R56 | Write down the byte-identity tree-hash recipe — R23b-i invented it, nobody recorded it | todo | docs | Low | R55 |
 | R54 | `1.jpg` appears on the prod photography page + home on promotion — **fix AFTER, owner's call** | todo (post-promotion) | content | Low | R50 |
 | R51 | Reassign `1.jpg`'s real client — `—` is a placeholder, not an answer | todo | content | Low | R49 |
 | R23b-ii | ↳↳ Exporter flattening + byte-identity proof | done (preview) | full-stack | **High** | R23b-i, R45, R49 |
@@ -2074,6 +2075,51 @@ order**, proven; dev rolled back and re-applied; byte-identity re-proven (`acaa8
 pre-flight re-run. **Replay-from-scratch becomes a standing requirement, not a one-off.**
 **Authorization is spent.** Both phrases applied to the failed attempt. The retry carries
 different migration code and needs a fresh decision from the owner.
+
+### R55 — done (preview) 2026-08-13 · PR #55, squash `9de613b`
+Migration 1 is Local-API-free (only `payload.logger` and comments remain — **reported honestly
+rather than claimed as zero**). **All five migrations apply cleanly to an empty database**, and
+the harness is proven by going **RED on the pre-fix file**, reproducing the production failure
+locally. Byte-identity unmoved (`acaa8b64…`), dev rolled back and re-applied to identical counts.
+
+**⚠️ A SECOND, INDEPENDENT FAILURE WAS STACKED BEHIND THE FIRST — the build log never reached it.**
+R23b-iii removed `placement`/`image`/`order`/`alt`/`categoryLabel` from the config, and migration
+1's row mapper read exactly those five off the Payload document. **Even with `home_alt` present**,
+`payload.find` would have returned every row with `image` undefined, dropped all 57, covered
+nothing, **passed its own `0 === 0` self-check, and logged success having written nothing.**
+R23b-iii's vacuity floor would then have aborted the chain — the net holds — but the promotion
+had **two** independent defects and only the first was visible. This is the **fourth** appearance
+of *the report says done, the work is not* (R13a's exit code, R23b-i's `git diff` gate, R23b-ii's
+`payload.update`, now this). Note the shape: a self-check comparing two numbers that are both
+derived from the same broken read will always agree.
+
+**Two guards, deliberately split by cause and effect** — good design worth keeping:
+- **Cause:** `scripts/ci/check-migrations.mjs` **check 7, HARD** — no migration may touch the
+  Local API. Offline, milliseconds, inside the already-required `repo-integrity` job, so it fires
+  at PR time on the *next* migration with **no branch-protection change** (R25 untouched).
+  **Comments are stripped before matching**, deliberately: the migrations document this hazard by
+  quoting the very calls they must not make, and a gate that fails on its own documentation
+  teaches people to delete the documentation. Mutation-tested both ways.
+- **Effect:** `pnpm replay:migrations` (throwaway Postgres via `initdb`, auto-teardown), required
+  by `RELEASE.md` step 3. **Local rather than CI, weighed not assumed** — `docs/testing-standards.md`
+  §3 bars live-DB tests from CI and §6 already prescribes exactly this shape; a Postgres service
+  blows the ≤60 s budget, a non-required job is skippable, and making it required needs the
+  branch-protection edit R25 forbids. Recorded in §4 so policy and tool sit together.
+
+**A better instrument than the one I asked for.** The export hash only sees what the *exporter*
+reads. The worker additionally fingerprinted what the *backfill decides* — 80 image-locale rows,
+16 clients, 21 projects, `_order`/`order`/`size`/`show_on_*`/`home_order` and every localized
+string, excluding generated ids and timestamps: **`6befe3aa3ab0e8b9` before and after**. **Adopt
+this alongside the export hash whenever a rewrite must be behaviour-identical** — it catches
+changes the emitted JSON cannot show.
+**Also measured rather than assumed:** array-row ids are BSON ObjectIds (not UUIDs), reproduced in
+~15 lines rather than importing `bson-objectid` — which is a dependency of `payload`, not of
+`cms/`, so importing it would be a phantom dependency that resolves locally under pnpm and could
+vanish on a Vercel install. And both locale rows are written per image, because R23b-ii's
+`home_alt` backfill is an `UPDATE … FROM` that inserts nothing — a missing locale row would leave
+`home_alt` NULL silently.
+**Stated limit, honestly:** the throwaway is PostgreSQL 14.20 and Neon runs 18.4, so the replay
+proves **ordering**, not Neon-version behaviour.
 
 ### R23 promotion — gate log
 | Gate | Status |
