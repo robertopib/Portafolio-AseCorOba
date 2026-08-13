@@ -144,9 +144,40 @@ read-only checks in Step 3 by hand, the prod Neon connection string in **direct
    good deployment** — prod looks healthy while quietly serving the old code. That
    is exactly the R8 failure shape, where "migrations Tier 1" appeared live for days
    and was not. **Read the build log; do not infer success from the site being up.**
-5. **Verify (AI):** prod CMS `/api/pages` → 200; prod site renders; public site
-   pixel-unchanged at defaults.
-6. **Spot-check (you):** log into the prod admin, confirm a toggle/label, done.
+   ⚠️ **The site and the CMS deploy IN PARALLEL off the same push, and the site can
+   finish first.** Its build runs `fetch-content.mjs` against the prod CMS, so if that
+   happens before `payload migrate` completes, the site is built from the **old
+   schema** — and if the release changed what the exporter reads, the result is a
+   bundle missing content, published to production. It exits 0 and looks fine.
+   **Measured on 2026-08-13 (R23):** site `fetch-content` ran 10:39:19–10:39:27;
+   migrations ran 10:39:31–10:39:50. The site queried a database with no
+   `projects_images` table, got empty arrays, and shipped a bundle with **every
+   project image missing**. Data was never at risk; the static build was simply stale.
+5. **Redeploy the site — REQUIRED after any release carrying a migration (AI).**
+   Wait until the **CMS** deployment reads `Ready`, then redeploy the site so its
+   `fetch-content` runs against the migrated database:
+   ```
+   npx vercel ls asecoroba-cms        # confirm the Production row is ● Ready
+   npx vercel redeploy <prod site deployment URL>
+   ```
+   Cheap, idempotent, and safe even when unnecessary. **Do it every time rather than
+   reasoning about whether this release needs it** — the reasoning is what failed.
+6. **Verify (AI) — compare bundles, do not eyeball.** The site's JS filename carries a
+   content hash, so two deployments with the same `index-*.js` are byte-identical:
+   ```
+   curl -s https://www.ase-cor-oba.site/ | grep -o '/assets/index-[A-Za-z0-9_-]*\.js'
+   ```
+   Save the **pre-release** production bundle before promoting, then after the
+   redeploy count occurrences of known content in both and diff them:
+   ```
+   grep -o '<known-image-name>' bundle.js | wc -l
+   ```
+   **Use `grep -o … | wc -l`, never `grep -c`** — the bundle is minified onto one line,
+   so `grep -c` reports 1 for everything and tells you nothing. Getting this wrong on
+   2026-08-13 cost several minutes of false alarm before the real regression was found.
+   Then the basics: prod CMS `/api/pages` → 200, admin → 200, public site → 200, and
+   any collection count the release was supposed to change.
+7. **Spot-check (you):** log into the prod admin, confirm a toggle/label, done.
 
 **Rollback:** point prod `DATABASE_URI` at the Step-2 backup branch and revert the
 `main` merge commit → redeploy. Added columns are harmless if left; the backup

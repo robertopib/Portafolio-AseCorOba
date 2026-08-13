@@ -2121,6 +2121,36 @@ vanish on a Vercel install. And both locale rows are written per image, because 
 **Stated limit, honestly:** the throwaway is PostgreSQL 14.20 and Neon runs 18.4, so the replay
 proves **ordering**, not Neon-version behaviour.
 
+### R23 PROMOTED TO PRODUCTION — 2026-08-13 ✅
+`8d674bd` (PR #56). All three migrations applied; **every number matched the pre-flight
+prediction exactly.** From the production build log:
+```
+[R23b-i]   backfilled 16 clients, 21 project parents, 41 images from 58 rows.
+[R23b-ii]  backfilled homeOrder on 19 showOnHome images; 5 also carry a home alt.
+[R23b-iii] 59 rows: 21 parents, 1 non-image, 37 redundant → delete. 22 will remain.
+[R23b-iii] 22 rows remain; 41 images untouched; case study intact: #580 'snaga'.
+```
+Verified live: **22 projects**, `/api/clients` → **403** (CMS-only by demonstration), admin 200,
+site 200. Site bundle 807,316 B vs the pre-release 806,134 B — and `1.jpg` occurrences **1 → 5**,
+exactly the predicted appearance of *Sesiones privadas* on the photography page and home preview.
+
+**⚠️ AN EIGHT-MINUTE PRODUCTION REGRESSION, AND IT WAS MY MISS.** For ~8 minutes the live site
+served a bundle with **every project image absent**. Not data loss — a **deploy race**. The site
+and CMS projects build **in parallel** off the same push: site `fetch-content` ran
+**10:39:19–10:39:27**, migrations ran **10:39:31–10:39:50**. The new exporter queried a database
+with no `projects_images` table, got empty arrays, emitted no cards, and exited 0. One site
+redeploy restored it.
+**R23b-iii's worker predicted this precisely** and filed it — *"the site and CMS projects deploy
+in parallel, so the first post-merge site build can fail against a not-yet-live CMS. Redeploy
+once."* **I ingested that note and did not put it in the runbook.** A finding recorded in a
+roadmap entry is not a finding that reaches the person doing the release. **Fixed: `RELEASE.md`
+step 5 now makes the redeploy a required, numbered step.**
+**A second self-inflicted delay:** I diagnosed with `grep -c` against a minified bundle. It
+counts *lines*, and minified JS is one line, so every count read as 1 and several minutes went
+into a false alarm before the real comparison — occurrence counts against the saved pre-release
+bundle — found it in seconds. **`RELEASE.md` step 6 now specifies `grep -o … | wc -l` and says
+why.**
+
 ### R23 promotion — gate log
 | Gate | Status |
 |---|---|
