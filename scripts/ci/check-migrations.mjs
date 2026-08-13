@@ -17,6 +17,7 @@
  *            (schema changes must ship as committed migrations, never dev push)
  *   5. WARN  each migration .ts has its .json snapshot committed
  *   6. WARN  a PR that touches schema-bearing files ships a new migration
+ *   7. HARD  no migration uses the Payload Local API (roadmap R55)
  *
  * Usage: node scripts/ci/check-migrations.mjs
  *   BASE_SHA=<sha>  optional — enables check 6 against the PR merge base.
@@ -104,6 +105,58 @@ if (!existsSync(CONFIG)) {
   } else {
     console.log('payload.config.ts: push: false ✓')
   }
+}
+
+// ---------------------------------------------------------------------------
+// 7. HARD — no migration may use the Payload Local API
+// ---------------------------------------------------------------------------
+// Exists because of a real incident: the 2026-08-12 production promotion failed
+// with `column projects_images__locales.home_alt does not exist` inside
+// `payload.find({ collection: 'projects' })` at
+// 20260811_114118_r23_clientes_images.ts:190. `homeAlt` is added by the NEXT
+// migration, so the column did not exist yet.
+//
+//   The Local API builds its query from TODAY's config, not the config as of when
+//   the migration was written. A chain that grew one migration at a time on dev
+//   therefore works incrementally and fails from scratch — which is what every
+//   fresh database, and every un-migrated production database, presents.
+//
+// Raw SQL names the columns the migration actually needs, at the point in the
+// chain where they exist. `20260812_015822_r23_home_order_alt.ts:53-69` had
+// already worked this out for a different symptom (the Local API silently drops
+// localized array sub-fields on UPDATE) and nobody applied it backwards. This
+// gate is what makes that not depend on somebody remembering. See roadmap R55.
+//
+// `payload.logger` is allowed: it is not database access, and all three R23
+// migrations use it to report what they did.
+//
+// COMMENTS ARE STRIPPED BEFORE MATCHING, deliberately. The migrations document
+// this hazard by quoting the very calls they must not make, and a gate that
+// fails on its own documentation teaches people to delete the documentation.
+const LOCAL_API = /\bpayload\s*\.\s*(find|findByID|findGlobal|create|update|updateGlobal|delete|count|db)\b/g
+
+const stripComments = (src) =>
+  src
+    .replace(/\/\*[\s\S]*?\*\//g, '') // block comments, including the JSDoc headers
+    .replace(/(^|[^:])\/\/.*$/gm, '$1') // line comments, without eating `https://`
+
+if (existsSync(MIG_DIR)) {
+  const errorsBefore = errors.length
+  for (const file of readdirSync(MIG_DIR).filter((f) => f.endsWith('.ts') && f !== 'index.ts')) {
+    const code = stripComments(readFileSync(path.join(MIG_DIR, file), 'utf8'))
+    const hits = [...code.matchAll(LOCAL_API)].map((m) => m[0].replace(/\s+/g, ''))
+    if (hits.length) {
+      fail(
+        `cms/src/migrations/${file} uses the Payload Local API: ${[...new Set(hits)].join(', ')}. ` +
+          `A migration reads through TODAY's config, not the config as of when it was written, ` +
+          `so it works incrementally on dev and fails from scratch — which is what production is. ` +
+          `This exact call shape aborted the 2026-08-12 promotion (roadmap R55). Use raw SQL via ` +
+          `\`db.execute(sql\`…\`)\`; see 20260812_015822_r23_home_order_alt.ts for the pattern. ` +
+          `payload.logger is fine.`,
+      )
+    }
+  }
+  if (errors.length === errorsBefore) console.log('migrations: no Payload Local API usage ✓')
 }
 
 // ---------------------------------------------------------------------------
